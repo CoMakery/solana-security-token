@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token_interface::{Mint, Token2022};
 use std::mem;
 
 use crate::{contexts::common::DISCRIMINATOR_LEN, AccessControl};
@@ -30,18 +31,18 @@ impl TransferRestrictionData {
 
 #[derive(Accounts)]
 pub struct InitializeTransferRestrictionData<'info> {
-  #[account(init,payer = payer, space = TransferRestrictionData::size(),
-    seeds = [TRANSFER_RESTRICTION_DATA_PREFIX.as_bytes(), &mint.key.to_bytes()],
+  #[account(init, payer = payer, space = TransferRestrictionData::size(),
+    seeds = [TRANSFER_RESTRICTION_DATA_PREFIX.as_bytes(), &mint.key().to_bytes()],
     bump,
   )]
   pub transfer_restriction_data: Account<'info, TransferRestrictionData>,
-  // https://github.com/coral-xyz/anchor/blob/9761ea60088a73a660c2f02d1151782174d0913e/tests/spl/token-extensions/programs/token-extensions/src/instructions.rs#L57C19-L57C35
-  // pub mint: Box<InterfaceAccount<'info, Mint>>,
-  // TODO: validate that the mint is a valid mint
-  /// CHECK: Mint address to be controlled by the access control
-  pub mint: AccountInfo<'info>,
+  #[account(
+      mint::token_program = token_program,
+  )]
+  pub mint: Box<InterfaceAccount<'info, Mint>>,
   pub access_control_account: Account<'info, AccessControl>,
   #[account(mut)]
   pub payer: Signer<'info>,
   pub system_program: Program<'info, System>,
+  pub token_program: Program<'info, Token2022>,
 }
