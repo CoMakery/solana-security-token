@@ -44,6 +44,12 @@ pub mod solana_security_token {
     ) -> Result<()> {
         instructions::transfer_restrictions::initialize_transfer_rule(ctx, lock_until)
     }
+
+    pub fn initialize_security_associated_account(
+        ctx: Context<InitializeSecurityAssociatedAccount>,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::initialize_security_associated_account(ctx)
+    }
 }
 
 #[derive(Accounts)]

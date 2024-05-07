@@ -9,3 +9,6 @@ pub use initialize_holder::*;
 
 pub mod initialize_transfer_rule;
 pub use initialize_transfer_rule::*;
+
+pub mod initialize_security_associated_account;
+pub use initialize_security_associated_account::*;
