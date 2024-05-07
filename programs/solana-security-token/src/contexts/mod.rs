@@ -17,3 +17,6 @@ pub use initialize_transfer_rule::*;
 
 pub mod initialize_security_associated_account;
 pub use initialize_security_associated_account::*;
+
+pub mod update_wallet_role;
+pub use update_wallet_role::*;

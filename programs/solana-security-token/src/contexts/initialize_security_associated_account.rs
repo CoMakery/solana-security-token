@@ -10,7 +10,7 @@ use crate::{
 };
 
 
-const SECURITY_ASSOCIATED_ACCOUNT_PREFIX: &str = "security_associated_account";
+pub const SECURITY_ASSOCIATED_ACCOUNT_PREFIX: &str = "security_associated_account";
 
 #[account]
 #[derive(Default)]
