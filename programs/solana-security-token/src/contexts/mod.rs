@@ -20,3 +20,6 @@ pub use initialize_security_associated_account::*;
 
 pub mod update_wallet_role;
 pub use update_wallet_role::*;
+
+pub mod update_wallet_group;
+pub use update_wallet_group::*;

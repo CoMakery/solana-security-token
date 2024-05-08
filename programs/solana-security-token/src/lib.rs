@@ -50,6 +50,14 @@ pub mod solana_security_token {
     ) -> Result<()> {
         instructions::transfer_restrictions::initialize_security_associated_account(ctx)
     }
+
+    pub fn update_wallet_role(ctx: Context<UpdateWalletRole>, role: u8) -> Result<()> {
+        instructions::transfer_restrictions::update_wallet_role(ctx, role)
+    }
+
+    pub fn update_wallet_group(ctx: Context<UpdateWalletGroup>) -> Result<()> {
+        instructions::transfer_restrictions::update_wallet_group(ctx)
+    }
 }
 
 #[derive(Accounts)]
