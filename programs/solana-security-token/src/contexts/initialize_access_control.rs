@@ -1,9 +1,19 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, Token2022};
 use std::mem;
+use num_enum::IntoPrimitive;
 
 use crate::contexts::common::DISCRIMINATOR_LEN;
 
+
+#[repr(u8)]
+#[derive(IntoPrimitive, AnchorDeserialize, AnchorSerialize, Clone, InitSpace, Copy, Debug)]
+pub enum Roles {
+  ContractAdmin = 1,
+  ReserveAdmin = 2,
+  WalletAdmin = 4,
+  TransferAdmin = 8,
+}
 
 #[account]
 #[derive(Default)]

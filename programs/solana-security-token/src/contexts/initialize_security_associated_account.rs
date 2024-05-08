@@ -4,7 +4,9 @@ use std::mem;
 
 use crate::{
   contexts::common::DISCRIMINATOR_LEN,
-  TransferRestrictionData, TransferRestrictionGroup,
+  Roles,
+  TransferRestrictionData,
+  TransferRestrictionGroup,
   TransferRestrictionHolder,
   TRANSFER_RESTRICTION_DATA_PREFIX,
 };
@@ -30,6 +32,11 @@ impl SecurityAssociatedAccount {
     + Self::ROLE_LEN
     + Self::GROUP_LEN
     + Self::HOLDER_LEN
+  }
+
+  pub fn has_role(&self, role: Roles) -> bool {
+    let role = role as u8;
+    self.role & role == role
   }
 }
 

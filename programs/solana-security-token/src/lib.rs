@@ -59,6 +59,3 @@ pub mod solana_security_token {
         instructions::transfer_restrictions::update_wallet_group(ctx)
     }
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}
