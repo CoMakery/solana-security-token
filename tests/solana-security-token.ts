@@ -1,16 +1,83 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
+import { 
+  ExtensionType,
+  getMintLen,
+  TOKEN_2022_PROGRAM_ID,
+  createInitializeTransferHookInstruction,
+  createInitializeMintInstruction,
+} from "@solana/spl-token";
+import {
+  Keypair,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+} from '@solana/web3.js';
 import { SolanaSecurityToken } from "../target/types/solana_security_token";
+// import { SecurityTransferHook } from "../target/types/security_transfer_hook";
 
 describe("solana-security-token", () => {
-  // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
   const program = anchor.workspace.SolanaSecurityToken as Program<SolanaSecurityToken>;
+  // const transferHookProgram = anchor.workspace.SecurityTransferHook as Program<SecurityTransferHook>;
+  const connection = provider.connection;
+
+  const wallet = provider.wallet as anchor.Wallet;
+  const payer = wallet.payer;
 
   it("Is initialized!", async () => {
-    // Add your test here.
-    const tx = await program.methods.initialize().rpc();
-    console.log("Your transaction signature", tx);
+    const decimals = 6;
+    // Size of Mint Account with extension
+    const extensions = [
+      // ExtensionType.TransferHook,
+    ];
+    const mintLen = getMintLen(extensions);
+    const lamports =
+      await provider.connection.getMinimumBalanceForRentExemption(mintLen);
+    const mintKeypair = Keypair.generate();
+
+    const transaction = new Transaction().add(
+      SystemProgram.createAccount({
+        fromPubkey: wallet.publicKey,
+        newAccountPubkey: mintKeypair.publicKey,
+        space: mintLen,
+        lamports: lamports,
+        programId: TOKEN_2022_PROGRAM_ID,
+      }),
+      // createInitializeTransferHookInstruction(
+      //   mintKeypair.publicKey,
+      //   wallet.publicKey,
+      //   transferHookProgram.programId, // Transfer Hook Program ID
+      //   TOKEN_2022_PROGRAM_ID,
+      // ),
+      createInitializeMintInstruction(
+        mintKeypair.publicKey,
+        decimals,
+        wallet.publicKey,
+        null,
+        TOKEN_2022_PROGRAM_ID,
+      ),
+    );
+  
+    const txSig = await sendAndConfirmTransaction(
+      provider.connection,
+      transaction,
+      [wallet.payer, mintKeypair],
+    );
+    console.log(`Create Mint Transaction Signature: ${txSig}`);
+
+    const accessControlKeypair = Keypair.generate();
+    const tx = await program.methods
+      .initializeAccessControl()
+      .accounts({
+        accessControl: accessControlKeypair.publicKey,
+        mint: mintKeypair.publicKey,
+        payer: wallet.publicKey,
+      })
+      .signers([accessControlKeypair])
+      .rpc();
+    console.log("InitializeAccessControl transaction signature", tx);
   });
 });
