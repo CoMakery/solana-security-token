@@ -6,7 +6,7 @@ skip-lint = false
 
 [programs.localnet]
 solana_security_token = "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
-security_transfer_hook = "4yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+security_transfer_hook = "38jsTJqL7seGftcurfNJG1DsXa4WwCrHuNq4q1m9uZ9j"
 
 [registry]
 url = "https://api.apr.dev"
@@ -17,8 +17,8 @@ wallet = "~/.config/solana/id.json"
 
 [workspace]
 members = [
-  "programs/solana-security-token",
   "programs/security-transfer-hook",
+  "programs/solana-security-token",
 ]
 
 [scripts]

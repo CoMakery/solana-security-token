@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("4yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ");
+declare_id!("38jsTJqL7seGftcurfNJG1DsXa4WwCrHuNq4q1m9uZ9j");
 
 #[program]
 pub mod solana_security_token {
