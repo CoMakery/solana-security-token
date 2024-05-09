@@ -13,15 +13,15 @@ import {
   SystemProgram,
   Transaction,
 } from '@solana/web3.js';
-import { SolanaSecurityToken } from "../target/types/solana_security_token";
-// import { SecurityTransferHook } from "../target/types/security_transfer_hook";
+import { TransferRestrictions } from "../target/types/transfer_restrictions";
+import { SecurityTransferHook } from "../target/types/security_transfer_hook";
 
 describe("solana-security-token", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.SolanaSecurityToken as Program<SolanaSecurityToken>;
-  // const transferHookProgram = anchor.workspace.SecurityTransferHook as Program<SecurityTransferHook>;
+  const transferRestrictionsProgram = anchor.workspace.TransferRestrictions as Program<TransferRestrictions>;
+  const transferHookProgram = anchor.workspace.SecurityTransferHook as Program<SecurityTransferHook>;
   const connection = provider.connection;
 
   const wallet = provider.wallet as anchor.Wallet;
@@ -31,7 +31,7 @@ describe("solana-security-token", () => {
     const decimals = 6;
     // Size of Mint Account with extension
     const extensions = [
-      // ExtensionType.TransferHook,
+      ExtensionType.TransferHook,
     ];
     const mintLen = getMintLen(extensions);
     const lamports =
@@ -46,12 +46,12 @@ describe("solana-security-token", () => {
         lamports: lamports,
         programId: TOKEN_2022_PROGRAM_ID,
       }),
-      // createInitializeTransferHookInstruction(
-      //   mintKeypair.publicKey,
-      //   wallet.publicKey,
-      //   transferHookProgram.programId, // Transfer Hook Program ID
-      //   TOKEN_2022_PROGRAM_ID,
-      // ),
+      createInitializeTransferHookInstruction(
+        mintKeypair.publicKey,
+        wallet.publicKey,
+        transferHookProgram.programId,
+        TOKEN_2022_PROGRAM_ID,
+      ),
       createInitializeMintInstruction(
         mintKeypair.publicKey,
         decimals,
@@ -69,7 +69,7 @@ describe("solana-security-token", () => {
     console.log(`Create Mint Transaction Signature: ${txSig}`);
 
     const accessControlKeypair = Keypair.generate();
-    const tx = await program.methods
+    const tx = await transferRestrictionsProgram.methods
       .initializeAccessControl()
       .accounts({
         accessControl: accessControlKeypair.publicKey,

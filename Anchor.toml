@@ -4,6 +4,7 @@ anchor_version = "0.30.0"
 [features]
 resolution = true
 skip-lint = false
+
 [programs.localnet]
 solana_security_token = "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
 security_transfer_hook = "38jsTJqL7seGftcurfNJG1DsXa4WwCrHuNq4q1m9uZ9j"
