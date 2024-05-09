@@ -1,15 +1,18 @@
+pub mod instructions;
+
+pub use instructions::*;
+
 use anchor_lang::prelude::*;
 
 declare_id!("38jsTJqL7seGftcurfNJG1DsXa4WwCrHuNq4q1m9uZ9j");
 
 #[program]
-pub mod solana_security_token {
+pub mod security_transfer_hook {
     use super::*;
 
-    pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
-        Ok(())
+    /// execute transfer hook
+    #[interface(spl_transfer_hook_interface::execute)]
+    pub fn execute_transaction(ctx: Context<ExecuteTransferHook>, amount: u64) -> Result<()> {
+        instructions::handler(ctx, amount)
     }
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}

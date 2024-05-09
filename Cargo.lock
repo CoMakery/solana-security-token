@@ -1678,6 +1678,8 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "spl-transfer-hook-interface",
+ "transfer-restrictions",
 ]
 
 [[package]]
@@ -2000,16 +2002,6 @@ dependencies = [
  "quote",
  "rustversion",
  "syn 2.0.60",
-]
-
-[[package]]
-name = "solana-security-token"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "num_enum",
- "spl-transfer-hook-interface",
 ]
 
 [[package]]
@@ -2415,6 +2407,16 @@ dependencies = [
  "serde_spanned",
  "toml_datetime",
  "winnow 0.6.7",
+]
+
+[[package]]
+name = "transfer-restrictions"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "num_enum",
+ "spl-transfer-hook-interface",
 ]
 
 [[package]]
