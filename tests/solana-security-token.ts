@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { 
+import {
   ExtensionType,
   getMintLen,
   TOKEN_2022_PROGRAM_ID,
@@ -12,16 +12,21 @@ import {
   sendAndConfirmTransaction,
   SystemProgram,
   Transaction,
-} from '@solana/web3.js';
+} from "@solana/web3.js";
 import { TransferRestrictions } from "../target/types/transfer_restrictions";
 import { SecurityTransferHook } from "../target/types/security_transfer_hook";
+import { assert } from "chai";
+
+const ACCESS_CONTROL_PREFIX = "access-control";
 
 describe("solana-security-token", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const transferRestrictionsProgram = anchor.workspace.TransferRestrictions as Program<TransferRestrictions>;
-  const transferHookProgram = anchor.workspace.SecurityTransferHook as Program<SecurityTransferHook>;
+  const transferRestrictionsProgram = anchor.workspace
+    .TransferRestrictions as Program<TransferRestrictions>;
+  const transferHookProgram = anchor.workspace
+    .SecurityTransferHook as Program<SecurityTransferHook>;
   const connection = provider.connection;
 
   const wallet = provider.wallet as anchor.Wallet;
@@ -30,9 +35,7 @@ describe("solana-security-token", () => {
   it("Is initialized!", async () => {
     const decimals = 6;
     // Size of Mint Account with extension
-    const extensions = [
-      ExtensionType.TransferHook,
-    ];
+    const extensions = [ExtensionType.TransferHook];
     const mintLen = getMintLen(extensions);
     const lamports =
       await provider.connection.getMinimumBalanceForRentExemption(mintLen);
@@ -50,34 +53,46 @@ describe("solana-security-token", () => {
         mintKeypair.publicKey,
         wallet.publicKey,
         transferHookProgram.programId,
-        TOKEN_2022_PROGRAM_ID,
+        TOKEN_2022_PROGRAM_ID
       ),
       createInitializeMintInstruction(
         mintKeypair.publicKey,
         decimals,
         wallet.publicKey,
         null,
-        TOKEN_2022_PROGRAM_ID,
-      ),
+        TOKEN_2022_PROGRAM_ID
+      )
     );
-  
+
     const txSig = await sendAndConfirmTransaction(
       provider.connection,
       transaction,
-      [wallet.payer, mintKeypair],
+      [wallet.payer, mintKeypair]
     );
     console.log(`Create Mint Transaction Signature: ${txSig}`);
 
-    const accessControlKeypair = Keypair.generate();
+    const [accessControlPubkey, accessControlBump] =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from(ACCESS_CONTROL_PREFIX), mintKeypair.publicKey.toBuffer()],
+        transferRestrictionsProgram.programId
+      );
+    console.log("Access Control Pubkey", accessControlPubkey.toBase58());
+
     const tx = await transferRestrictionsProgram.methods
       .initializeAccessControl()
       .accounts({
-        accessControl: accessControlKeypair.publicKey,
         mint: mintKeypair.publicKey,
         payer: wallet.publicKey,
       })
-      .signers([accessControlKeypair])
       .rpc();
     console.log("InitializeAccessControl transaction signature", tx);
+
+    const accessControlData =
+      await transferRestrictionsProgram.account.accessControl.fetch(
+        accessControlPubkey
+      );
+    console.log("Access Control Data", accessControlData);
+
+    assert.deepEqual(accessControlData.mint, mintKeypair.publicKey);
   });
 });

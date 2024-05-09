@@ -32,7 +32,10 @@ impl AccessControl {
 
 #[derive(Accounts)]
 pub struct InitializeAccessControl<'info> {
-  #[account(init, payer = payer, space = AccessControl::size())]
+  #[account(init, payer = payer, space = AccessControl::size(),
+    seeds = [b"access-control".as_ref(), mint.to_account_info().key.as_ref()],
+    bump,
+  )]
   pub access_control: Account<'info, AccessControl>,
   #[account(
     mint::token_program = token_program,
