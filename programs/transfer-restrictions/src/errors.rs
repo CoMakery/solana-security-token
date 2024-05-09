@@ -4,4 +4,6 @@ use anchor_lang::prelude::*;
 pub enum SolanaSecurityTokenError {
     #[msg("Max holders reached")]
     MaxHoldersReached,
+    #[msg("Unauthorized")]
+    Unauthorized,
 }

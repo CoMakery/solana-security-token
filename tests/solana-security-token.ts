@@ -17,7 +17,7 @@ import { TransferRestrictions } from "../target/types/transfer_restrictions";
 import { SecurityTransferHook } from "../target/types/security_transfer_hook";
 import { assert } from "chai";
 
-const ACCESS_CONTROL_PREFIX = "access-control";
+const ACCESS_CONTROL_PREFIX = "access_control";
 
 describe("solana-security-token", () => {
   const provider = anchor.AnchorProvider.env();

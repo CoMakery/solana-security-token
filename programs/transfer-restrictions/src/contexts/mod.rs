@@ -23,3 +23,6 @@ pub use update_wallet_role::*;
 
 pub mod update_wallet_group;
 pub use update_wallet_group::*;
+
+pub mod initialize_wallet_role;
+pub use initialize_wallet_role::*;

@@ -3,7 +3,11 @@ use anchor_spl::token_interface::{Mint, Token2022};
 use std::mem;
 use num_enum::IntoPrimitive;
 
-use crate::contexts::common::DISCRIMINATOR_LEN;
+use crate::{
+  contexts::common::DISCRIMINATOR_LEN,
+  WalletRole,
+  WALLET_ROLE_PREFIX,
+};
 
 
 #[repr(u8)]
@@ -13,6 +17,7 @@ pub enum Roles {
   ReserveAdmin = 2,
   WalletAdmin = 4,
   TransferAdmin = 8,
+  All = 15,
 }
 
 #[account]
@@ -33,10 +38,19 @@ impl AccessControl {
 #[derive(Accounts)]
 pub struct InitializeAccessControl<'info> {
   #[account(init, payer = payer, space = AccessControl::size(),
-    seeds = [b"access-control".as_ref(), mint.to_account_info().key.as_ref()],
+    seeds = [b"access_control".as_ref(), mint.to_account_info().key.as_ref()],
     bump,
   )]
   pub access_control: Account<'info, AccessControl>,
+  #[account(init, payer = payer, space = DISCRIMINATOR_LEN + WalletRole::INIT_SPACE,
+    seeds = [
+      WALLET_ROLE_PREFIX.as_bytes(),
+      &mint.key().to_bytes(),
+      &payer.key().to_bytes(),
+    ],
+    bump,
+  )]
+  pub authority_wallet_role: Account<'info, WalletRole>,
   #[account(
     mint::token_program = token_program,
   )]
