@@ -149,10 +149,6 @@ export type SecurityTransferHook = {
         "kind": "struct",
         "fields": [
           {
-            "name": "role",
-            "type": "u8"
-          },
-          {
             "name": "group",
             "type": "pubkey"
           },
