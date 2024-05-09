@@ -1,16 +1,16 @@
 use anchor_lang::prelude::*;
 
-mod instructions;
+pub mod instructions;
+pub mod contexts;
+pub mod errors;
 
-mod contexts;
-use contexts::*;
+pub use contexts::*;
 
-mod errors;
 
 declare_id!("6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ");
 
 #[program]
-pub mod solana_security_token {
+pub mod transfer_restrictions {
     use super::*;
 
     pub fn initialize_access_control(ctx: Context<InitializeAccessControl>) -> Result<()> {

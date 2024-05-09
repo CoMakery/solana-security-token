@@ -1,19 +1,19 @@
 [package]
-name = "solana-security-token"
+name = "transfer-restrictions"
 version = "0.1.0"
-description = "Created with Anchor"
+description = "Transfer restrictions for Solana tokens"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "solana_security_token"
+name = "transfer_restrictions"
 
 [features]
-default = []
-cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
 idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
