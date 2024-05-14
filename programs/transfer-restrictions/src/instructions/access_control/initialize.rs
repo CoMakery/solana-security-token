@@ -8,7 +8,7 @@ use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
 pub fn initialize(
     ctx: Context<InitializeAccessControl>,
-    _args: InitializeAccessControlArgs,
+    args: InitializeAccessControlArgs,
 ) -> Result<()> {
     let access_control = &mut ctx.accounts.access_control;
     access_control.mint = *ctx.accounts.mint.to_account_info().key;

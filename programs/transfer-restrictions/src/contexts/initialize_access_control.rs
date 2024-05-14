@@ -76,7 +76,7 @@ pub struct InitializeAccessControl<'info> {
     seeds = [
       WALLET_ROLE_PREFIX,
       mint.to_account_info().key.as_ref(),
-      payer.to_account_info().key.as_ref(),
+      authority.to_account_info().key.as_ref(),
     ],
     bump,
   )]

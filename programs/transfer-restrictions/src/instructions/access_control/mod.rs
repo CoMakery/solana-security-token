@@ -9,3 +9,6 @@ pub use update_wallet_role::*;
 
 pub mod execute;
 pub use execute::*;
+
+pub mod mint_securities;
+pub use mint_securities::*;

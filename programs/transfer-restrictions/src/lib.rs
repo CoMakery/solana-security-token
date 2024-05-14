@@ -35,6 +35,10 @@ pub mod transfer_restrictions {
         instructions::access_control::handler(ctx, amount)
     }
 
+    pub fn mint_securities(ctx: Context<MintSecurities>, amount: u64) -> Result<()> {
+        instructions::access_control::mint_securities(ctx, amount)
+    }
+
     pub fn initialize_transfer_restrictions_data(
         ctx: Context<InitializeTransferRestrictionData>,
         max_holders: u64,

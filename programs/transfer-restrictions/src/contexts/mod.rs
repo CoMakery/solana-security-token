@@ -29,3 +29,6 @@ pub use initialize_wallet_role::*;
 
 pub mod execute_transfer_hook;
 pub use execute_transfer_hook::*;
+
+pub mod mint_securities;
+pub use mint_securities::*;

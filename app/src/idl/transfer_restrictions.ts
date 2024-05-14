@@ -184,7 +184,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "payer"
+                "path": "authority"
               }
             ]
           }
@@ -892,6 +892,107 @@ export type TransferRestrictions = {
         {
           "name": "role",
           "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "mintSecurities",
+      "discriminator": [
+        90,
+        195,
+        58,
+        36,
+        142,
+        195,
+        14,
+        225
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "authorityWalletRole",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  97,
+                  108,
+                  108,
+                  101,
+                  116,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "accessControl",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  101,
+                  115,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "securityMint",
+          "writable": true
+        },
+        {
+          "name": "destinationAccount",
+          "writable": true
+        },
+        {
+          "name": "destinationAuthority"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
         }
       ]
     },

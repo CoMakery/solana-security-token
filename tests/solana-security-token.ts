@@ -7,6 +7,9 @@ import {
   createInitializeTransferHookInstruction,
   createInitializeMintInstruction,
   getMint,
+  getAssociatedTokenAddressSync,
+  createAssociatedTokenAccountInstruction,
+  getAccount,
 } from "@solana/spl-token";
 import {
   Keypair,
@@ -25,6 +28,7 @@ const WALLET_ROLE_PREFIX = "wallet_role";
 describe("solana-security-token", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
+  const confirmOptions = 'confirmed'
 
   const transferRestrictionsProgram = anchor.workspace
     .TransferRestrictions as Program<TransferRestrictions>;
@@ -53,7 +57,7 @@ describe("solana-security-token", () => {
 
     await provider.connection.confirmTransaction(
       await provider.connection.requestAirdrop(payer.publicKey, 1000000000000000),
-      "confirmed"
+      confirmOptions
     );
   });
 
@@ -140,17 +144,17 @@ describe("solana-security-token", () => {
           delegate: setupAccessControlArgs.delegate ? new anchor.web3.PublicKey(setupAccessControlArgs.delegate) : null,
         })
         .accountsStrict({
-          accessControl: accessControlPubkey,
-          authorityWalletRole: authorityWalletRolePubkey,
-          mint: mintKeypair.publicKey,
-          extraMetasAccount: extraMetasAccount,
           payer: setupAccessControlArgs.payer,
           authority: setupAccessControlArgs.authority,
+          mint: mintKeypair.publicKey,
+          accessControl: accessControlPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          extraMetasAccount: extraMetasAccount,
           systemProgram: SystemProgram.programId,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([mintKeypair, payer])
-        .rpc();
+        .rpc({ commitment: confirmOptions });
       console.log("InitializeAccessControl transaction signature", tx);
       
       const accessControlData =
@@ -167,7 +171,7 @@ describe("solana-security-token", () => {
       const mintData = await getMint(
         connection, 
         mintKeypair.publicKey,
-        'confirmed',
+        confirmOptions,
         TOKEN_2022_PROGRAM_ID
       );
       assert.deepEqual(mintData.mintAuthority, accessControlPubkey);
@@ -177,6 +181,59 @@ describe("solana-security-token", () => {
       assert.deepEqual(mintData.freezeAuthority, accessControlPubkey);
 
       console.log("Mint Data", mintData);
+
+      // mint tokens to new account
+      const newAccount = Keypair.generate();
+      const newAccountPubkey = newAccount.publicKey;
+
+      const newAssociatedAccountPubkey = getAssociatedTokenAddressSync(
+				mintKeypair.publicKey,
+				newAccountPubkey,
+				false,
+				TOKEN_2022_PROGRAM_ID
+			)
+      console.log("New Associated Account Pubkey", newAssociatedAccountPubkey.toBase58());
+      
+
+      const transaction = new Transaction().add(
+        createAssociatedTokenAccountInstruction(
+          payer.publicKey,
+          newAssociatedAccountPubkey,
+          newAccountPubkey,
+          mintKeypair.publicKey,
+          TOKEN_2022_PROGRAM_ID
+        )
+      )
+      const txCreateAssTokenAccount = await sendAndConfirmTransaction(provider.connection, transaction, [
+        payer,
+      ]);
+      console.log("Create Associated Token Account Transaction Signature", txCreateAssTokenAccount);
+
+      const tx2 = await transferRestrictionsProgram.methods
+        .mintSecurities(new anchor.BN(1000000)).accountsStrict({
+          authority: payer.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          accessControl: accessControlPubkey,
+          securityMint: mintKeypair.publicKey,
+          destinationAccount: newAssociatedAccountPubkey,
+          destinationAuthority: newAccountPubkey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        })
+        .signers([payer])
+        .rpc({ commitment: confirmOptions });
+      console.log("Mint Securities Transaction Signature", tx2);
+
+      const mintData2 = await getMint(
+        connection, 
+        mintKeypair.publicKey,
+        confirmOptions,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      console.log("Mint Data 2", mintData2);
+
+      const assAccountInfo = await getAccount(connection, newAssociatedAccountPubkey, undefined, TOKEN_2022_PROGRAM_ID);
+      console.log("Associated Account Info", assAccountInfo);
     } catch (error) {
       console.log("Error", error);
     }
