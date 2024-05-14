@@ -11,7 +11,7 @@ use crate::{
 pub struct UpdateWalletRole<'info> {
   #[account(mut,
     seeds = [
-      WALLET_ROLE_PREFIX.as_bytes(),
+      WALLET_ROLE_PREFIX,
       &security_token.key().to_bytes(),
       &user_wallet.key().to_bytes(),
     ],
@@ -20,7 +20,7 @@ pub struct UpdateWalletRole<'info> {
   pub wallet_role: Account<'info, WalletRole>,
   #[account(
     seeds = [
-      WALLET_ROLE_PREFIX.as_bytes(),
+      WALLET_ROLE_PREFIX,
       &security_token.key().to_bytes(),
       &payer.key().to_bytes(),
     ],

@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::Mint;
-use std::mem;
 
 use crate::{
   contexts::common::DISCRIMINATOR_LEN,
@@ -8,7 +7,7 @@ use crate::{
 };
 
 
-pub const WALLET_ROLE_PREFIX: &str = "wallet_role";
+pub const WALLET_ROLE_PREFIX: &[u8] = b"wallet_role";
 
 #[account]
 #[derive(Default)]
@@ -29,7 +28,7 @@ impl WalletRole {
 pub struct InitializeWalletRole<'info> {
   #[account(init, payer = payer, space = DISCRIMINATOR_LEN + WalletRole::INIT_SPACE,
     seeds = [
-      WALLET_ROLE_PREFIX.as_bytes(),
+      WALLET_ROLE_PREFIX,
       &security_token.key().to_bytes(),
       &user_wallet.key().to_bytes(),
     ],
@@ -38,7 +37,7 @@ pub struct InitializeWalletRole<'info> {
   pub wallet_role: Account<'info, WalletRole>,
   #[account(
     seeds = [
-      WALLET_ROLE_PREFIX.as_bytes(),
+      WALLET_ROLE_PREFIX,
       &security_token.key().to_bytes(),
       &payer.key().to_bytes(),
     ],

@@ -26,3 +26,6 @@ pub use update_wallet_group::*;
 
 pub mod initialize_wallet_role;
 pub use initialize_wallet_role::*;
+
+pub mod execute_transfer_hook;
+pub use execute_transfer_hook::*;

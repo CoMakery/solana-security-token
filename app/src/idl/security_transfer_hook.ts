@@ -77,11 +77,11 @@ export type SecurityTransferHook = {
           }
         },
         {
-          "name": "transferRestrictionData"
-        },
-        {
           "name": "securityTokenProgram",
           "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "transferRestrictionData"
         },
         {
           "name": "securityAssociatedAccountFrom"

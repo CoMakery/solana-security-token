@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "programs/*"
+    "programs/transfer-restrictions"
 ]
 resolver = "2"
 

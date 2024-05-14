@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::Mint;
+use anchor_spl::{token::TokenAccount, token_interface::Mint};
 use std::mem;
 
 use crate::{
@@ -39,8 +39,7 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
   #[account(init, payer = payer, space = SecurityAssociatedAccount::size(),
     seeds = [
       SECURITY_ASSOCIATED_ACCOUNT_PREFIX.as_bytes(),
-      &security_token.key().to_bytes(),
-      &user_wallet.key().to_bytes(),
+      &associated_token_account.key().to_bytes(),
     ],
     bump,
   )]
@@ -67,6 +66,11 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
   pub transfer_restriction_data: Account<'info, TransferRestrictionData>,
   /// CHECK: Wallet address to be controlled by the access control
   pub user_wallet: AccountInfo<'info>,
+  #[account(
+    token::mint = security_token,
+    token::authority = user_wallet,
+  )]
+  pub associated_token_account: Account<'info, TokenAccount>,
   #[account(mut)]
   pub payer: Signer<'info>,
   pub system_program: Program<'info, System>,

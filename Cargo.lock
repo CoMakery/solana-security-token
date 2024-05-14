@@ -1673,16 +1673,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
-name = "security-transfer-hook"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "spl-transfer-hook-interface",
- "transfer-restrictions",
-]
-
-[[package]]
 name = "semver"
 version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2416,6 +2406,7 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "num_enum",
+ "spl-tlv-account-resolution",
  "spl-transfer-hook-interface",
 ]
 

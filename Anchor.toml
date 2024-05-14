@@ -1,13 +1,15 @@
 [toolchain]
 anchor_version = "0.30.0"
+rust_version = "1.77.0"
 
 [features]
+seeds = false
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-solana_security_token = "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
-security_transfer_hook = "38jsTJqL7seGftcurfNJG1DsXa4WwCrHuNq4q1m9uZ9j"
+transfer_restrictions = "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+# security_transfer_hook = "38jsTJqL7seGftcurfNJG1DsXa4WwCrHuNq4q1m9uZ9j"
 
 [registry]
 url = "https://api.apr.dev"

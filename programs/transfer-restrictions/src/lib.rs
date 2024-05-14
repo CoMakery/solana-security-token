@@ -1,11 +1,12 @@
 use anchor_lang::prelude::*;
 
-pub mod instructions;
 pub mod contexts;
 pub mod errors;
+pub mod instructions;
+pub mod utils;
 
 pub use contexts::*;
-
+pub use utils::*;
 
 declare_id!("6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ");
 
@@ -13,8 +14,11 @@ declare_id!("6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ");
 pub mod transfer_restrictions {
     use super::*;
 
-    pub fn initialize_access_control(ctx: Context<InitializeAccessControl>) -> Result<()> {
-        instructions::access_control::initialize(ctx)
+    pub fn initialize_access_control(
+        ctx: Context<InitializeAccessControl>,
+        args: InitializeAccessControlArgs,
+    ) -> Result<()> {
+        instructions::access_control::initialize(ctx, args)
     }
 
     pub fn initialize_wallet_role(ctx: Context<InitializeWalletRole>, role: u8) -> Result<()> {
@@ -23,6 +27,12 @@ pub mod transfer_restrictions {
 
     pub fn update_wallet_role(ctx: Context<UpdateWalletRole>, role: u8) -> Result<()> {
         instructions::access_control::update_wallet_role(ctx, role)
+    }
+
+    /// execute transfer hook
+    #[interface(spl_transfer_hook_interface::execute)]
+    pub fn execute_transaction(ctx: Context<ExecuteTransferHook>, amount: u64) -> Result<()> {
+        instructions::access_control::handler(ctx, amount)
     }
 
     pub fn initialize_transfer_restrictions_data(

@@ -14,6 +14,93 @@ export type TransferRestrictions = {
   },
   "instructions": [
     {
+      "name": "executeTransaction",
+      "docs": [
+        "execute transfer hook"
+      ],
+      "discriminator": [
+        105,
+        37,
+        101,
+        197,
+        75,
+        251,
+        102,
+        26
+      ],
+      "accounts": [
+        {
+          "name": "sourceAccount"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "destinationAccount"
+        },
+        {
+          "name": "ownerDelegate"
+        },
+        {
+          "name": "extraMetasAccount",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  120,
+                  116,
+                  114,
+                  97,
+                  45,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "securityTokenProgram",
+          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "transferRestrictionData"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "initializeAccessControl",
       "discriminator": [
         244,
@@ -26,6 +113,19 @@ export type TransferRestrictions = {
         140
       ],
       "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority"
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
         {
           "name": "accessControl",
           "writable": true,
@@ -90,12 +190,40 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "mint"
-        },
-        {
-          "name": "payer",
+          "name": "extraMetasAccount",
           "writable": true,
-          "signer": true
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  120,
+                  116,
+                  114,
+                  97,
+                  45,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
         },
         {
           "name": "systemProgram",
@@ -106,7 +234,16 @@ export type TransferRestrictions = {
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "initializeAccessControlArgs"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "initializeSecurityAssociatedAccount",
@@ -160,11 +297,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
-              },
-              {
-                "kind": "account",
-                "path": "userWallet"
+                "path": "associatedTokenAccount"
               }
             ]
           }
@@ -223,6 +356,9 @@ export type TransferRestrictions = {
           "name": "userWallet"
         },
         {
+          "name": "associatedTokenAccount"
+        },
+        {
           "name": "payer",
           "writable": true,
           "signer": true
@@ -257,24 +393,6 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
                   95,
                   103,
                   114,
@@ -891,24 +1009,6 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
                   95,
                   103,
                   114,
@@ -1163,6 +1263,36 @@ export type TransferRestrictions = {
       }
     },
     {
+      "name": "initializeAccessControlArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "decimals",
+            "type": "u8"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "delegate",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "securityAssociatedAccount",
       "type": {
         "kind": "struct",
@@ -1208,8 +1338,8 @@ export type TransferRestrictions = {
         "kind": "struct",
         "fields": [
           {
-            "name": "transferRestrictionData",
-            "type": "pubkey"
+            "name": "id",
+            "type": "u64"
           },
           {
             "name": "currentHoldersCount",
@@ -1220,8 +1350,8 @@ export type TransferRestrictions = {
             "type": "u64"
           },
           {
-            "name": "id",
-            "type": "u64"
+            "name": "transferRestrictionData",
+            "type": "pubkey"
           }
         ]
       }

@@ -55,7 +55,7 @@ pub struct InitializeTransferRule<'info> {
   pub transfer_restriction_data: Account<'info, TransferRestrictionData>,
   #[account(
     constraint = transfer_restriction_group_from.transfer_restriction_data == transfer_restriction_data.key(),
-  )]
+  )]  
   pub transfer_restriction_group_from: Account<'info, TransferRestrictionGroup>,
   #[account(
     constraint = transfer_restriction_group_to.transfer_restriction_data == transfer_restriction_data.key(),

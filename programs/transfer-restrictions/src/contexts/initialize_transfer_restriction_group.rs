@@ -2,16 +2,17 @@ use anchor_lang::prelude::*;
 use std::mem;
 use crate::{contexts::common::DISCRIMINATOR_LEN, AccessControl, TransferRestrictionData, TRANSFER_RESTRICTION_DATA_PREFIX};
 
-pub const TRANSFER_RESTRICTION_GROUP_PREFIX: &str = "transfer_restriction_group";
+// Short name is required for transfer hook meta account list specification (32 bytes limit)
+pub const TRANSFER_RESTRICTION_GROUP_PREFIX: &str = "tr_group";
 
 
 #[account]
 #[derive(Default)]
 pub struct TransferRestrictionGroup {
-  pub transfer_restriction_data: Pubkey,
+  pub id: u64,
   pub current_holders_count: u64,
   pub max_holders: u64,
-  pub id: u64,
+  pub transfer_restriction_data: Pubkey,
 }
 
 impl TransferRestrictionGroup {
@@ -33,7 +34,11 @@ impl TransferRestrictionGroup {
 #[instruction(id: u64)]
 pub struct InitializeTransferRestrictionGroup<'info> {
   #[account(init, payer = payer, space = TransferRestrictionGroup::size(),
-    seeds = [TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(), &transfer_restriction_data.key().to_bytes(), &id.to_le_bytes()],
+    seeds = [
+      TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(),
+      &transfer_restriction_data.key().to_bytes(),
+      &id.to_le_bytes()
+    ],
     bump,
   )]
   pub transfer_restriction_group: Account<'info, TransferRestrictionGroup>,
