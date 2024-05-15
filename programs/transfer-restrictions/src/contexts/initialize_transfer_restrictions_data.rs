@@ -9,6 +9,7 @@ pub const TRANSFER_RESTRICTION_DATA_PREFIX: &str = "transfer_restriction_data";
 
 #[account]
 #[derive(Default)]
+#[derive(InitSpace)]
 pub struct TransferRestrictionData {
   pub security_token_mint: Pubkey,
   pub access_control_account: Pubkey,
@@ -16,23 +17,13 @@ pub struct TransferRestrictionData {
   pub max_holders: u64,
 }
 
-impl TransferRestrictionData {
-  const SECURITY_TOKEN_MINT_LEN: usize = mem::size_of::<Pubkey>();
-  const CURRENT_HOLDERS_COUNT_LEN: usize = mem::size_of::<u64>();
-  const MAX_HOLDERS_LEN: usize = mem::size_of::<u64>();
-
-  pub fn size() -> usize {
-    DISCRIMINATOR_LEN
-    + Self::SECURITY_TOKEN_MINT_LEN
-    + Self::CURRENT_HOLDERS_COUNT_LEN
-    + Self::MAX_HOLDERS_LEN
-  }
-}
-
 #[derive(Accounts)]
 pub struct InitializeTransferRestrictionData<'info> {
-  #[account(init, payer = payer, space = TransferRestrictionData::size(),
-    seeds = [TRANSFER_RESTRICTION_DATA_PREFIX.as_bytes(), &mint.key().to_bytes()],
+  #[account(init, payer = payer, space = DISCRIMINATOR_LEN + TransferRestrictionData::INIT_SPACE,
+    seeds = [
+      TRANSFER_RESTRICTION_DATA_PREFIX.as_bytes(),
+      &mint.key().to_bytes(),
+    ],
     bump,
   )]
   pub transfer_restriction_data: Account<'info, TransferRestrictionData>,

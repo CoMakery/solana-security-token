@@ -8,6 +8,7 @@ pub const TRANSFER_RESTRICTION_GROUP_PREFIX: &str = "tr_group";
 
 #[account]
 #[derive(Default)]
+#[derive(InitSpace)]
 pub struct TransferRestrictionGroup {
   pub id: u64,
   pub current_holders_count: u64,
@@ -15,25 +16,10 @@ pub struct TransferRestrictionGroup {
   pub transfer_restriction_data: Pubkey,
 }
 
-impl TransferRestrictionGroup {
-  const TRANSFER_RESTRICTION_DATA_LEN: usize = mem::size_of::<Pubkey>();
-  const CURRENT_HOLDERS_COUNT_LEN: usize = mem::size_of::<u64>();
-  const MAX_HOLDERS_LEN: usize = mem::size_of::<u64>();
-  const ID_LEN: usize = mem::size_of::<u64>();
-  
-  pub fn size() -> usize {
-    DISCRIMINATOR_LEN
-    + Self::TRANSFER_RESTRICTION_DATA_LEN
-    + Self::CURRENT_HOLDERS_COUNT_LEN
-    + Self::MAX_HOLDERS_LEN
-    + Self::ID_LEN
-  }
-}
-
 #[derive(Accounts)]
 #[instruction(id: u64)]
 pub struct InitializeTransferRestrictionGroup<'info> {
-  #[account(init, payer = payer, space = TransferRestrictionGroup::size(),
+  #[account(init, payer = payer, space = DISCRIMINATOR_LEN + TransferRestrictionGroup::INIT_SPACE,
     seeds = [
       TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(),
       &transfer_restriction_data.key().to_bytes(),
