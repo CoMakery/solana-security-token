@@ -52,6 +52,11 @@ describe("solana-security-token", () => {
     delegate: payer.publicKey,
   };
 
+  const contractAdmin = Keypair.generate();
+  const walletAdmin = Keypair.generate();
+  const reserveAdmin = Keypair.generate();
+  const transferAdmin = Keypair.generate();
+
   it("airdrop payer", async () => {
     console.log("Airdropping payer", payer.publicKey.toString());
 
@@ -135,6 +140,7 @@ describe("solana-security-token", () => {
     console.log("Wallet Role Pubkey", authorityWalletRolePubkey.toBase58());
 
     try {
+      // 1. Initialize Access Control and Mint
       const tx = await transferRestrictionsProgram.methods
         .initializeAccessControl({
           decimals: setupAccessControlArgs.decimals,
@@ -168,7 +174,7 @@ describe("solana-security-token", () => {
       console.log("Wallet Role Data", walletRoleData);
       assert.deepEqual(walletRoleData.role, 15);
 
-      const mintData = await getMint(
+      let mintData = await getMint(
         connection, 
         mintKeypair.publicKey,
         confirmOptions,
@@ -182,7 +188,7 @@ describe("solana-security-token", () => {
 
       console.log("Mint Data", mintData);
 
-      // mint tokens to new account
+      // 2. Mint tokens to new account
       const newAccount = Keypair.generate();
       const newAccountPubkey = newAccount.publicKey;
 
@@ -209,8 +215,9 @@ describe("solana-security-token", () => {
       ]);
       console.log("Create Associated Token Account Transaction Signature", txCreateAssTokenAccount);
 
-      const tx2 = await transferRestrictionsProgram.methods
-        .mintSecurities(new anchor.BN(1000000)).accountsStrict({
+      const mintAmount = new anchor.BN(1000000);
+      const mintTx = await transferRestrictionsProgram.methods
+        .mintSecurities(mintAmount).accountsStrict({
           authority: payer.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           accessControl: accessControlPubkey,
@@ -221,19 +228,47 @@ describe("solana-security-token", () => {
         })
         .signers([payer])
         .rpc({ commitment: confirmOptions });
-      console.log("Mint Securities Transaction Signature", tx2);
+      console.log("Mint Securities Transaction Signature", mintTx);
 
-      const mintData2 = await getMint(
+      mintData = await getMint(
         connection, 
         mintKeypair.publicKey,
         confirmOptions,
         TOKEN_2022_PROGRAM_ID
       );
 
-      console.log("Mint Data 2", mintData2);
+      console.log("Mint Data (after MintSecurities)", mintData);
 
       const assAccountInfo = await getAccount(connection, newAssociatedAccountPubkey, undefined, TOKEN_2022_PROGRAM_ID);
       console.log("Associated Account Info", assAccountInfo);
+
+      // 3. Burn tokens
+      const burnAmount = new anchor.BN(700000);
+      const burnTx = await transferRestrictionsProgram.methods
+      .burnSecurities(burnAmount).accountsStrict({
+        authority: payer.publicKey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: accessControlPubkey,
+        securityMint: mintKeypair.publicKey,
+        targetAccount: newAssociatedAccountPubkey,
+        targetAuthority: newAccountPubkey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+      })
+      .signers([payer])
+      .rpc({ commitment: confirmOptions });
+      console.log("Burn Securities Transaction Signature", burnTx);
+
+      mintData = await getMint(
+        connection, 
+        mintKeypair.publicKey,
+        confirmOptions,
+        TOKEN_2022_PROGRAM_ID
+      );
+      assert.equal(mintData.supply.toString(), mintAmount.sub(burnAmount).toString());
+      console.log("Mint Data (after BurnSecurities)", mintData);
+
+      // 4. Create Transfer Group 1
+      
     } catch (error) {
       console.log("Error", error);
     }

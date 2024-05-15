@@ -14,6 +14,107 @@ export type TransferRestrictions = {
   },
   "instructions": [
     {
+      "name": "burnSecurities",
+      "discriminator": [
+        79,
+        165,
+        145,
+        57,
+        203,
+        228,
+        175,
+        0
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "authorityWalletRole",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  97,
+                  108,
+                  108,
+                  101,
+                  116,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "accessControl",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  101,
+                  115,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "securityMint",
+          "writable": true
+        },
+        {
+          "name": "targetAccount",
+          "writable": true
+        },
+        {
+          "name": "targetAuthority"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "executeTransaction",
       "docs": [
         "execute transfer hook"
