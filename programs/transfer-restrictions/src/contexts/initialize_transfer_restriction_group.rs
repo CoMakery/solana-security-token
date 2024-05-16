@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use std::mem;
 use crate::{contexts::common::DISCRIMINATOR_LEN, AccessControl, TransferRestrictionData, TRANSFER_RESTRICTION_DATA_PREFIX};
 
 // Short name is required for transfer hook meta account list specification (32 bytes limit)

@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use std::mem;
 use crate::{
   contexts::common::DISCRIMINATOR_LEN,
   AccessControl,
@@ -13,6 +12,7 @@ pub const TRANSFER_RULE_PREFIX: &str = "transfer_rule";
 
 #[account]
 #[derive(Default)]
+#[derive(InitSpace)]
 pub struct TransferRule {
   pub transfer_restriction_data: Pubkey,
   pub transfer_group_id_from: u64,
@@ -20,25 +20,10 @@ pub struct TransferRule {
   pub lock_until: u64,
 }
 
-impl TransferRule {
-  const TRANSFER_RESTRICTION_DATA_LEN: usize = mem::size_of::<Pubkey>();
-  const TRANSFER_GROUP_ID_FROM_LEN: usize = mem::size_of::<u64>();
-  const TRANSFER_GROUP_ID_TO_LEN: usize = mem::size_of::<u64>();
-  const LOCK_UNTIL_LEN: usize = mem::size_of::<u64>();
-  
-  pub fn size() -> usize {
-    DISCRIMINATOR_LEN
-    + Self::TRANSFER_RESTRICTION_DATA_LEN
-    + Self::TRANSFER_GROUP_ID_FROM_LEN
-    + Self::TRANSFER_GROUP_ID_TO_LEN
-    + Self::LOCK_UNTIL_LEN
-  }
-}
-
 #[derive(Accounts)]
 #[instruction(id: u64)]
 pub struct InitializeTransferRule<'info> {
-  #[account(init, payer = payer, space = TransferRule::size(),
+  #[account(init, payer = payer, space = DISCRIMINATOR_LEN + TransferRule::INIT_SPACE,
     seeds = [
       TRANSFER_RULE_PREFIX.as_bytes(),
       &transfer_restriction_group_from.key().to_bytes(),

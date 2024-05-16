@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, Token2022};
-use std::mem;
 
 use crate::{contexts::common::DISCRIMINATOR_LEN, AccessControl};
 
