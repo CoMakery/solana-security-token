@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{token::TokenAccount, token_interface::Mint};
-use std::mem;
+use anchor_spl::token_interface::{Mint, TokenAccount};
 
 use crate::{
   contexts::common::DISCRIMINATOR_LEN,
@@ -11,32 +10,20 @@ use crate::{
 };
 
 
-pub const SECURITY_ASSOCIATED_ACCOUNT_PREFIX: &str = "security_associated_account";
+pub const SECURITY_ASSOCIATED_ACCOUNT_PREFIX: &str = "saa"; // security associated account
 
 #[account]
 #[derive(Default)]
+#[derive(InitSpace)]
 pub struct SecurityAssociatedAccount {
   pub group: Pubkey,
   pub holder: Pubkey,
 }
 
-impl SecurityAssociatedAccount {
-  const ROLE_LEN: usize = mem::size_of::<u8>();
-  const GROUP_LEN: usize = mem::size_of::<Pubkey>();
-  const HOLDER_LEN: usize = mem::size_of::<Pubkey>();
-  
-  pub fn size() -> usize {
-    DISCRIMINATOR_LEN
-    + Self::ROLE_LEN
-    + Self::GROUP_LEN
-    + Self::HOLDER_LEN
-  }
-}
-
 #[derive(Accounts)]
 #[instruction()]
 pub struct InitializeSecurityAssociatedAccount<'info> {
-  #[account(init, payer = payer, space = SecurityAssociatedAccount::size(),
+  #[account(init, payer = payer, space = DISCRIMINATOR_LEN + SecurityAssociatedAccount::INIT_SPACE,
     seeds = [
       SECURITY_ASSOCIATED_ACCOUNT_PREFIX.as_bytes(),
       &associated_token_account.key().to_bytes(),
@@ -54,7 +41,8 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
   pub holder: Account<'info, TransferRestrictionHolder>,
   #[account(
       constraint = security_token.key() == transfer_restriction_data.security_token_mint,
-  )]
+      token::token_program = anchor_spl::token_interface::spl_token_2022::id(),
+    )]
   pub security_token: Box<InterfaceAccount<'info, Mint>>,
   #[account(
     seeds = [
@@ -67,10 +55,11 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
   /// CHECK: Wallet address to be controlled by the access control
   pub user_wallet: AccountInfo<'info>,
   #[account(
-    token::mint = security_token,
-    token::authority = user_wallet,
+    associated_token::token_program = anchor_spl::token_interface::spl_token_2022::id(),
+    associated_token::mint = security_token,
+    associated_token::authority = user_wallet,
   )]
-  pub associated_token_account: Account<'info, TokenAccount>,
+  pub associated_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
   #[account(mut)]
   pub payer: Signer<'info>,
   pub system_program: Program<'info, System>,

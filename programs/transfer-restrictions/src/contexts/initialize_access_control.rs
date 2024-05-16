@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub const META_LIST_ACCOUNT_SEED: &[u8] = b"extra-account-metas";
-pub const ACCESS_CONTROL_SEED: &[u8] = b"access_control";
+pub const ACCESS_CONTROL_SEED: &[u8] = b"ac"; // access_control
 
 #[repr(u8)]
 #[derive(IntoPrimitive, AnchorDeserialize, AnchorSerialize, Clone, InitSpace, Copy, Debug)]

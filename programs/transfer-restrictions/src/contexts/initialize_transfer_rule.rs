@@ -7,7 +7,7 @@ use crate::{
   TRANSFER_RESTRICTION_DATA_PREFIX,
 };
 
-pub const TRANSFER_RULE_PREFIX: &str = "transfer_rule";
+pub const TRANSFER_RULE_PREFIX: &str = "tr"; // transfer_rule
 
 
 #[account]
@@ -17,11 +17,11 @@ pub struct TransferRule {
   pub transfer_restriction_data: Pubkey,
   pub transfer_group_id_from: u64,
   pub transfer_group_id_to: u64,
-  pub lock_until: u64,
+  pub locked_until: u64,
 }
 
 #[derive(Accounts)]
-#[instruction(id: u64)]
+#[instruction(locked_until: u64)]
 pub struct InitializeTransferRule<'info> {
   #[account(init, payer = payer, space = DISCRIMINATOR_LEN + TransferRule::INIT_SPACE,
     seeds = [

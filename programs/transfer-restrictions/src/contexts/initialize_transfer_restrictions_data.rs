@@ -3,7 +3,7 @@ use anchor_spl::token_interface::{Mint, Token2022};
 
 use crate::{contexts::common::DISCRIMINATOR_LEN, AccessControl};
 
-pub const TRANSFER_RESTRICTION_DATA_PREFIX: &str = "transfer_restriction_data";
+pub const TRANSFER_RESTRICTION_DATA_PREFIX: &str = "trd"; // transfer_restriction_data
 
 
 #[account]

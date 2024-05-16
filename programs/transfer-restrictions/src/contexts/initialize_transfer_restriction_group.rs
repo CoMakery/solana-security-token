@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use crate::{contexts::common::DISCRIMINATOR_LEN, AccessControl, TransferRestrictionData, TRANSFER_RESTRICTION_DATA_PREFIX};
 
 // Short name is required for transfer hook meta account list specification (32 bytes limit)
-pub const TRANSFER_RESTRICTION_GROUP_PREFIX: &str = "tr_group";
+pub const TRANSFER_RESTRICTION_GROUP_PREFIX: &str = "trg";
 
 
 #[account]

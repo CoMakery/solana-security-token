@@ -20,9 +20,9 @@ pub fn get_meta_list_size() -> Result<usize> {
 
 pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
     Ok(vec![
-        // transfer restrictions program
+        // [index 5, 0] transfer restrictions program
         ExtraAccountMeta::new_with_pubkey(&crate::id(), false, false)?,
-        // transfer restrictions account
+        // [index 6, 1] transfer restrictions account
         ExtraAccountMeta::new_external_pda_with_seeds(
             5,
             &[
@@ -34,7 +34,7 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false, // is_signer
             false, // is_writable
         )?,
-        // security associated account from
+        // [index 7, 2] security associated account from
         ExtraAccountMeta::new_external_pda_with_seeds(
             5,
             &[
@@ -46,7 +46,7 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false,
             false,
         )?,
-        // security associated account to
+        // [index 8, 3] security associated account to
         ExtraAccountMeta::new_external_pda_with_seeds(
             5,
             &[
@@ -58,7 +58,7 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false,
             false,
         )?,
-        // // transfer restriction group from account
+        // [index 9, 4] transfer restriction group from account
         ExtraAccountMeta::new_external_pda_with_seeds(
             5,
             &[
@@ -75,7 +75,7 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false,
             false,
         )?,
-        // // transfer restriction group to account
+        // [index 10, 5] transfer restriction group to account
         ExtraAccountMeta::new_external_pda_with_seeds(
             5,
             &[
@@ -84,7 +84,7 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
                 },
                 Seed::AccountKey { index: 6 },
                 Seed::AccountData {
-                    account_index: 9,
+                    account_index: 10,
                     data_index: 0,
                     length: 8,
                 },
@@ -92,7 +92,7 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false,
             false,
         )?,
-        // // transfer rule account
+        // [index 11, 6] transfer rule account
         ExtraAccountMeta::new_external_pda_with_seeds(
             5,
             &[
