@@ -69,19 +69,7 @@ export type TransferRestrictions = {
                 "kind": "const",
                 "value": [
                   97,
-                  99,
-                  99,
-                  101,
-                  115,
-                  115,
-                  95,
-                  99,
-                  111,
-                  110,
-                  116,
-                  114,
-                  111,
-                  108
+                  99
                 ]
               },
               {
@@ -178,10 +166,6 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "securityTokenProgram",
-          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
-        },
-        {
           "name": "transferRestrictionData"
         },
         {
@@ -189,6 +173,54 @@ export type TransferRestrictions = {
         },
         {
           "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRestrictionGroupFrom",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "security_associated_account_from.group",
+                "account": "securityAssociatedAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "transferRestrictionGroupTo",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "security_associated_account_to.group",
+                "account": "securityAssociatedAccount"
+              }
+            ]
+          }
         },
         {
           "name": "transferRule"
@@ -236,19 +268,7 @@ export type TransferRestrictions = {
                 "kind": "const",
                 "value": [
                   97,
-                  99,
-                  99,
-                  101,
-                  115,
-                  115,
-                  95,
-                  99,
-                  111,
-                  110,
-                  116,
-                  114,
-                  111,
-                  108
+                  99
                 ]
               },
               {
@@ -368,32 +388,8 @@ export type TransferRestrictions = {
                 "kind": "const",
                 "value": [
                   115,
-                  101,
-                  99,
-                  117,
-                  114,
-                  105,
-                  116,
-                  121,
-                  95,
                   97,
-                  115,
-                  115,
-                  111,
-                  99,
-                  105,
-                  97,
-                  116,
-                  101,
-                  100,
-                  95,
-                  97,
-                  99,
-                  99,
-                  111,
-                  117,
-                  110,
-                  116
+                  97
                 ]
               },
               {
@@ -421,29 +417,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
-                  95,
-                  100,
-                  97,
-                  116,
-                  97
+                  100
                 ]
               },
               {
@@ -494,12 +468,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  95,
-                  103,
-                  114,
-                  111,
-                  117,
-                  112
+                  103
                 ]
               },
               {
@@ -523,29 +492,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
-                  95,
-                  100,
-                  97,
-                  116,
-                  97
+                  100
                 ]
               },
               {
@@ -599,31 +546,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
-                  95,
-                  104,
-                  111,
-                  108,
-                  100,
-                  101,
-                  114
+                  104
                 ]
               },
               {
@@ -647,29 +570,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
-                  95,
-                  100,
-                  97,
-                  116,
-                  97
+                  100
                 ]
               },
               {
@@ -723,29 +624,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
-                  95,
-                  100,
-                  97,
-                  116,
-                  97
+                  100
                 ]
               },
               {
@@ -804,18 +683,7 @@ export type TransferRestrictions = {
                 "kind": "const",
                 "value": [
                   116,
-                  114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  117,
-                  108,
-                  101
+                  114
                 ]
               },
               {
@@ -838,29 +706,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
-                  95,
-                  100,
-                  97,
-                  116,
-                  97
+                  100
                 ]
               },
               {
@@ -1052,19 +898,7 @@ export type TransferRestrictions = {
                 "kind": "const",
                 "value": [
                   97,
-                  99,
-                  99,
-                  101,
-                  115,
-                  115,
-                  95,
-                  99,
-                  111,
-                  110,
-                  116,
-                  114,
-                  111,
-                  108
+                  99
                 ]
               },
               {
@@ -1119,32 +953,8 @@ export type TransferRestrictions = {
                 "kind": "const",
                 "value": [
                   115,
-                  101,
-                  99,
-                  117,
-                  114,
-                  105,
-                  116,
-                  121,
-                  95,
                   97,
-                  115,
-                  115,
-                  111,
-                  99,
-                  105,
-                  97,
-                  116,
-                  101,
-                  100,
-                  95,
-                  97,
-                  99,
-                  99,
-                  111,
-                  117,
-                  110,
-                  116
+                  97
                 ]
               },
               {
@@ -1170,29 +980,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  97,
-                  110,
-                  115,
-                  102,
-                  101,
-                  114,
-                  95,
-                  114,
-                  101,
-                  115,
-                  116,
-                  114,
-                  105,
-                  99,
-                  116,
-                  105,
-                  111,
-                  110,
-                  95,
-                  100,
-                  97,
-                  116,
-                  97
+                  100
                 ]
               },
               {
@@ -1211,12 +999,7 @@ export type TransferRestrictions = {
                 "value": [
                   116,
                   114,
-                  95,
-                  103,
-                  114,
-                  111,
-                  117,
-                  112
+                  103
                 ]
               },
               {
@@ -1449,6 +1232,11 @@ export type TransferRestrictions = {
       "code": 6001,
       "name": "unauthorized",
       "msg": "unauthorized"
+    },
+    {
+      "code": 6002,
+      "name": "transferRuleLocked",
+      "msg": "Transfer rule locked"
     }
   ],
   "types": [
@@ -1501,7 +1289,7 @@ export type TransferRestrictions = {
         "fields": [
           {
             "name": "group",
-            "type": "pubkey"
+            "type": "u64"
           },
           {
             "name": "holder",
@@ -1600,7 +1388,7 @@ export type TransferRestrictions = {
             "type": "u64"
           },
           {
-            "name": "lockUntil",
+            "name": "lockedUntil",
             "type": "u64"
           }
         ]

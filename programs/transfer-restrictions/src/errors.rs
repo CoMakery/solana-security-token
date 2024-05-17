@@ -6,4 +6,6 @@ pub enum SolanaSecurityTokenError {
     MaxHoldersReached,
     #[msg("Unauthorized")]
     Unauthorized,
+    #[msg("Transfer rule locked")]
+    TransferRuleLocked,
 }

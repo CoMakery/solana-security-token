@@ -20,11 +20,8 @@ pub fn get_meta_list_size() -> Result<usize> {
 
 pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
     Ok(vec![
-        // [index 5, 0] transfer restrictions program
-        ExtraAccountMeta::new_with_pubkey(&crate::id(), false, false)?,
-        // [index 6, 1] transfer restrictions account
-        ExtraAccountMeta::new_external_pda_with_seeds(
-            5,
+        // [index 5, 0] transfer restrictions account
+        ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal {
                     bytes: TRANSFER_RESTRICTION_DATA_PREFIX.as_bytes().to_vec(),
@@ -34,9 +31,8 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false, // is_signer
             false, // is_writable
         )?,
-        // [index 7, 2] security associated account from
-        ExtraAccountMeta::new_external_pda_with_seeds(
-            5,
+        // [index 6, 1] security associated account from
+        ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal {
                     bytes: SECURITY_ASSOCIATED_ACCOUNT_PREFIX.as_bytes().to_vec(),
@@ -46,9 +42,8 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false,
             false,
         )?,
-        // [index 8, 3] security associated account to
-        ExtraAccountMeta::new_external_pda_with_seeds(
-            5,
+        // [index 7, 2] security associated account to
+        ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal {
                     bytes: SECURITY_ASSOCIATED_ACCOUNT_PREFIX.as_bytes().to_vec(),
@@ -58,49 +53,46 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false,
             false,
         )?,
-        // [index 9, 4] transfer restriction group from account
-        ExtraAccountMeta::new_external_pda_with_seeds(
-            5,
+        // [index 8, 3] transfer restriction group from account
+        ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal {
                     bytes: TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes().to_vec(),
                 },
-                Seed::AccountKey { index: 6 },
+                Seed::AccountKey { index: 5 },
                 Seed::AccountData {
-                    account_index: 9,
-                    data_index: 0,
+                    account_index: 7,
+                    data_index: 8,
                     length: 8,
                 },
             ],
             false,
             false,
         )?,
-        // [index 10, 5] transfer restriction group to account
-        ExtraAccountMeta::new_external_pda_with_seeds(
-            5,
+        // [index 9, 4] transfer restriction group to account
+        ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal {
                     bytes: TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes().to_vec(),
                 },
-                Seed::AccountKey { index: 6 },
+                Seed::AccountKey { index: 5 },
                 Seed::AccountData {
-                    account_index: 10,
-                    data_index: 0,
+                    account_index: 7,
+                    data_index: 8,
                     length: 8,
                 },
             ],
             false,
             false,
         )?,
-        // [index 11, 6] transfer rule account
-        ExtraAccountMeta::new_external_pda_with_seeds(
-            5,
+        // [index 10, 5] transfer rule account
+        ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal {
                     bytes: TRANSFER_RULE_PREFIX.as_bytes().to_vec(),
                 },
+                Seed::AccountKey { index: 8 },
                 Seed::AccountKey { index: 9 },
-                Seed::AccountKey { index: 10 },
             ],
             false,
             false,

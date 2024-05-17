@@ -2,10 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 use crate::{
-  program::TransferRestrictions,
-  SecurityAssociatedAccount,
-  TransferRestrictionData,
-  TransferRule,
+  program::TransferRestrictions, SecurityAssociatedAccount, TransferRestrictionData, TransferRestrictionGroup, TransferRule, TRANSFER_RESTRICTION_GROUP_PREFIX
 };
 
 #[derive(Accounts)]
@@ -34,9 +31,26 @@ pub struct ExecuteTransferHook<'info> {
     bump,
   )]
   pub extra_metas_account: UncheckedAccount<'info>,
-  pub security_token_program: Program<'info, TransferRestrictions>,
   pub transfer_restriction_data: Box<Account<'info, TransferRestrictionData>>,
   pub security_associated_account_from: Box<Account<'info, SecurityAssociatedAccount>>,
   pub security_associated_account_to: Box<Account<'info, SecurityAssociatedAccount>>,
+  #[account(
+    seeds = [
+      TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(),
+      &transfer_restriction_data.key().to_bytes(),
+      &security_associated_account_from.group.to_le_bytes()
+    ],
+    bump,
+  )]
+  pub transfer_restriction_group_from: Box<Account<'info, TransferRestrictionGroup>>,
+  #[account(
+    seeds = [
+      TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(),
+      &transfer_restriction_data.key().to_bytes(),
+      &security_associated_account_to.group.to_le_bytes()
+    ],
+    bump,
+  )]
+  pub transfer_restriction_group_to: Box<Account<'info, TransferRestrictionGroup>>,
   pub transfer_rule: Box<Account<'info, TransferRule>>,
 }

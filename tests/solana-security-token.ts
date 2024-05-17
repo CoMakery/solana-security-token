@@ -4,26 +4,18 @@ import {
   ExtensionType,
   getMintLen,
   TOKEN_2022_PROGRAM_ID,
-  createInitializeTransferHookInstruction,
-  createInitializeMintInstruction,
   getMint,
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountInstruction,
   getAccount,
   ExtraAccountMeta,
-  createTransferCheckedInstruction,
   createTransferCheckedWithTransferHookInstruction,
-  getExtraAccountMetaAddress,
-  getExtraAccountMetas,
-  createExecuteInstruction,
-  resolveExtraAccountMeta,
 } from "@solana/spl-token";
 import {
   Keypair,
   sendAndConfirmTransaction,
   SystemProgram,
   Transaction,
-  AccountInfo,
   PublicKey,
 } from "@solana/web3.js";
 import { TransferRestrictions } from "../target/types/transfer_restrictions";
@@ -326,7 +318,8 @@ describe("solana-security-token", () => {
       assert.equal(transferRestrictionData.maxHolders.toString(), maxHolders.toString());
 
       // 5. Create Transfer Group 1
-      const transfer_group = new anchor.BN(1, 'be');
+      console.log("5. Create Transfer Group 1");
+      const transfer_group = new anchor.BN(1);
       const [transferRestrictionGroupPubkey, transferRestrictionGroupBump] =
         anchor.web3.PublicKey.findProgramAddressSync(
           [
@@ -336,6 +329,7 @@ describe("solana-security-token", () => {
           ],
           transferRestrictionsProgram.programId
         );
+      console.log("Transfer Restriction Group Pubkey", transferRestrictionGroupPubkey.toBase58());
       const initTransferGroupTx = await transferRestrictionsProgram.methods
         .initializeTransferRestrictionGroup(transfer_group)
         .accountsStrict({
@@ -348,6 +342,8 @@ describe("solana-security-token", () => {
         .signers([superAdmin])
         .rpc({ commitment: confirmOptions });
       console.log("Initialize Transfer Restriction Group Transaction Signature", initTransferGroupTx);
+      const trGroupData = await transferRestrictionsProgram.account.transferRestrictionGroup.fetch(transferRestrictionGroupPubkey, confirmOptions);
+      console.log("Transfer Restriction Group Data", trGroupData);
 
       // 6. Create Transfer Rule 1 -> 1
       console.log("6. Create Transfer Rule 1 -> 1");
@@ -364,6 +360,7 @@ describe("solana-security-token", () => {
 
       const tsNow = Date.now() / 1000;
       const lockedUntil = new anchor.BN(tsNow);
+      // const lockedUntil = new anchor.BN(tsNow + 1000); // locked transfer rule
       const initTransferRuleTx = await transferRestrictionsProgram.methods
         .initializeTransferRule(lockedUntil)
         .accountsStrict({
@@ -410,6 +407,7 @@ describe("solana-security-token", () => {
         ],
         transferRestrictionsProgram.programId
       );
+      console.log("Sender Holder Pubkey", holderSenderPubkey.toBase58());
       const initSenderHolderTx = await transferRestrictionsProgram.methods
         .initializeTransferRestrictionHolder(senderHolderId)
         .accountsStrict({
@@ -433,6 +431,7 @@ describe("solana-security-token", () => {
         ],
         transferRestrictionsProgram.programId
       );
+      console.log("Recipient Holder Pubkey", holderRecipientPubkey.toBase58());
       const initRecipientHolderTx = await transferRestrictionsProgram.methods
         .initializeTransferRestrictionHolder(recipientHolderId)
         .accountsStrict({
@@ -455,6 +454,7 @@ describe("solana-security-token", () => {
           ],
           transferRestrictionsProgram.programId
         );
+      console.log("Sender Security Associated Account Pubkey", userWalletSenderSecurityAssociatedTokenAccountPubkey.toBase58());
       const initSecAssocAccountSenderTx = await transferRestrictionsProgram.methods
         .initializeSecurityAssociatedAccount()
         .accountsStrict({
@@ -500,6 +500,7 @@ describe("solana-security-token", () => {
           ],
           transferRestrictionsProgram.programId
         );
+      console.log("Recipient Security Associated Account Pubkey", userWalletRecipientSecurityAssociatedTokenAccountPubkey.toBase58());
 
       const initSecAssocAccountRecipientTx = await transferRestrictionsProgram.methods
         .initializeSecurityAssociatedAccount()
@@ -522,6 +523,38 @@ describe("solana-security-token", () => {
       console.log("7. Create Transfer with Hook")
       const transferAmount = BigInt(1000);
 
+      const transferWithHookInstruction = await createTransferCheckedWithTransferHookInstruction(
+        provider.connection,
+        userWalletAssociatedAccountPubkey,
+        mintKeypair.publicKey,
+        userWalletRecipientAssociatedTokenAccountPubkey,
+        userWallet.publicKey,
+        transferAmount,
+        decimals,
+        undefined,
+        confirmOptions,
+        TOKEN_2022_PROGRAM_ID
+      )
+      console.log("Transfer Securities Instruction Created!");
+
+      const transferWithHookTx = await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(transferWithHookInstruction),
+        [userWallet],
+        { commitment: confirmOptions }
+      )
+
+      console.log("Transfer Securities Transaction Signature", transferWithHookTx);
+
+      // 7.LAST. Check if the transfer was successful
+      console.log("7.LAST. Check if the transfer was successful");
+      const senderAccountInfo = await getAccount(connection, userWalletAssociatedAccountPubkey, undefined, TOKEN_2022_PROGRAM_ID);
+      console.log("Sender Account Info", senderAccountInfo);
+      const recipientAccountInfo = await getAccount(connection, userWalletRecipientAssociatedTokenAccountPubkey, undefined, TOKEN_2022_PROGRAM_ID);
+      console.log("Recipient Account Info", recipientAccountInfo);
+      assert.deepEqual(senderAccountInfo.amount, BigInt(299000));
+      assert.equal(recipientAccountInfo.amount.toString(), transferAmount.toString());
+
       console.log("==================================== ******** ====================================");
       console.log("==================================== FINISHED ====================================");
       console.log("==================================== ******** ====================================");
@@ -529,65 +562,5 @@ describe("solana-security-token", () => {
     } catch (error) {
       console.log("Error", error);
     }
-  });
-
-  it("valid extra metas address", async () => {
-    // TODO: Update extra metas addresses with the correct values
-    const extraMetas: ExtraAccountMeta[] = [
-      {
-        discriminator: 0,
-        addressConfig: Keypair.generate().publicKey.toBuffer(),
-        isWritable: false,
-        isSigner: false,
-      },
-      {
-        discriminator: 0,
-        addressConfig: Keypair.generate().publicKey.toBuffer(),
-        isWritable: false,
-        isSigner: false,
-      },
-    ];
-
-    // // Check the account data
-    // const extraMetasAddressData = await provider.connection
-    //   .getAccountInfo(extraMetasAddress)
-    //   assert.equal(extraMetasAddressData.data.length, validationLen);
-    //   assert.equal(
-    //     extraMetasAddressData.data.subarray(0, 8).compare(
-    //       Buffer.from([105, 37, 101, 197, 75, 251, 102, 26]) // SPL discriminator for `Execute` from interface
-    //     ),
-    //     0
-    //   );
-    //   assert.equal(
-    //     extraMetasAddressData.data.subarray(8, 12).compare(
-    //       Buffer.from([74, 0, 0, 0]) // Little endian 74
-    //     ),
-    //     0
-    //   );
-    //   assert.equal(
-    //     extraMetasAddressData.data.subarray(12, 16).compare(
-    //       Buffer.from([2, 0, 0, 0]) // Little endian 2
-    //     ),
-    //     0
-    //   );
-    //   const extraMetaToBuffer = (extraMeta: ExtraAccountMeta) => {
-    //     const buf = Buffer.alloc(35);
-    //     buf.set(extraMeta.addressConfig, 1);
-    //     buf.writeUInt8(0, 33); // isSigner
-    //     buf.writeUInt8(0, 34); // isWritable
-    //     return buf;
-    //   };
-    //   assert.equal(
-    //     extraMetasAddressData.data
-    //       .subarray(16, 51)
-    //       .compare(extraMetaToBuffer(extraMetas[0])),
-    //     0
-    //   );
-    //   assert.equal(
-    //     extraMetasAddressData.data
-    //       .subarray(51, 86)
-    //       .compare(extraMetaToBuffer(extraMetas[1])),
-    //     0
-    //   );
   });
 });

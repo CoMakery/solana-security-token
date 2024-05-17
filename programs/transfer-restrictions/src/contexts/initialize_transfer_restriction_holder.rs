@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use std::mem;
 use crate::{contexts::common::DISCRIMINATOR_LEN, AccessControl, TransferRestrictionData, TRANSFER_RESTRICTION_DATA_PREFIX};
 
 pub const TRANSFER_RESTRICTION_HOLDER_PREFIX: &str = "trh"; // transfer_restriction_holder
