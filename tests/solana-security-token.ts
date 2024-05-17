@@ -8,7 +8,6 @@ import {
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountInstruction,
   getAccount,
-  ExtraAccountMeta,
   createTransferCheckedWithTransferHookInstruction,
 } from "@solana/spl-token";
 import {
@@ -19,7 +18,6 @@ import {
   PublicKey,
 } from "@solana/web3.js";
 import { TransferRestrictions } from "../target/types/transfer_restrictions";
-// import { SecurityTransferHook } from "../target/types/security_transfer_hook";
 import { assert } from "chai";
 import { topUpWallet } from "./utils";
 
@@ -32,20 +30,16 @@ const TRANSFER_RULE_PREFIX = "tr";
 const SECURITY_ASSOCIATED_ACCOUNT_PREFIX = "saa"; // security associated account
 const TRANSFER_RESTRICTION_HOLDER_PREFIX = "trh"; // transfer_restriction_holder
 
-
 describe("solana-security-token", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  const confirmOptions = 'confirmed'
+  const confirmOptions = "confirmed";
 
   const transferRestrictionsProgram = anchor.workspace
     .TransferRestrictions as Program<TransferRestrictions>;
-  // const transferHookProgram = anchor.workspace
-  //   .SecurityTransferHook as Program<SecurityTransferHook>;
   const connection = provider.connection;
 
   const wallet = provider.wallet as anchor.Wallet;
-  // const payer = wallet.payer;
 
   const superAdmin = Keypair.generate();
 
@@ -60,23 +54,17 @@ describe("solana-security-token", () => {
     delegate: superAdmin.publicKey,
   };
 
-  const contractAdmin = Keypair.generate();
-  const walletAdmin = Keypair.generate();
-  const reserveAdmin = Keypair.generate();
-  const transferAdmin = Keypair.generate();
-
-  let extraMetasAddress: PublicKey = null;
-  const validationLen = 8 + 4 + 4 + 7 * 35; // Discriminator, length, pod slice length, pod slice with 7 extra metas
-
-
   it("airdrop payer", async () => {
     console.log("Airdropping payer", superAdmin.publicKey.toString());
 
-    await topUpWallet(provider.connection, superAdmin.publicKey, 100000000000000);
+    await topUpWallet(
+      provider.connection,
+      superAdmin.publicKey,
+      100000000000000
+    );
   });
 
-
-  it("Is initialized!", async () => {
+  it("Security Token with Transfer Restriction happy path", async () => {
     // Size of Mint Account with extension
     const extensions = [ExtensionType.TransferHook];
     const mintLen = getMintLen(extensions);
@@ -86,38 +74,7 @@ describe("solana-security-token", () => {
 
     const balance = await provider.connection.getBalance(superAdmin.publicKey);
     console.log("Payer balance", balance);
-
-    // const transaction = new Transaction().add(
-    //   SystemProgram.createAccount({
-    //     fromPubkey: wallet.publicKey,
-    //     newAccountPubkey: mintKeypair.publicKey,
-    //     space: mintLen,
-    //     lamports: lamports,
-    //     programId: TOKEN_2022_PROGRAM_ID,
-    //   }),
-    //   createInitializeTransferHookInstruction(
-    //     mintKeypair.publicKey,
-    //     wallet.publicKey,
-    //     transferHookProgram.programId,
-    //     TOKEN_2022_PROGRAM_ID
-    //   ),
-    //   createInitializeMintInstruction(
-    //     mintKeypair.publicKey,
-    //     decimals,
-    //     wallet.publicKey,
-    //     null,
-    //     TOKEN_2022_PROGRAM_ID
-    //   )
-    // );
-
-    // const txSig = await sendAndConfirmTransaction(
-    //   provider.connection,
-    //   transaction,
-    //   [wallet.payer, mintKeypair]
-    // );
-    // console.log(`Create Mint Transaction Signature: ${txSig}`);
-
-    console.log('mintKeypair.publicKey:', mintKeypair.publicKey.toBase58());
+    console.log("mintKeypair.publicKey:", mintKeypair.publicKey.toBase58());
     const [extraMetasAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [
         anchor.utils.bytes.utf8.encode(EXTRA_METAS_ACCOUNT_PREFIX),
@@ -125,175 +82,198 @@ describe("solana-security-token", () => {
       ],
       transferRestrictionsProgram.programId
     );
-    extraMetasAddress = extraMetasAccount;
 
     const [accessControlPubkey, accessControlBump] =
       anchor.web3.PublicKey.findProgramAddressSync(
         [
           anchor.utils.bytes.utf8.encode(ACCESS_CONTROL_PREFIX),
-          mintKeypair.publicKey.toBuffer()
+          mintKeypair.publicKey.toBuffer(),
         ],
         transferRestrictionsProgram.programId
       );
     console.log("Access Control Pubkey", accessControlPubkey.toBase58());
-    console.log("transferRestrictionsProgram.programId", transferRestrictionsProgram.programId.toBase58());
-
+    console.log(
+      "transferRestrictionsProgram.programId",
+      transferRestrictionsProgram.programId.toBase58()
+    );
 
     const [authorityWalletRolePubkey, walletRoleBump] =
-      anchor.web3.PublicKey.findProgramAddressSync([
-        Buffer.from(WALLET_ROLE_PREFIX),
-        mintKeypair.publicKey.toBuffer(),
-        setupAccessControlArgs.authority.toBuffer()
-      ],
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from(WALLET_ROLE_PREFIX),
+          mintKeypair.publicKey.toBuffer(),
+          setupAccessControlArgs.authority.toBuffer(),
+        ],
         transferRestrictionsProgram.programId
       );
     console.log("Wallet Role Pubkey", authorityWalletRolePubkey.toBase58());
 
-    try {
-      // 1. Initialize Access Control and Mint
-      const tx = await transferRestrictionsProgram.methods
-        .initializeAccessControl({
-          decimals: setupAccessControlArgs.decimals,
-          name: setupAccessControlArgs.name,
-          symbol: setupAccessControlArgs.symbol,
-          uri: setupAccessControlArgs.uri,
-          delegate: setupAccessControlArgs.delegate ? new anchor.web3.PublicKey(setupAccessControlArgs.delegate) : null,
-        })
-        .accountsStrict({
-          payer: setupAccessControlArgs.payer,
-          authority: setupAccessControlArgs.authority,
-          mint: mintKeypair.publicKey,
-          accessControl: accessControlPubkey,
-          authorityWalletRole: authorityWalletRolePubkey,
-          extraMetasAccount: extraMetasAccount,
-          systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-        })
-        .signers([mintKeypair, superAdmin])
-        .rpc({ commitment: confirmOptions });
-      console.log("InitializeAccessControl transaction signature", tx);
+    // 1. Initialize Access Control and Mint
+    console.log("1. Initialize Access Control and Mint");
+    const tx = await transferRestrictionsProgram.methods
+      .initializeAccessControl({
+        decimals: setupAccessControlArgs.decimals,
+        name: setupAccessControlArgs.name,
+        symbol: setupAccessControlArgs.symbol,
+        uri: setupAccessControlArgs.uri,
+        delegate: setupAccessControlArgs.delegate
+          ? new anchor.web3.PublicKey(setupAccessControlArgs.delegate)
+          : null,
+      })
+      .accountsStrict({
+        payer: setupAccessControlArgs.payer,
+        authority: setupAccessControlArgs.authority,
+        mint: mintKeypair.publicKey,
+        accessControl: accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        extraMetasAccount: extraMetasAccount,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+      })
+      .signers([mintKeypair, superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("InitializeAccessControl transaction signature", tx);
 
-      const accessControlData =
-        await transferRestrictionsProgram.account.accessControl.fetch(
-          accessControlPubkey,
-          confirmOptions
-        );
-      console.log("Access Control Data", accessControlData);
-      assert.deepEqual(accessControlData.mint, mintKeypair.publicKey);
-
-      const walletRoleData = await transferRestrictionsProgram.account.walletRole.fetch(authorityWalletRolePubkey);
-      console.log("Wallet Role Data", walletRoleData);
-      assert.deepEqual(walletRoleData.role, 15);
-
-      let mintData = await getMint(
-        connection,
-        mintKeypair.publicKey,
-        confirmOptions,
-        TOKEN_2022_PROGRAM_ID
+    const accessControlData =
+      await transferRestrictionsProgram.account.accessControl.fetch(
+        accessControlPubkey,
+        confirmOptions
       );
-      assert.deepEqual(mintData.mintAuthority, accessControlPubkey);
-      assert.deepEqual(mintData.supply, BigInt(0));
-      assert.deepEqual(mintData.decimals, decimals);
-      assert.deepEqual(mintData.isInitialized, true);
-      assert.deepEqual(mintData.freezeAuthority, accessControlPubkey);
+    assert.deepEqual(accessControlData.mint, mintKeypair.publicKey);
 
-      console.log("Mint Data", mintData);
+    const walletRoleData =
+      await transferRestrictionsProgram.account.walletRole.fetch(
+        authorityWalletRolePubkey
+      );
+    assert.deepEqual(walletRoleData.role, 15);
 
-      // 2. Mint tokens to new account
-      const userWallet = Keypair.generate();
-      const userWalletPubkey = userWallet.publicKey;
+    let mintData = await getMint(
+      connection,
+      mintKeypair.publicKey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.deepEqual(mintData.mintAuthority, accessControlPubkey);
+    assert.deepEqual(mintData.supply, BigInt(0));
+    assert.deepEqual(mintData.decimals, decimals);
+    assert.deepEqual(mintData.isInitialized, true);
+    assert.deepEqual(mintData.freezeAuthority, accessControlPubkey);
 
-      const userWalletAssociatedAccountPubkey = getAssociatedTokenAddressSync(
-        mintKeypair.publicKey,
+    // 2. Mint tokens to new account
+    console.log("2. Mint tokens to new account");
+    const userWallet = Keypair.generate();
+    const userWalletPubkey = userWallet.publicKey;
+
+    const userWalletAssociatedAccountPubkey = getAssociatedTokenAddressSync(
+      mintKeypair.publicKey,
+      userWalletPubkey,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+    console.log(
+      "New Associated Account Pubkey",
+      userWalletAssociatedAccountPubkey.toBase58()
+    );
+
+    const transaction = new Transaction().add(
+      createAssociatedTokenAccountInstruction(
+        superAdmin.publicKey,
+        userWalletAssociatedAccountPubkey,
         userWalletPubkey,
-        false,
+        mintKeypair.publicKey,
         TOKEN_2022_PROGRAM_ID
       )
-      console.log("New Associated Account Pubkey", userWalletAssociatedAccountPubkey.toBase58());
+    );
+    const txCreateAssTokenAccount = await sendAndConfirmTransaction(
+      provider.connection,
+      transaction,
+      [superAdmin],
+      { commitment: confirmOptions }
+    );
+    console.log(
+      "Create Associated Token Account Transaction Signature",
+      txCreateAssTokenAccount
+    );
 
-      const transaction = new Transaction().add(
-        createAssociatedTokenAccountInstruction(
-          superAdmin.publicKey,
-          userWalletAssociatedAccountPubkey,
-          userWalletPubkey,
-          mintKeypair.publicKey,
-          TOKEN_2022_PROGRAM_ID
-        )
-      )
-      const txCreateAssTokenAccount = await sendAndConfirmTransaction(
-        provider.connection,
-        transaction,
-        [superAdmin],
-        { commitment: confirmOptions }
+    const mintAmount = new anchor.BN(1000000);
+    const mintTx = await transferRestrictionsProgram.methods
+      .mintSecurities(mintAmount)
+      .accountsStrict({
+        authority: superAdmin.publicKey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: accessControlPubkey,
+        securityMint: mintKeypair.publicKey,
+        destinationAccount: userWalletAssociatedAccountPubkey,
+        destinationAuthority: userWalletPubkey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Mint Securities Transaction Signature", mintTx);
+
+    mintData = await getMint(
+      connection,
+      mintKeypair.publicKey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.equal(mintData.supply.toString(), mintAmount.toString());
+
+    const assAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      undefined,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.equal(assAccountInfo.amount.toString(), mintAmount.toString());
+
+    // 3. Burn tokens
+    console.log("3. Burn tokens");
+    const burnAmount = new anchor.BN(700000);
+    const burnTx = await transferRestrictionsProgram.methods
+      .burnSecurities(burnAmount)
+      .accountsStrict({
+        authority: superAdmin.publicKey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: accessControlPubkey,
+        securityMint: mintKeypair.publicKey,
+        targetAccount: userWalletAssociatedAccountPubkey,
+        targetAuthority: userWalletPubkey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Burn Securities Transaction Signature", burnTx);
+
+    mintData = await getMint(
+      connection,
+      mintKeypair.publicKey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.equal(
+      mintData.supply.toString(),
+      mintAmount.sub(burnAmount).toString()
+    );
+
+    // === TRANSFER RESTRICTIONS SETUP ===
+    // 4. Create Transfer Restriction Data
+    console.log("4. Creating Transfer Restriction Data");
+    const maxHolders = new anchor.BN(10000);
+    const [transferRestrictionDataPubkey, transferRestrictionDataBump] =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from(TRANSFER_RESTRICTION_DATA_PREFIX),
+          mintKeypair.publicKey.toBuffer(),
+        ],
+        transferRestrictionsProgram.programId
       );
-      console.log("Create Associated Token Account Transaction Signature", txCreateAssTokenAccount);
-
-      const mintAmount = new anchor.BN(1000000);
-      const mintTx = await transferRestrictionsProgram.methods
-        .mintSecurities(mintAmount).accountsStrict({
-          authority: superAdmin.publicKey,
-          authorityWalletRole: authorityWalletRolePubkey,
-          accessControl: accessControlPubkey,
-          securityMint: mintKeypair.publicKey,
-          destinationAccount: userWalletAssociatedAccountPubkey,
-          destinationAuthority: userWalletPubkey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
-      console.log("Mint Securities Transaction Signature", mintTx);
-
-      mintData = await getMint(
-        connection,
-        mintKeypair.publicKey,
-        confirmOptions,
-        TOKEN_2022_PROGRAM_ID
-      );
-
-      console.log("Mint Data (after MintSecurities)", mintData);
-
-      const assAccountInfo = await getAccount(connection, userWalletAssociatedAccountPubkey, undefined, TOKEN_2022_PROGRAM_ID);
-      console.log("Associated Account Info", assAccountInfo);
-
-      // 3. Burn tokens
-      const burnAmount = new anchor.BN(700000);
-      const burnTx = await transferRestrictionsProgram.methods
-        .burnSecurities(burnAmount).accountsStrict({
-          authority: superAdmin.publicKey,
-          authorityWalletRole: authorityWalletRolePubkey,
-          accessControl: accessControlPubkey,
-          securityMint: mintKeypair.publicKey,
-          targetAccount: userWalletAssociatedAccountPubkey,
-          targetAuthority: userWalletPubkey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
-      console.log("Burn Securities Transaction Signature", burnTx);
-
-      mintData = await getMint(
-        connection,
-        mintKeypair.publicKey,
-        confirmOptions,
-        TOKEN_2022_PROGRAM_ID
-      );
-      assert.equal(mintData.supply.toString(), mintAmount.sub(burnAmount).toString());
-      console.log("Mint Data (after BurnSecurities)", mintData);
-
-      // === TRANSFER RESTRICTIONS SETUP ===
-      // 4. Create Transfer Restriction Data
-      console.log("4. Creating Transfer Restriction Data ======================================>");
-      const maxHolders = new anchor.BN(10000);
-      const [transferRestrictionDataPubkey, transferRestrictionDataBump] =
-        anchor.web3.PublicKey.findProgramAddressSync(
-          [
-            Buffer.from(TRANSFER_RESTRICTION_DATA_PREFIX),
-            mintKeypair.publicKey.toBuffer(),
-          ],
-          transferRestrictionsProgram.programId
-        );
-      console.log("Transfer Restriction Data Pubkey", transferRestrictionDataPubkey.toBase58());
-      const initTransferRestrictionDataTx = await transferRestrictionsProgram.methods
+    console.log(
+      "Transfer Restriction Data Pubkey",
+      transferRestrictionDataPubkey.toBase58()
+    );
+    const initTransferRestrictionDataTx =
+      await transferRestrictionsProgram.methods
         .initializeTransferRestrictionsData(maxHolders)
         .accountsStrict({
           transferRestrictionData: transferRestrictionDataPubkey,
@@ -305,125 +285,196 @@ describe("solana-security-token", () => {
         })
         .signers([superAdmin])
         .rpc({ commitment: confirmOptions });
-      console.log("Initialize Transfer Restrictions Data Transaction Signature", initTransferRestrictionDataTx);
+    console.log(
+      "Initialize Transfer Restrictions Data Transaction Signature",
+      initTransferRestrictionDataTx
+    );
 
-      const transferRestrictionData =
-        await transferRestrictionsProgram.account.transferRestrictionData.fetch(
-          transferRestrictionDataPubkey
-        );
-      console.log("transferRestrictionData:", transferRestrictionData);
-      assert.deepEqual(transferRestrictionData.securityTokenMint, mintKeypair.publicKey);
-      assert.deepEqual(transferRestrictionData.accessControlAccount, accessControlPubkey);
-      assert.equal(transferRestrictionData.currentHoldersCount.toNumber(), 0);
-      assert.equal(transferRestrictionData.maxHolders.toString(), maxHolders.toString());
+    const transferRestrictionData =
+      await transferRestrictionsProgram.account.transferRestrictionData.fetch(
+        transferRestrictionDataPubkey
+      );
+    assert.deepEqual(
+      transferRestrictionData.securityTokenMint,
+      mintKeypair.publicKey
+    );
+    assert.deepEqual(
+      transferRestrictionData.accessControlAccount,
+      accessControlPubkey
+    );
+    assert.equal(transferRestrictionData.currentHoldersCount.toNumber(), 0);
+    assert.equal(
+      transferRestrictionData.maxHolders.toString(),
+      maxHolders.toString()
+    );
 
-      // 5. Create Transfer Group 1
-      console.log("5. Create Transfer Group 1");
-      const transfer_group = new anchor.BN(1);
-      const [transferRestrictionGroupPubkey, transferRestrictionGroupBump] =
-        anchor.web3.PublicKey.findProgramAddressSync(
-          [
-            Buffer.from(TRANSFER_RESTRICTION_GROUP_PREFIX),
-            transferRestrictionDataPubkey.toBuffer(),
-            transfer_group.toArrayLike(Buffer, "le", 8),
-          ],
-          transferRestrictionsProgram.programId
-        );
-      console.log("Transfer Restriction Group Pubkey", transferRestrictionGroupPubkey.toBase58());
-      const initTransferGroupTx = await transferRestrictionsProgram.methods
-        .initializeTransferRestrictionGroup(transfer_group)
-        .accountsStrict({
-          transferRestrictionGroup: transferRestrictionGroupPubkey,
-          transferRestrictionData: transferRestrictionDataPubkey,
-          payer: superAdmin.publicKey,
-          accessControlAccount: accessControlPubkey,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
-      console.log("Initialize Transfer Restriction Group Transaction Signature", initTransferGroupTx);
-      const trGroupData = await transferRestrictionsProgram.account.transferRestrictionGroup.fetch(transferRestrictionGroupPubkey, confirmOptions);
-      console.log("Transfer Restriction Group Data", trGroupData);
+    // 5. Create Transfer Group 1
+    console.log("5. Create Transfer Group 1");
+    const transferGroup = new anchor.BN(1);
+    const [transferRestrictionGroupPubkey, transferRestrictionGroupBump] =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from(TRANSFER_RESTRICTION_GROUP_PREFIX),
+          transferRestrictionDataPubkey.toBuffer(),
+          transferGroup.toArrayLike(Buffer, "le", 8),
+        ],
+        transferRestrictionsProgram.programId
+      );
+    console.log(
+      "Transfer Restriction Group Pubkey",
+      transferRestrictionGroupPubkey.toBase58()
+    );
+    const initTransferGroupTx = await transferRestrictionsProgram.methods
+      .initializeTransferRestrictionGroup(transferGroup)
+      .accountsStrict({
+        transferRestrictionGroup: transferRestrictionGroupPubkey,
+        transferRestrictionData: transferRestrictionDataPubkey,
+        payer: superAdmin.publicKey,
+        accessControlAccount: accessControlPubkey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log(
+      "Initialize Transfer Restriction Group Transaction Signature",
+      initTransferGroupTx
+    );
+    const trGroupData =
+      await transferRestrictionsProgram.account.transferRestrictionGroup.fetch(
+        transferRestrictionGroupPubkey,
+        confirmOptions
+      );
+    assert.equal(trGroupData.id.toString(), transferGroup.toString());
+    assert.equal(trGroupData.maxHolders.toString(), maxHolders.toString());
+    assert.equal(
+      trGroupData.currentHoldersCount.toString(),
+      Number(0).toString()
+    );
+    assert.deepEqual(
+      trGroupData.transferRestrictionData,
+      transferRestrictionDataPubkey
+    );
 
-      // 6. Create Transfer Rule 1 -> 1
-      console.log("6. Create Transfer Rule 1 -> 1");
-      const [transferRulePubkey, transferRulePubkeyBump] =
-        anchor.web3.PublicKey.findProgramAddressSync(
-          [
-            Buffer.from(TRANSFER_RULE_PREFIX),
-            transferRestrictionGroupPubkey.toBuffer(),
-            transferRestrictionGroupPubkey.toBuffer(),
-          ],
-          transferRestrictionsProgram.programId
-        );
-      console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
+    // 6. Create Transfer Rule 1 -> 1
+    console.log("6. Create Transfer Rule 1 -> 1");
+    const [transferRulePubkey, transferRulePubkeyBump] =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from(TRANSFER_RULE_PREFIX),
+          transferRestrictionGroupPubkey.toBuffer(),
+          transferRestrictionGroupPubkey.toBuffer(),
+        ],
+        transferRestrictionsProgram.programId
+      );
+    console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
 
-      const tsNow = Date.now() / 1000;
-      const lockedUntil = new anchor.BN(tsNow);
-      // const lockedUntil = new anchor.BN(tsNow + 1000); // locked transfer rule
-      const initTransferRuleTx = await transferRestrictionsProgram.methods
-        .initializeTransferRule(lockedUntil)
-        .accountsStrict({
-          transferRule: transferRulePubkey,
-          transferRestrictionData: transferRestrictionDataPubkey,
-          transferRestrictionGroupFrom: transferRestrictionGroupPubkey,
-          transferRestrictionGroupTo: transferRestrictionGroupPubkey,
-          accessControlAccount: accessControlPubkey,
-          payer: superAdmin.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
-      console.log("Initialize Transfer Rule Transaction Signature", initTransferRuleTx);
+    const tsNow = Date.now() / 1000;
+    const lockedUntil = new anchor.BN(tsNow);
+    // const lockedUntil = new anchor.BN(tsNow + 1000); // locked transfer rule
+    const initTransferRuleTx = await transferRestrictionsProgram.methods
+      .initializeTransferRule(lockedUntil)
+      .accountsStrict({
+        transferRule: transferRulePubkey,
+        transferRestrictionData: transferRestrictionDataPubkey,
+        transferRestrictionGroupFrom: transferRestrictionGroupPubkey,
+        transferRestrictionGroupTo: transferRestrictionGroupPubkey,
+        accessControlAccount: accessControlPubkey,
+        payer: superAdmin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log(
+      "Initialize Transfer Rule Transaction Signature",
+      initTransferRuleTx
+    );
 
-      const transferRuleData = await transferRestrictionsProgram.account.transferRule.fetch(transferRulePubkey, confirmOptions)
-      console.log("Transfer Rule Data", transferRuleData);
-      assert.equal(transferRuleData.lockedUntil.toString(), lockedUntil.toString());
-      assert.equal(transferRuleData.transferGroupIdFrom.toString(), transfer_group.toString());
-      assert.equal(transferRuleData.transferGroupIdTo.toString(), transfer_group.toString());
-      assert.deepEqual(transferRuleData.transferRestrictionData, transferRestrictionDataPubkey);
+    const transferRuleData =
+      await transferRestrictionsProgram.account.transferRule.fetch(
+        transferRulePubkey,
+        confirmOptions
+      );
+    assert.equal(
+      transferRuleData.lockedUntil.toString(),
+      lockedUntil.toString()
+    );
+    assert.equal(
+      transferRuleData.transferGroupIdFrom.toString(),
+      transferGroup.toString()
+    );
+    assert.equal(
+      transferRuleData.transferGroupIdTo.toString(),
+      transferGroup.toString()
+    );
+    assert.deepEqual(
+      transferRuleData.transferRestrictionData,
+      transferRestrictionDataPubkey
+    );
 
-      // 7.0. Create security associated account from and to
-      const userWalletRecipient = Keypair.generate();
-      const userWalletRecipientPubkey = userWalletRecipient.publicKey;
-      const userWalletRecipientAssociatedTokenAccountPubkey = getAssociatedTokenAddressSync(
+    // 7.0. Create security associated account from and to
+    const userWalletRecipient = Keypair.generate();
+    const userWalletRecipientPubkey = userWalletRecipient.publicKey;
+    const userWalletRecipientAssociatedTokenAccountPubkey =
+      getAssociatedTokenAddressSync(
         mintKeypair.publicKey,
         userWalletRecipientPubkey,
         false,
         TOKEN_2022_PROGRAM_ID
       );
-      console.log(`Recipient address: ${userWalletRecipientPubkey.toBase58()}, token account: ${userWalletRecipientAssociatedTokenAccountPubkey.toBase58()}`);
-      await topUpWallet(provider.connection, userWallet.publicKey, 1000000000000);
-      console.log(`User Wallet sender balance: ${await provider.connection.getBalance(userWalletPubkey)}`);
+    await topUpWallet(provider.connection, userWallet.publicKey, 1000000000000);
+    console.log(
+      `User Wallet sender balance: ${await provider.connection.getBalance(
+        userWalletPubkey
+      )}`
+    );
 
-      // 7.1. Create Holder for sender
-      console.log("7.1. Create Holder for sender");
-      const senderHolderId = new anchor.BN(1);
-      const [holderSenderPubkey] = anchor.web3.PublicKey.findProgramAddressSync(
-        [
-          Buffer.from(TRANSFER_RESTRICTION_HOLDER_PREFIX),
-          transferRestrictionDataPubkey.toBuffer(),
-          senderHolderId.toArrayLike(Buffer, "le", 8),
-        ],
-        transferRestrictionsProgram.programId
+    // 7.1. Create Holder for sender
+    console.log("7.1. Create Holder for sender");
+    const senderHolderId = new anchor.BN(1);
+    const [holderSenderPubkey] = anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from(TRANSFER_RESTRICTION_HOLDER_PREFIX),
+        transferRestrictionDataPubkey.toBuffer(),
+        senderHolderId.toArrayLike(Buffer, "le", 8),
+      ],
+      transferRestrictionsProgram.programId
+    );
+    console.log("Sender Holder Pubkey", holderSenderPubkey.toBase58());
+    const initSenderHolderTx = await transferRestrictionsProgram.methods
+      .initializeTransferRestrictionHolder(senderHolderId)
+      .accountsStrict({
+        transferRestrictionHolder: holderSenderPubkey,
+        transferRestrictionData: transferRestrictionDataPubkey,
+        accessControlAccount: accessControlPubkey,
+        payer: superAdmin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log(
+      "Initialize Sender Holder Transaction Signature",
+      initSenderHolderTx
+    );
+    const holderSenderData =
+      await transferRestrictionsProgram.account.transferRestrictionHolder.fetch(
+        holderSenderPubkey,
+        confirmOptions
       );
-      console.log("Sender Holder Pubkey", holderSenderPubkey.toBase58());
-      const initSenderHolderTx = await transferRestrictionsProgram.methods
-        .initializeTransferRestrictionHolder(senderHolderId)
-        .accountsStrict({
-          transferRestrictionHolder: holderSenderPubkey,
-          transferRestrictionData: transferRestrictionDataPubkey,
-          accessControlAccount: accessControlPubkey,
-          payer: superAdmin.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
-      console.log("Initialize Sender Holder Transaction Signature", initSenderHolderTx);
-      // 7.2. Create Holder for recipient
-      console.log("7.2. Create Holder for recipient");
-      const recipientHolderId = new anchor.BN(2);
-      const [holderRecipientPubkey] = anchor.web3.PublicKey.findProgramAddressSync(
+    assert.equal(holderSenderData.id.toString(), senderHolderId.toString());
+    assert.deepEqual(
+      holderSenderData.transferRestrictionData,
+      transferRestrictionDataPubkey
+    );
+    assert.equal(
+      holderSenderData.currentWalletsCount.toString(),
+      Number(0).toString()
+    );
+
+    // 7.2. Create Holder for recipient
+    console.log("7.2. Create Holder for recipient");
+    const recipientHolderId = new anchor.BN(2);
+    const [holderRecipientPubkey] =
+      anchor.web3.PublicKey.findProgramAddressSync(
         [
           Buffer.from(TRANSFER_RESTRICTION_HOLDER_PREFIX),
           transferRestrictionDataPubkey.toBuffer(),
@@ -431,34 +482,60 @@ describe("solana-security-token", () => {
         ],
         transferRestrictionsProgram.programId
       );
-      console.log("Recipient Holder Pubkey", holderRecipientPubkey.toBase58());
-      const initRecipientHolderTx = await transferRestrictionsProgram.methods
-        .initializeTransferRestrictionHolder(recipientHolderId)
-        .accountsStrict({
-          transferRestrictionHolder: holderRecipientPubkey,
-          transferRestrictionData: transferRestrictionDataPubkey,
-          accessControlAccount: accessControlPubkey,
-          payer: superAdmin.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
-      console.log("Initialize Recipient Holder Transaction Signature", initRecipientHolderTx);
-      // 7.3. Create Security Associated Account for sender
-      console.log("7.3. Create Security Associated Account for sender");
-      const [userWalletSenderSecurityAssociatedTokenAccountPubkey] =
-        anchor.web3.PublicKey.findProgramAddressSync(
-          [
-            Buffer.from(SECURITY_ASSOCIATED_ACCOUNT_PREFIX),
-            userWalletAssociatedAccountPubkey.toBuffer(),
-          ],
-          transferRestrictionsProgram.programId
-        );
-      console.log("Sender Security Associated Account Pubkey", userWalletSenderSecurityAssociatedTokenAccountPubkey.toBase58());
-      const initSecAssocAccountSenderTx = await transferRestrictionsProgram.methods
+    console.log("Recipient Holder Pubkey", holderRecipientPubkey.toBase58());
+    const initRecipientHolderTx = await transferRestrictionsProgram.methods
+      .initializeTransferRestrictionHolder(recipientHolderId)
+      .accountsStrict({
+        transferRestrictionHolder: holderRecipientPubkey,
+        transferRestrictionData: transferRestrictionDataPubkey,
+        accessControlAccount: accessControlPubkey,
+        payer: superAdmin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log(
+      "Initialize Recipient Holder Transaction Signature",
+      initRecipientHolderTx
+    );
+    const holderRecipientData =
+      await transferRestrictionsProgram.account.transferRestrictionHolder.fetch(
+        holderRecipientPubkey,
+        confirmOptions
+      );
+    assert.equal(
+      holderRecipientData.id.toString(),
+      recipientHolderId.toString()
+    );
+    assert.deepEqual(
+      holderRecipientData.transferRestrictionData,
+      transferRestrictionDataPubkey
+    );
+    assert.equal(
+      holderRecipientData.currentWalletsCount.toString(),
+      Number(0).toString()
+    );
+
+    // 7.3. Create Security Associated Account for sender
+    console.log("7.3. Create Security Associated Account for sender");
+    const [userWalletSenderSecurityAssociatedTokenAccountPubkey] =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from(SECURITY_ASSOCIATED_ACCOUNT_PREFIX),
+          userWalletAssociatedAccountPubkey.toBuffer(),
+        ],
+        transferRestrictionsProgram.programId
+      );
+    console.log(
+      "Sender Security Associated Account Pubkey",
+      userWalletSenderSecurityAssociatedTokenAccountPubkey.toBase58()
+    );
+    const initSecAssocAccountSenderTx =
+      await transferRestrictionsProgram.methods
         .initializeSecurityAssociatedAccount()
         .accountsStrict({
-          securityAssociatedAccount: userWalletSenderSecurityAssociatedTokenAccountPubkey,
+          securityAssociatedAccount:
+            userWalletSenderSecurityAssociatedTokenAccountPubkey,
           group: transferRestrictionGroupPubkey,
           holder: holderSenderPubkey,
           securityToken: mintKeypair.publicKey,
@@ -470,60 +547,92 @@ describe("solana-security-token", () => {
         })
         .signers([superAdmin])
         .rpc({ commitment: confirmOptions });
-
-      console.log("Initialize Security Associated Account Transaction Signature", initSecAssocAccountSenderTx);
-
-      // 7.4. Create Security Associated Account for recipient
-      console.log("7.4. Create Security Associated Account for recipient");
-      const transactionCreateAssocAccRecipient = new Transaction().add(
-        createAssociatedTokenAccountInstruction(
-          superAdmin.publicKey,
-          userWalletRecipientAssociatedTokenAccountPubkey,
-          userWalletRecipientPubkey,
-          mintKeypair.publicKey,
-          TOKEN_2022_PROGRAM_ID
-        )
-      )
-      const txCreateRecipientAssTokenAccount = await sendAndConfirmTransaction(
-        provider.connection,
-        transactionCreateAssocAccRecipient,
-        [superAdmin],
-        { commitment: confirmOptions }
+    console.log(
+      "Initialize Security Associated Account Transaction Signature",
+      initSecAssocAccountSenderTx
+    );
+    const senderSecurityAssociatedAccountData =
+      await transferRestrictionsProgram.account.securityAssociatedAccount.fetch(
+        userWalletSenderSecurityAssociatedTokenAccountPubkey,
+        confirmOptions
       );
-      console.log("Create Recipient Associated Token Account Transaction Signature", txCreateRecipientAssTokenAccount);
+    assert.equal(
+      senderSecurityAssociatedAccountData.group.toString(),
+      transferGroup.toString()
+    );
 
-      const [userWalletRecipientSecurityAssociatedTokenAccountPubkey] =
-        anchor.web3.PublicKey.findProgramAddressSync(
-          [
-            Buffer.from(SECURITY_ASSOCIATED_ACCOUNT_PREFIX),
-            userWalletRecipientAssociatedTokenAccountPubkey.toBuffer(),
-          ],
-          transferRestrictionsProgram.programId
-        );
-      console.log("Recipient Security Associated Account Pubkey", userWalletRecipientSecurityAssociatedTokenAccountPubkey.toBase58());
+    // 7.4. Create Security Associated Account for recipient
+    console.log("7.4. Create Security Associated Account for recipient");
+    const transactionCreateAssocAccRecipient = new Transaction().add(
+      createAssociatedTokenAccountInstruction(
+        superAdmin.publicKey,
+        userWalletRecipientAssociatedTokenAccountPubkey,
+        userWalletRecipientPubkey,
+        mintKeypair.publicKey,
+        TOKEN_2022_PROGRAM_ID
+      )
+    );
+    const txCreateRecipientAssTokenAccount = await sendAndConfirmTransaction(
+      provider.connection,
+      transactionCreateAssocAccRecipient,
+      [superAdmin],
+      { commitment: confirmOptions }
+    );
+    console.log(
+      "Create Recipient Associated Token Account Transaction Signature",
+      txCreateRecipientAssTokenAccount
+    );
 
-      const initSecAssocAccountRecipientTx = await transferRestrictionsProgram.methods
+    const [userWalletRecipientSecurityAssociatedTokenAccountPubkey] =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from(SECURITY_ASSOCIATED_ACCOUNT_PREFIX),
+          userWalletRecipientAssociatedTokenAccountPubkey.toBuffer(),
+        ],
+        transferRestrictionsProgram.programId
+      );
+    console.log(
+      "Recipient Security Associated Account Pubkey",
+      userWalletRecipientSecurityAssociatedTokenAccountPubkey.toBase58()
+    );
+
+    const initSecAssocAccountRecipientTx =
+      await transferRestrictionsProgram.methods
         .initializeSecurityAssociatedAccount()
         .accountsStrict({
-          securityAssociatedAccount: userWalletRecipientSecurityAssociatedTokenAccountPubkey,
+          securityAssociatedAccount:
+            userWalletRecipientSecurityAssociatedTokenAccountPubkey,
           group: transferRestrictionGroupPubkey,
           holder: holderRecipientPubkey,
           securityToken: mintKeypair.publicKey,
           transferRestrictionData: transferRestrictionDataPubkey,
           userWallet: userWalletRecipientPubkey,
-          associatedTokenAccount: userWalletRecipientAssociatedTokenAccountPubkey,
+          associatedTokenAccount:
+            userWalletRecipientAssociatedTokenAccountPubkey,
           payer: superAdmin.publicKey,
           systemProgram: SystemProgram.programId,
         })
         .signers([superAdmin])
         .rpc({ commitment: confirmOptions });
-      console.log("Initialize Security Associated Account Transaction Signature", initSecAssocAccountRecipientTx);
+    console.log(
+      "Initialize Security Associated Account Transaction Signature",
+      initSecAssocAccountRecipientTx
+    );
+    const recipientSecurityAssociatedAccountData =
+      await transferRestrictionsProgram.account.securityAssociatedAccount.fetch(
+        userWalletRecipientSecurityAssociatedTokenAccountPubkey,
+        confirmOptions
+      );
+    assert.equal(
+      recipientSecurityAssociatedAccountData.group.toString(),
+      transferGroup.toString()
+    );
 
-      // 7. Create Transfer
-      console.log("7. Create Transfer with Hook")
-      const transferAmount = BigInt(1000);
-
-      const transferWithHookInstruction = await createTransferCheckedWithTransferHookInstruction(
+    // 7. Create Transfer
+    console.log("7. Create Transfer with Hook");
+    const transferAmount = BigInt(1000);
+    const transferWithHookInstruction =
+      await createTransferCheckedWithTransferHookInstruction(
         provider.connection,
         userWalletAssociatedAccountPubkey,
         mintKeypair.publicKey,
@@ -534,33 +643,37 @@ describe("solana-security-token", () => {
         undefined,
         confirmOptions,
         TOKEN_2022_PROGRAM_ID
-      )
-      console.log("Transfer Securities Instruction Created!");
+      );
 
-      const transferWithHookTx = await sendAndConfirmTransaction(
-        connection,
-        new Transaction().add(transferWithHookInstruction),
-        [userWallet],
-        { commitment: confirmOptions }
-      )
+    const transferWithHookTx = await sendAndConfirmTransaction(
+      connection,
+      new Transaction().add(transferWithHookInstruction),
+      [userWallet],
+      { commitment: confirmOptions }
+    );
+    console.log(
+      "Transfer Securities Transaction Signature",
+      transferWithHookTx
+    );
 
-      console.log("Transfer Securities Transaction Signature", transferWithHookTx);
-
-      // 7.LAST. Check if the transfer was successful
-      console.log("7.LAST. Check if the transfer was successful");
-      const senderAccountInfo = await getAccount(connection, userWalletAssociatedAccountPubkey, undefined, TOKEN_2022_PROGRAM_ID);
-      console.log("Sender Account Info", senderAccountInfo);
-      const recipientAccountInfo = await getAccount(connection, userWalletRecipientAssociatedTokenAccountPubkey, undefined, TOKEN_2022_PROGRAM_ID);
-      console.log("Recipient Account Info", recipientAccountInfo);
-      assert.deepEqual(senderAccountInfo.amount, BigInt(299000));
-      assert.equal(recipientAccountInfo.amount.toString(), transferAmount.toString());
-
-      console.log("==================================== ******** ====================================");
-      console.log("==================================== FINISHED ====================================");
-      console.log("==================================== ******** ====================================");
-
-    } catch (error) {
-      console.log("Error", error);
-    }
+    // 7.LAST. Check if the transfer was successful
+    console.log("7.LAST. Check if the transfer was successful");
+    const senderAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      undefined,
+      TOKEN_2022_PROGRAM_ID
+    );
+    const recipientAccountInfo = await getAccount(
+      connection,
+      userWalletRecipientAssociatedTokenAccountPubkey,
+      undefined,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.deepEqual(senderAccountInfo.amount, BigInt(299000));
+    assert.equal(
+      recipientAccountInfo.amount.toString(),
+      transferAmount.toString()
+    );
   });
 });

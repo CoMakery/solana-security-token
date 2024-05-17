@@ -5,49 +5,38 @@
  * IDL can be found at `target/idl/security_transfer_hook.json`.
  */
 export type SecurityTransferHook = {
-  "address": "38jsTJqL7seGftcurfNJG1DsXa4WwCrHuNq4q1m9uZ9j",
-  "metadata": {
-    "name": "securityTransferHook",
-    "version": "0.1.0",
-    "spec": "0.1.0",
-    "description": "The security transfer hook program which checks permission for transfer groups"
-  },
-  "instructions": [
+  address: "38jsTJqL7seGftcurfNJG1DsXa4WwCrHuNq4q1m9uZ9j";
+  metadata: {
+    name: "securityTransferHook";
+    version: "0.1.0";
+    spec: "0.1.0";
+    description: "The security transfer hook program which checks permission for transfer groups";
+  };
+  instructions: [
     {
-      "name": "executeTransaction",
-      "docs": [
-        "execute transfer hook"
-      ],
-      "discriminator": [
-        105,
-        37,
-        101,
-        197,
-        75,
-        251,
-        102,
-        26
-      ],
-      "accounts": [
+      name: "executeTransaction";
+      docs: ["execute transfer hook"];
+      discriminator: [105, 37, 101, 197, 75, 251, 102, 26];
+      accounts: [
         {
-          "name": "sourceAccount"
+          name: "sourceAccount";
         },
         {
-          "name": "assetMint"
+          name: "assetMint";
         },
         {
-          "name": "destinationAccount"
+          name: "destinationAccount";
         },
         {
-          "name": "ownerDelegate"
+          name: "ownerDelegate";
         },
         {
-          "name": "extraMetasAccount",
-          "pda": {
-            "seeds": [
+          name: "extraMetasAccount";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   101,
                   120,
                   116,
@@ -67,145 +56,118 @@ export type SecurityTransferHook = {
                   116,
                   97,
                   115
-                ]
+                ];
               },
               {
-                "kind": "account",
-                "path": "assetMint"
+                kind: "account";
+                path: "assetMint";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "securityTokenProgram",
-          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+          name: "securityTokenProgram";
+          address: "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ";
         },
         {
-          "name": "transferRestrictionData"
+          name: "transferRestrictionData";
         },
         {
-          "name": "securityAssociatedAccountFrom"
+          name: "securityAssociatedAccountFrom";
         },
         {
-          "name": "securityAssociatedAccountTo"
+          name: "securityAssociatedAccountTo";
         },
         {
-          "name": "transferRule"
+          name: "transferRule";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "amount",
-          "type": "u64"
+          name: "amount";
+          type: "u64";
         }
-      ]
+      ];
     }
-  ],
-  "accounts": [
+  ];
+  accounts: [
     {
-      "name": "securityAssociatedAccount",
-      "discriminator": [
-        68,
-        169,
-        137,
-        56,
-        226,
-        21,
-        69,
-        124
-      ]
+      name: "securityAssociatedAccount";
+      discriminator: [68, 169, 137, 56, 226, 21, 69, 124];
     },
     {
-      "name": "transferRestrictionData",
-      "discriminator": [
-        166,
-        184,
-        205,
-        98,
-        165,
-        224,
-        174,
-        148
-      ]
+      name: "transferRestrictionData";
+      discriminator: [166, 184, 205, 98, 165, 224, 174, 148];
     },
     {
-      "name": "transferRule",
-      "discriminator": [
-        200,
-        231,
-        114,
-        91,
-        84,
-        241,
-        109,
-        172
-      ]
+      name: "transferRule";
+      discriminator: [200, 231, 114, 91, 84, 241, 109, 172];
     }
-  ],
-  "types": [
+  ];
+  types: [
     {
-      "name": "securityAssociatedAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "securityAssociatedAccount";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "group",
-            "type": "pubkey"
+            name: "group";
+            type: "pubkey";
           },
           {
-            "name": "holder",
-            "type": "pubkey"
+            name: "holder";
+            type: "pubkey";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "transferRestrictionData",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "transferRestrictionData";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "securityTokenMint",
-            "type": "pubkey"
+            name: "securityTokenMint";
+            type: "pubkey";
           },
           {
-            "name": "accessControlAccount",
-            "type": "pubkey"
+            name: "accessControlAccount";
+            type: "pubkey";
           },
           {
-            "name": "currentHoldersCount",
-            "type": "u64"
+            name: "currentHoldersCount";
+            type: "u64";
           },
           {
-            "name": "maxHolders",
-            "type": "u64"
+            name: "maxHolders";
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "transferRule",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "transferRule";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "transferRestrictionData",
-            "type": "pubkey"
+            name: "transferRestrictionData";
+            type: "pubkey";
           },
           {
-            "name": "transferGroupIdFrom",
-            "type": "u64"
+            name: "transferGroupIdFrom";
+            type: "u64";
           },
           {
-            "name": "transferGroupIdTo",
-            "type": "u64"
+            name: "transferGroupIdTo";
+            type: "u64";
           },
           {
-            "name": "lockUntil",
-            "type": "u64"
+            name: "lockUntil";
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     }
-  ]
+  ];
 };
