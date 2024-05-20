@@ -14,6 +14,7 @@ declare_id!("6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ");
 pub mod transfer_restrictions {
     use super::*;
 
+    /// Access Control Program Part
     pub fn initialize_access_control(
         ctx: Context<InitializeAccessControl>,
         args: InitializeAccessControlArgs,
@@ -43,6 +44,11 @@ pub mod transfer_restrictions {
         instructions::access_control::burn_securities(ctx, amount)
     }
 
+    pub fn freeze_wallet(ctx: Context<FreezeWallet>) -> Result<()> {
+        instructions::access_control::freeze_wallet(ctx)
+    }
+
+    /// Transfer Restrictions Program Part
     pub fn initialize_transfer_restrictions_data(
         ctx: Context<InitializeTransferRestrictionData>,
         max_holders: u64,

@@ -15,7 +15,6 @@ import {
   sendAndConfirmTransaction,
   SystemProgram,
   Transaction,
-  PublicKey,
 } from "@solana/web3.js";
 import { TransferRestrictions } from "../target/types/transfer_restrictions";
 import { assert } from "chai";
@@ -636,5 +635,39 @@ describe("solana-security-token", () => {
       recipientAccountInfo.amount.toString(),
       transferAmount.toString()
     );
+  });
+
+  it("freezes user wallet", async () => {
+    let assAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.equal(assAccountInfo.isFrozen, false);
+
+    const freezeTx = await transferRestrictionsProgram.methods
+      .freezeWallet()
+      .accountsStrict({
+        authority: superAdmin.publicKey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: accessControlPubkey,
+        securityMint: mintKeypair.publicKey,
+        targetAccount: userWalletAssociatedAccountPubkey,
+        targetAuthority: userWalletPubkey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Freeze Wallet Transaction Signature", freezeTx);
+
+    assAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.equal(assAccountInfo.isFrozen, true);
+    assert.deepEqual(assAccountInfo.amount, BigInt(299000));
   });
 });
