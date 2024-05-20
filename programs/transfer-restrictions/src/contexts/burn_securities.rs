@@ -39,7 +39,7 @@ pub struct BurnSecurities<'info> {
         associated_token::authority = target_authority,
     )]
     pub target_account: Box<InterfaceAccount<'info, TokenAccount>>,
-    /// CHECK: The destination_authority account is the account that owner of the destination_account
+    /// CHECK: The target_authority account is the account that owner of the target_account
     pub target_authority: UncheckedAccount<'info>,
     pub token_program: Program<'info, Token2022>,
 }
