@@ -8,4 +8,8 @@ pub enum SolanaSecurityTokenError {
     Unauthorized,
     #[msg("Transfer rule locked")]
     TransferRuleLocked,
+    #[msg("Invalid authority")]
+    InvalidAuthority,
+    #[msg("Invalid role")]
+    InvalidRole,
 }

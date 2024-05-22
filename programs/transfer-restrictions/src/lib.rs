@@ -21,6 +21,10 @@ pub mod transfer_restrictions {
         instructions::access_control::initialize(ctx, args)
     }
 
+    pub fn initialize_deployer_role(ctx: Context<InitializeDeployerRole>) -> Result<()> {
+        instructions::access_control::initialize_deployer_role(ctx)
+    }
+
     pub fn initialize_wallet_role(ctx: Context<InitializeWalletRole>, role: u8) -> Result<()> {
         instructions::access_control::initialize_wallet_role(ctx, role)
     }
@@ -33,6 +37,12 @@ pub mod transfer_restrictions {
     #[interface(spl_transfer_hook_interface::execute)]
     pub fn execute_transaction(ctx: Context<ExecuteTransferHook>, amount: u64) -> Result<()> {
         instructions::access_control::handler(ctx, amount)
+    }
+
+    pub fn initialize_extra_account_meta_list(
+        ctx: Context<InitializeExtraAccountMetaList>,
+    ) -> Result<()> {
+        instructions::access_control::initialize_extra_account_meta_list(ctx)
     }
 
     pub fn mint_securities(ctx: Context<MintSecurities>, amount: u64) -> Result<()> {

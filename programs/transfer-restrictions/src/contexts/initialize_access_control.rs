@@ -4,11 +4,8 @@ use anchor_spl::token_interface::{
 };
 use num_enum::IntoPrimitive;
 
-use crate::{
-    contexts::common::DISCRIMINATOR_LEN, get_meta_list_size, WalletRole, WALLET_ROLE_PREFIX,
-};
+use crate::contexts::common::DISCRIMINATOR_LEN;
 
-pub const META_LIST_ACCOUNT_SEED: &[u8] = b"extra-account-metas";
 pub const ACCESS_CONTROL_SEED: &[u8] = b"ac"; // access_control
 
 #[repr(u8)]
@@ -25,6 +22,7 @@ pub enum Roles {
 #[derive(InitSpace)]
 pub struct AccessControl {
     pub mint: Pubkey,
+    pub authority: Pubkey,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -33,7 +31,7 @@ pub struct InitializeAccessControlArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
-    pub delegate: Option<Pubkey>,
+    pub authority: Pubkey,
 }
 
 #[derive(Accounts)]
@@ -64,6 +62,7 @@ pub struct InitializeAccessControl<'info> {
       extensions::permanent_delegate::delegate = access_control.key(),
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
+
     #[account(init, payer = payer, space = DISCRIMINATOR_LEN + AccessControl::INIT_SPACE,
       seeds = [
         ACCESS_CONTROL_SEED,
@@ -72,27 +71,6 @@ pub struct InitializeAccessControl<'info> {
       bump,
     )]
     pub access_control: Box<Account<'info, AccessControl>>,
-    #[account(init, payer = payer, space = DISCRIMINATOR_LEN + WalletRole::INIT_SPACE,
-      seeds = [
-        WALLET_ROLE_PREFIX,
-        mint.to_account_info().key.as_ref(),
-        authority.to_account_info().key.as_ref(),
-      ],
-      bump,
-    )]
-    pub authority_wallet_role: Box<Account<'info, WalletRole>>,
-    #[account(
-      init,
-      space = get_meta_list_size()?,
-      seeds = [
-        META_LIST_ACCOUNT_SEED,
-        mint.key().as_ref(),
-      ],
-      bump,
-      payer = payer,
-    )]
-    /// CHECK: extra metas account
-    pub extra_metas_account: UncheckedAccount<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
@@ -101,6 +79,7 @@ pub struct InitializeAccessControl<'info> {
 impl<'info> InitializeAccessControl<'info> {
     pub fn initialize_token_metadata(
         &self,
+        program_id: &Pubkey,
         name: String,
         symbol: String,
         uri: String,
@@ -113,7 +92,14 @@ impl<'info> InitializeAccessControl<'info> {
             update_authority: self.access_control.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        token_metadata_initialize(cpi_ctx, name, symbol, uri)?;
+
+        let mint = self.mint.key();
+        let (_pda, bump_seed) =
+            Pubkey::find_program_address(&[ACCESS_CONTROL_SEED, mint.as_ref()], program_id);
+  
+        let seeds = &[ACCESS_CONTROL_SEED, mint.as_ref(), &[bump_seed]];
+
+        token_metadata_initialize(cpi_ctx.with_signer(&[&seeds[..]]), name, symbol, uri)?;
 
         Ok(())
     }
