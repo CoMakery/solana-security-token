@@ -69,3 +69,25 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | batchFundReleaseSchedule() | **yes**        | **yes**       | **yes**        | **yes**       | -                        |
 | fundReleaseSchedule()      | **yes**        | **yes**       | **yes**        | **yes**       | -                        |
 
+# Environment Setup
+
+The environment is necessary to build and run tests of the project.
+
+1. Install Anchor 0.30.0 from https://www.anchor-lang.com/docs/installation
+
+## Build and test source code
+
+### Build programs
+```
+$ anchor build
+```
+
+### Test programs
+1. Generate payer if it doesn't exist yet
+```
+$ solana-keygen new
+```
+2. Run the functional and integration tests. First it builds and deploys the smart contract then tests are executed locally.
+```
+$ anchor test
+```
