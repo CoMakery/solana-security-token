@@ -2,8 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::Mint;
 
 use crate::{
-  contexts::common::DISCRIMINATOR_LEN,
-  Roles,
+  contexts::common::DISCRIMINATOR_LEN, AccessControl, Roles, ACCESS_CONTROL_SEED
 };
 
 
@@ -13,6 +12,8 @@ pub const WALLET_ROLE_PREFIX: &[u8] = b"wallet_role";
 #[derive(Default)]
 #[derive(InitSpace)]
 pub struct WalletRole {
+  pub owner: Pubkey,
+  pub access_control: Pubkey,
   pub role: u8,
 }
 
@@ -44,6 +45,15 @@ pub struct InitializeWalletRole<'info> {
     bump,
   )]
   pub authority_wallet_role: Account<'info, WalletRole>,
+  #[account(
+    constraint = security_token.key() == access_control.mint,
+    seeds = [
+      ACCESS_CONTROL_SEED,
+      &security_token.key().to_bytes(),
+    ],
+    bump,
+  )]
+  pub access_control: Account<'info, AccessControl>,
   pub security_token: Box<InterfaceAccount<'info, Mint>>,
 
   /// CHECK: Wallet address to be controlled by the access control

@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{burn, Burn};
 
-use crate::{errors::SolanaSecurityTokenError, BurnSecurities, ACCESS_CONTROL_SEED};
+use crate::{errors::AccessControlError, BurnSecurities, ACCESS_CONTROL_SEED};
 
 pub fn burn_securities(ctx: Context<BurnSecurities>, amount: u64) -> Result<()> {
     if !ctx
@@ -9,7 +9,7 @@ pub fn burn_securities(ctx: Context<BurnSecurities>, amount: u64) -> Result<()> 
         .authority_wallet_role
         .has_role(crate::Roles::ReserveAdmin)
     {
-        return Err(SolanaSecurityTokenError::Unauthorized.into());
+        return Err(AccessControlError::Unauthorized.into());
     }
 
     let mint = ctx.accounts.security_mint.to_account_info();

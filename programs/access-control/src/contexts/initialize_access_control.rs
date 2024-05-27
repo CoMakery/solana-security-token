@@ -31,7 +31,7 @@ pub struct InitializeAccessControlArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
-    pub authority: Pubkey,
+    pub hook_program_id: Pubkey,
 }
 
 #[derive(Accounts)]
@@ -51,8 +51,8 @@ pub struct InitializeAccessControl<'info> {
       mint::decimals = args.decimals,
       mint::authority = access_control.key(),
       mint::freeze_authority = access_control.key(),
-      extensions::transfer_hook::authority = access_control.key(),
-      extensions::transfer_hook::program_id = crate::ID,
+      extensions::transfer_hook::authority = authority,
+      extensions::transfer_hook::program_id = args.hook_program_id,
       extensions::group_member_pointer::authority = access_control.key(),
       extensions::group_member_pointer::member_address = mint,
       extensions::group_pointer::authority = access_control.key(),

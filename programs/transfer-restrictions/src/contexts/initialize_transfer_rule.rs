@@ -1,11 +1,11 @@
 use anchor_lang::prelude::*;
 use crate::{
   contexts::common::DISCRIMINATOR_LEN,
-  AccessControl,
   TransferRestrictionData,
   TransferRestrictionGroup,
   TRANSFER_RESTRICTION_DATA_PREFIX,
 };
+use access_control::{self, AccessControl};
 
 pub const TRANSFER_RULE_PREFIX: &str = "tr"; // transfer_rule
 

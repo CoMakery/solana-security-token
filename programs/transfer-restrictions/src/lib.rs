@@ -14,25 +14,6 @@ declare_id!("6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ");
 pub mod transfer_restrictions {
     use super::*;
 
-    pub fn initialize_access_control(
-        ctx: Context<InitializeAccessControl>,
-        args: InitializeAccessControlArgs,
-    ) -> Result<()> {
-        instructions::access_control::initialize(ctx, args)
-    }
-
-    pub fn initialize_deployer_role(ctx: Context<InitializeDeployerRole>) -> Result<()> {
-        instructions::access_control::initialize_deployer_role(ctx)
-    }
-
-    pub fn initialize_wallet_role(ctx: Context<InitializeWalletRole>, role: u8) -> Result<()> {
-        instructions::access_control::initialize_wallet_role(ctx, role)
-    }
-
-    pub fn update_wallet_role(ctx: Context<UpdateWalletRole>, role: u8) -> Result<()> {
-        instructions::access_control::update_wallet_role(ctx, role)
-    }
-
     /// execute transfer hook
     #[interface(spl_transfer_hook_interface::execute)]
     pub fn execute_transaction(ctx: Context<ExecuteTransferHook>, amount: u64) -> Result<()> {
@@ -43,14 +24,6 @@ pub mod transfer_restrictions {
         ctx: Context<InitializeExtraAccountMetaList>,
     ) -> Result<()> {
         instructions::access_control::initialize_extra_account_meta_list(ctx)
-    }
-
-    pub fn mint_securities(ctx: Context<MintSecurities>, amount: u64) -> Result<()> {
-        instructions::access_control::mint_securities(ctx, amount)
-    }
-
-    pub fn burn_securities(ctx: Context<BurnSecurities>, amount: u64) -> Result<()> {
-        instructions::access_control::burn_securities(ctx, amount)
     }
 
     pub fn initialize_transfer_restrictions_data(
