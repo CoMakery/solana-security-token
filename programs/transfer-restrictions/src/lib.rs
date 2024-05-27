@@ -17,13 +17,13 @@ pub mod transfer_restrictions {
     /// execute transfer hook
     #[interface(spl_transfer_hook_interface::execute)]
     pub fn execute_transaction(ctx: Context<ExecuteTransferHook>, amount: u64) -> Result<()> {
-        instructions::access_control::handler(ctx, amount)
+        instructions::transfer_hook::handler(ctx, amount)
     }
 
     pub fn initialize_extra_account_meta_list(
         ctx: Context<InitializeExtraAccountMetaList>,
     ) -> Result<()> {
-        instructions::access_control::initialize_extra_account_meta_list(ctx)
+        instructions::transfer_hook::initialize_extra_account_meta_list(ctx)
     }
 
     pub fn initialize_transfer_restrictions_data(
