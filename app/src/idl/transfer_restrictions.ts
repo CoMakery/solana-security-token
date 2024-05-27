@@ -798,16 +798,6 @@ export type TransferRestrictions = {
       "code": 6002,
       "name": "transferRuleLocked",
       "msg": "Transfer rule locked"
-    },
-    {
-      "code": 6003,
-      "name": "invalidAuthority",
-      "msg": "Invalid authority"
-    },
-    {
-      "code": 6004,
-      "name": "invalidRole",
-      "msg": "Invalid role"
     }
   ],
   "types": [
