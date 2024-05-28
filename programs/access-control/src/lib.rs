@@ -40,4 +40,11 @@ pub mod access_control {
     pub fn burn_securities(ctx: Context<BurnSecurities>, amount: u64) -> Result<()> {
         instructions::asset::burn_securities(ctx, amount)
     }
+
+    pub fn force_transfer_between<'info>(
+        ctx: Context<'_, '_, '_, 'info, ForceTransferBetween<'info>>,
+        amount: u64,
+    ) -> Result<()> {
+        instructions::asset::force_transfer_beetween(ctx, amount)
+    }
 }

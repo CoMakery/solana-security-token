@@ -9,6 +9,8 @@ import {
   getTokenMetadata,
   getAccount,
   createTransferCheckedWithTransferHookInstruction,
+  addExtraAccountMetasForExecute,
+  getTransferHook,
 } from "@solana/spl-token";
 import {
   Keypair,
@@ -748,6 +750,115 @@ describe("solana-security-token", () => {
     assert.equal(
       recipientAccountInfo.amount.toString(),
       transferAmount.toString()
+    );
+  });
+
+  it("force transfer between", async () => {
+    const transferAmount = 1000;
+    const newRoles = 2;
+    const reserveAdmin = Keypair.generate();
+    const [reserveAdminRolePubkey, reserveAdminRoleBump] =
+    anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from(WALLET_ROLE_PREFIX),
+        mintKeypair.publicKey.toBuffer(),
+        reserveAdmin.publicKey.toBuffer(),
+      ],
+      accessControlProgram.programId
+    );
+
+    const assignRoleTx = await accessControlProgram.methods
+      .initializeWalletRole(newRoles)
+      .accountsStrict({
+        walletRole: reserveAdminRolePubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: accessControlPubkey,
+        securityToken: mintKeypair.publicKey,
+        userWallet: reserveAdmin.publicKey,
+        payer: superAdmin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Assign Role Transaction Signature", assignRoleTx);
+
+    const walletRoleData =
+      await accessControlProgram.account.walletRole.fetch(
+        reserveAdminRolePubkey
+      );
+    assert.deepEqual(walletRoleData.role, newRoles);
+
+    await topUpWallet(provider.connection, reserveAdmin.publicKey, 100000000000);
+
+    let recipientAccountInfo = await getAccount(
+      connection,
+      userWalletRecipientAssociatedTokenAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    const initialRecipientAmount = recipientAccountInfo.amount;
+
+    const forceTransferBetweenInstruction = accessControlProgram.instruction.forceTransferBetween(
+      new anchor.BN(transferAmount),
+      {
+        accounts: {
+          authority: reserveAdmin.publicKey,
+          authorityWalletRole: reserveAdminRolePubkey,
+          accessControlAccount: accessControlPubkey,
+          securityMint: mintKeypair.publicKey,
+          sourceAccount: userWalletAssociatedAccountPubkey,
+          sourceAuthority: userWalletPubkey,
+          destinationAccount: userWalletRecipientAssociatedTokenAccountPubkey,
+          destinationAuthority: userWalletRecipientPubkey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        },
+      }
+    );
+
+    const mintInfo = await getMint(connection, mintKeypair.publicKey, confirmOptions, TOKEN_2022_PROGRAM_ID);
+    const transferHook = getTransferHook(mintInfo);
+    assert.ok(transferHook);
+
+    await addExtraAccountMetasForExecute(
+      connection,
+      forceTransferBetweenInstruction,
+      transferHook.programId,
+      userWalletAssociatedAccountPubkey,
+      mintKeypair.publicKey,
+      userWalletRecipientAssociatedTokenAccountPubkey,
+      userWallet.publicKey,
+      transferAmount,
+      confirmOptions
+    );
+
+    const transferWithHookTx = await sendAndConfirmTransaction(
+      connection,
+      new Transaction().add(forceTransferBetweenInstruction),
+      [reserveAdmin], // userWallet
+      { commitment: confirmOptions }
+    );
+    console.log(
+      "Force Transfer Between Transaction Signature",
+      transferWithHookTx
+    );
+
+    const senderAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    recipientAccountInfo = await getAccount(
+      connection,
+      userWalletRecipientAssociatedTokenAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+
+    assert.deepEqual(senderAccountInfo.amount, BigInt(298000));
+    assert.equal(
+      recipientAccountInfo.amount.toString(),
+      (initialRecipientAmount + BigInt(transferAmount)).toString()
     );
   });
 });
