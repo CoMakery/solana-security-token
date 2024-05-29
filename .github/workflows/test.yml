@@ -31,3 +31,6 @@ jobs:
 
       - name: Build
         run: anchor build
+
+      - name: Test
+        run: anchor test
