@@ -10,7 +10,7 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
     let mint_data: &AccountInfo = &ctx.accounts.mint.to_account_info();
     let permanent_delegate_extension = get_mint_extension_data::<PermanentDelegate>(mint_data)?;
     // if permanent delegate is execute transfer hook owner delegate
-    // we don't need to check transfer restrictions because it's force transfer between 
+    // we don't need to check transfer restrictions because it's force transfer between
     if permanent_delegate_extension.delegate
         == Some(ctx.accounts.owner_delegate.key()).try_into().unwrap()
     {

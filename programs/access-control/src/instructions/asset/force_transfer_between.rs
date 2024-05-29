@@ -37,8 +37,6 @@ pub fn force_transfer_beetween<'info>(
         mint_info.clone(),
         destination_info.clone(),
         authority_info.clone(),
-        // &additional_accounts,
-        // &[],
         ctx.remaining_accounts,
         amount,
         decimals,
