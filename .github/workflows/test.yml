@@ -35,5 +35,8 @@ jobs:
       - name: Build
         run: anchor build
 
+      - name: Install Dependencies
+        run: yarn install
+
       - name: Test
         run: anchor test
