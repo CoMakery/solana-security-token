@@ -17,6 +17,11 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         return Ok(());
     }
 
+    let transfer_restriction_data = &ctx.accounts.transfer_restriction_data;
+    if transfer_restriction_data.paused {
+        return Err(TransferRestrictionsError::AllTransfersPaused.into());
+    }
+
     // TODO: add transfer restrictions checks here
     let transfer_rule = &ctx.accounts.transfer_rule;
 

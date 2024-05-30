@@ -21,7 +21,7 @@ import {
 
 import { TransferRestrictions } from "../target/types/transfer_restrictions";
 import { AccessControl } from "../target/types/access_control";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { topUpWallet } from "./utils";
 
 const EXTRA_METAS_ACCOUNT_PREFIX = "extra-account-metas";
@@ -441,6 +441,7 @@ describe("solana-security-token", () => {
       transferRestrictionData.maxHolders.toString(),
       maxHolders.toString()
     );
+    assert.equal(transferRestrictionData.paused, false);
   });
 
   it("creates transfer restriction group 1", async () => {
@@ -962,5 +963,154 @@ describe("solana-security-token", () => {
     );
     assert.equal(assAccountInfo.isFrozen, true);
     assert.deepEqual(assAccountInfo.amount, BigInt(298000));
+  });
+
+  it("thaw user wallet", async () => {
+    let assAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.equal(assAccountInfo.isFrozen, true);
+
+    const freezeTx = await accessControlProgram.methods
+      .thawWallet()
+      .accountsStrict({
+        authority: superAdmin.publicKey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: accessControlPubkey,
+        securityMint: mintKeypair.publicKey,
+        targetAccount: userWalletAssociatedAccountPubkey,
+        targetAuthority: userWalletPubkey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Thaw Wallet Transaction Signature", freezeTx);
+
+    assAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.equal(assAccountInfo.isFrozen, false);
+    assert.deepEqual(assAccountInfo.amount, BigInt(298000));
+  });
+
+  const transferAdmin = Keypair.generate();
+  const [transferAdminRolePubkey] =
+    anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from(WALLET_ROLE_PREFIX),
+        mintKeypair.publicKey.toBuffer(),
+        transferAdmin.publicKey.toBuffer(),
+      ],
+      accessControlProgram.programId
+    );
+
+  it("assigns Transfer Admin role to user wallet", async () => {
+    const newRoles = Roles.TransferAdmin;
+    const assignRoleTx = await accessControlProgram.methods
+      .initializeWalletRole(newRoles)
+      .accountsStrict({
+        walletRole: transferAdminRolePubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: accessControlPubkey,
+        securityToken: mintKeypair.publicKey,
+        userWallet: transferAdmin.publicKey,
+        payer: superAdmin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Assign Role Transaction Signature", assignRoleTx);
+
+    const walletRoleData = await accessControlProgram.account.walletRole.fetch(
+      transferAdminRolePubkey
+    );
+    assert.deepEqual(walletRoleData.role, newRoles);
+
+    await topUpWallet(
+      provider.connection,
+      transferAdmin.publicKey,
+      100000000000
+    );
+  });
+
+  it("pauses transfers", async () => {
+    const pauseTransfersTx = await transferRestrictionsProgram.methods
+      .pause(true)
+      .accountsStrict({
+        accessControlAccount: accessControlPubkey,
+        transferRestrictionData: transferRestrictionDataPubkey,
+        securityMint: mintKeypair.publicKey,
+        authorityWalletRole: transferAdminRolePubkey,
+        payer: transferAdmin.publicKey,
+      })
+      .signers([transferAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Pause Transfers Transaction Signature", pauseTransfersTx);
+
+    const transferRestrictionsData =
+      await transferRestrictionsProgram.account.transferRestrictionData.fetch(
+        transferRestrictionDataPubkey,
+        confirmOptions
+      );
+    assert.isTrue(transferRestrictionsData.paused);
+  });
+
+  it("failed to transfer securities when paused", async () => {
+    const transferAmount = BigInt(1000);
+    try {
+      const transferWithHookInstruction =
+        await createTransferCheckedWithTransferHookInstruction(
+          provider.connection,
+          userWalletAssociatedAccountPubkey,
+          mintKeypair.publicKey,
+          userWalletRecipientAssociatedTokenAccountPubkey,
+          userWallet.publicKey,
+          transferAmount,
+          decimals,
+          undefined,
+          confirmOptions,
+          TOKEN_2022_PROGRAM_ID
+        );
+
+      await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(transferWithHookInstruction),
+        [userWallet],
+        { commitment: confirmOptions }
+      );
+      expect.fail('Expected an error, but none was thrown.');
+    } catch (error) {
+      const errorMessage = 'AnchorError occurred. Error Code: AllTransfersPaused. Error Number: 6003. Error Message: All transfers are paused.';
+      const containsError = error.logs.some((log: string | string[]) => log.includes(errorMessage));
+      assert.isTrue(containsError);
+    }
+  });
+
+  it("unpauses transfers", async () => {
+    const pauseTransfersTx = await transferRestrictionsProgram.methods
+      .pause(false)
+      .accountsStrict({
+        accessControlAccount: accessControlPubkey,
+        transferRestrictionData: transferRestrictionDataPubkey,
+        securityMint: mintKeypair.publicKey,
+        authorityWalletRole: transferAdminRolePubkey,
+        payer: transferAdmin.publicKey,
+      })
+      .signers([transferAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Pause Transfers Transaction Signature", pauseTransfersTx);
+
+    const transferRestrictionsData =
+      await transferRestrictionsProgram.account.transferRestrictionData.fetch(
+        transferRestrictionDataPubkey,
+        confirmOptions
+      );
+    assert.isFalse(transferRestrictionsData.paused);
   });
 });

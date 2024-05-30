@@ -8,4 +8,6 @@ pub enum TransferRestrictionsError {
     MaxHoldersReached,
     #[msg("Transfer rule locked")]
     TransferRuleLocked,
+    #[msg("All transfers are paused")]
+    AllTransfersPaused,
 }

@@ -592,6 +592,61 @@ export type TransferRestrictions = {
       ]
     },
     {
+      "name": "pause",
+      "discriminator": [
+        211,
+        22,
+        221,
+        251,
+        74,
+        121,
+        193,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "securityMint"
+        },
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "updateWalletGroup",
       "discriminator": [
         225,
@@ -798,6 +853,11 @@ export type TransferRestrictions = {
       "code": 6002,
       "name": "transferRuleLocked",
       "msg": "Transfer rule locked"
+    },
+    {
+      "code": 6003,
+      "name": "allTransfersPaused",
+      "msg": "All transfers are paused"
     }
   ],
   "types": [
@@ -853,6 +913,10 @@ export type TransferRestrictions = {
           {
             "name": "maxHolders",
             "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
           }
         ]
       }

@@ -8,6 +8,7 @@ pub fn initialize_data(ctx: Context<InitializeTransferRestrictionData>, max_hold
   transfer_restriction_data.access_control_account = *ctx.accounts.access_control_account.to_account_info().key;
   transfer_restriction_data.current_holders_count = 0;
   transfer_restriction_data.max_holders = max_holders;
+  transfer_restriction_data.paused = false;
 
   Ok(())
 }
