@@ -38,5 +38,5 @@ jobs:
       - name: Install Dependencies
         run: yarn install
 
-      - name: Test
+      - name: JS E2E Tests
         run: anchor test
