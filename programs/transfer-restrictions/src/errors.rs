@@ -10,4 +10,6 @@ pub enum TransferRestrictionsError {
     TransferRuleLocked,
     #[msg("All transfers are paused")]
     AllTransfersPaused,
+    #[msg("Invalid PDA")]
+    InvalidPDA,
 }

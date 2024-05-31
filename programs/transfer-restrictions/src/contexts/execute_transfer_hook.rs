@@ -2,8 +2,8 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 use crate::{
-    SecurityAssociatedAccount, TransferRestrictionData, TransferRestrictionGroup, TransferRule,
-    TRANSFER_RESTRICTION_GROUP_PREFIX,
+    SecurityAssociatedAccount, TransferRestrictionData, TransferRestrictionGroup,
+    SECURITY_ASSOCIATED_ACCOUNT_PREFIX, TRANSFER_RESTRICTION_GROUP_PREFIX,
 };
 
 #[derive(Accounts)]

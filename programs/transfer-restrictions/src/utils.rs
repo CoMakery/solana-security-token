@@ -1,6 +1,6 @@
 use anchor_lang::{
     prelude::Result,
-    solana_program::{program::invoke, system_instruction::transfer},
+    solana_program::{program::invoke, pubkey::Pubkey, system_instruction::transfer},
     Lamports,
 };
 use spl_tlv_account_resolution::{
@@ -8,8 +8,8 @@ use spl_tlv_account_resolution::{
 };
 
 use crate::{
-    SECURITY_ASSOCIATED_ACCOUNT_PREFIX, TRANSFER_RESTRICTION_DATA_PREFIX,
-    TRANSFER_RESTRICTION_GROUP_PREFIX, TRANSFER_RULE_PREFIX,
+    errors::TransferRestrictionsError, SECURITY_ASSOCIATED_ACCOUNT_PREFIX,
+    TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RESTRICTION_GROUP_PREFIX, TRANSFER_RULE_PREFIX,
 };
 
 use crate::{AccountInfo, Rent, SolanaSysvar};
@@ -61,7 +61,7 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
                 },
                 Seed::AccountKey { index: 5 },
                 Seed::AccountData {
-                    account_index: 7,
+                    account_index: 6,
                     data_index: 8,
                     length: 8,
                 },
@@ -115,3 +115,10 @@ pub fn update_account_lamports_to_minimum_balance<'info>(
     Ok(())
 }
 
+pub fn verify_pda(address: &Pubkey, seeds: &[&[u8]], program_id: &Pubkey) -> Result<()> {
+    let (pda, _bump_seed) = Pubkey::find_program_address(seeds, program_id);
+    if pda != *address {
+        return Err(TransferRestrictionsError::InvalidPDA.into());
+    }
+    Ok(())
+}
