@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::Mint;
+use anchor_spl::token_interface::{Mint, TokenAccount};
 
 use crate::{
   SecurityAssociatedAccount, TransferRestrictionData, TransferRestrictionGroup,
@@ -12,8 +12,7 @@ pub struct UpdateWalletGroup<'info> {
   #[account(mut,
     seeds = [
       SECURITY_ASSOCIATED_ACCOUNT_PREFIX.as_bytes(),
-      &security_token.key().to_bytes(),
-      &user_wallet.key().to_bytes(),
+      &associated_token_account.key().to_bytes(),
     ],
     bump,
   )]
@@ -41,7 +40,12 @@ pub struct UpdateWalletGroup<'info> {
   pub transfer_restriction_group: Account<'info, TransferRestrictionGroup>,
   /// CHECK: Wallet address which role to be updated
   pub user_wallet: AccountInfo<'info>,
+  #[account(
+    associated_token::token_program = anchor_spl::token_interface::spl_token_2022::id(),
+    associated_token::mint = security_token,
+    associated_token::authority = user_wallet,
+  )]
+  pub associated_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
   #[account(mut)]
   pub payer: Signer<'info>,
-  pub system_program: Program<'info, System>,
 }
