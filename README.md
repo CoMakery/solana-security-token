@@ -45,29 +45,31 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 
 ## Admin Functionality (WIP)
 
-| Function                   | Contract Admin | Reserve Admin | Transfer Admin | Wallets Admin | Token22 Extension Admins |
-| -------------------------- | -------------- | ------------- | -------------- | ------------- | ------------------------ |
-| upgradeTransferRules()     | **yes**        | no            | no             | no            | -                        |
-| snapshot()                 | **yes**        | no            | no             | no            | -                        |
-| mint()                     | no             | no            | no             | no            | **yes** (Mint Authority) |
-| burn()                     | **yes**        |**yes**        | **yes**        | **yes**       | **yes** (Permanent Delegate and anyone can burn owned tokens by Solana SPL design) |
-| forceTransferBetween()     | no             | no            | no             | no            | **yes** (Permanent Delegate) |
-| pause() or unpause (ie pause(false)) | no   | no            | no            | **yes** (only transfers) | **yes** (Freeze Authority) |           
-| setMinWalletBalance()      | no             | no            | **yes**        | no            | -                        |
-| setAllowGroupTransfer()    | no             | no            | **yes**        | no            | -                        |
-| setHolderMax()             | no             | no            | **yes**        | no            | -                        |
-| setHolderGroupMax()        | no             | no            | **yes**        | no            | -                        |
-| fundDividend()             | no             | no            | **yes**        | no            | -                        |
-| setAddressPermissions()    | no             | no            | **yes**        | **yes**       | -                        |
-| freeze()                   | no             | no            | **yes**  (only transfers) | **yes**  (only transfers) | **yes** (Freeze Authority) |
-| setTransferGroup()         | no             | no            | **yes**        | **yes**       | -                        |
-| createHolderFromAddress()  | no             | no            | **yes**        | **yes**       | -                        |
-| appendHolderAddress()      | no             | no            | **yes**        | **yes**       | -                        |
-| addHolderWithAddresses()   | no             | no            | **yes**        | **yes**       | -                        |
-| removeHolder()             | no             | no            | **yes**        | **yes**       | -                        |
-| createReleaseSchedule()    | **yes**        | **yes**       | **yes**        | **yes**       | -                        |
-| batchFundReleaseSchedule() | **yes**        | **yes**       | **yes**        | **yes**       | -                        |
-| fundReleaseSchedule()      | **yes**        | **yes**       | **yes**        | **yes**       | -                        |
+| Function                   | Contract Admin | Reserve Admin | Transfer Admin | Wallets Admin |
+| -------------------------- | -------------- | ------------- | -------------- | ------------- |
+| upgradeTransferRules()     | **yes**        | no            | no             | no            |
+| snapshot()                 | **yes**        | no            | no             | no            |
+| mint()                     | no             | **yes**       | no             | no            |
+| burn()                     | no             | **yes**       | no             | no            |
+| forceTransferBetween()     | no             | **yes**       | no             | no            |
+| pause() or unpause (ie pause(false)) | no   | no            |  **yes**       | no            |           
+| setMinWalletBalance()      | no             | no            | **yes**        | no            |
+| setAllowGroupTransfer()    | no             | no            | **yes**        | no            |
+| setHolderMax()             | no             | no            | **yes**        | no            |
+| setHolderGroupMax()        | no             | no            | **yes**        | no            |
+| fundDividend()             | no             | no            | **yes**        | no            |
+| setAddressPermissions()    | no             | no            | **yes**        | **yes**       |
+| freeze()                   | no             | no            | **yes**        | **yes**       |
+| setTransferGroup()         | no             | no            | **yes**        | **yes**       |
+| createHolderFromAddress()  | no             | no            | **yes**        | **yes**       |
+| appendHolderAddress()      | no             | no            | **yes**        | **yes**       |
+| addHolderWithAddresses()   | no             | no            | **yes**        | **yes**       |
+| removeHolder()             | no             | no            | **yes**        | **yes**       |
+| createReleaseSchedule()    | **yes**        | **yes**       | **yes**        | **yes**       |
+| batchFundReleaseSchedule() | **yes**        | **yes**       | **yes**        | **yes**       |
+| fundReleaseSchedule()      | **yes**        | **yes**       | **yes**        | **yes**       |
+
+Note! Anyone can burn owned tokens by Solana SPL design
 
 # Environment Setup
 
