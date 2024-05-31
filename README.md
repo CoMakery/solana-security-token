@@ -43,7 +43,7 @@ Via granted roles (from **Contract Admin**):
 
 Typically any legal entity third-party Transfer Agent will need access to both the roles for **Transfer Admin** and **Wallets Admin**. However some agents (such as exchanges) will, for example, be able to assign groups to wallets and permission them (as a **Wallets Admin**) but will not be able to adjust the transfer rules.
 
-## Admin Functionality (WIP)
+## Admin Functionality
 
 | Function                   | Contract Admin | Reserve Admin | Transfer Admin | Wallets Admin |
 | -------------------------- | -------------- | ------------- | -------------- | ------------- |
@@ -70,6 +70,49 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | fundReleaseSchedule()      | **yes**        | **yes**       | **yes**        | **yes**       |
 
 Note! Anyone can burn owned tokens by Solana SPL design
+
+# Use Cases
+
+## Initial Security Token Deployment
+```mermaid
+sequenceDiagram
+  autonumber
+	actor Deployer
+   participant AccessControlProgram
+   participant TransferRestrictionsProgram
+
+   actor TransferAdmin
+   actor ReserveAdmin
+   actor WalletsAdmin
+
+  Deployer ->> AccessControlProgram: initializeAccessControl(...)
+  Deployer ->> TransferRestrictionsProgram: initializeExtraAccountMetaList(...)
+  Deployer ->> TransferRestrictionsProgram: initializeTransferRestrictionsData(...)
+
+  Deployer ->> TransferRestrictionsProgram: initializeWalletRole(TransferAdmin)
+  Deployer ->> TransferRestrictionsProgram: initializeWalletRole(ReserveAdmin)
+  Deployer ->> TransferRestrictionsProgram: initializeWalletRole(WalletsAdmin)
+
+  TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRestrictionGroup(fromGroupId)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRestrictionGroup(toGroupId)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRule(fromGroup, toGroup)
+
+  ReserveAdmin ->> AccessControlProgram: mintSecurities(reserveAdminAddress, amount)
+
+  loop EITHER / OR for reserveAdminAddress and walletsAdminAddress
+        TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(address, walletTransferGroup), intializeHolder(address,id)
+        WalletsAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(address, walletTransferGroup), intializeHolder(address,id)
+  end
+
+  ReserveAdmin ->>+ TransferRestrictionsProgram: createTransferCheckedWithTransferHookInstruction(walletsAdminAddress, amount)
+  loop EITHER / OR
+       TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(investorAddress, walletTransferGroup), intializeHolder(address,id)
+        WalletsAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(investorAddress, walletTransferGroup), intializeHolder(address,id)
+  end
+
+  WalletsAdmin ->> TransferRestrictionsProgram: createTransferCheckedWithTransferHookInstruction(investorAddress, amount)
+  Token22 Program ->> TransferRestrictionsProgram: execute(from, to, value) // where transfer restrictions are enforced
+```
 
 # Environment Setup
 
