@@ -80,10 +80,42 @@ export type TransferRestrictions = {
           "name": "transferRestrictionData"
         },
         {
-          "name": "securityAssociatedAccountFrom"
+          "name": "securityAssociatedAccountFrom",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sourceAccount"
+              }
+            ]
+          }
         },
         {
-          "name": "securityAssociatedAccountTo"
+          "name": "securityAssociatedAccountTo",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "destinationAccount"
+              }
+            ]
+          }
         },
         {
           "name": "transferRestrictionGroupFrom",
@@ -674,11 +706,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
-              },
-              {
-                "kind": "account",
-                "path": "userWallet"
+                "path": "associatedTokenAccount"
               }
             ]
           }
@@ -733,13 +761,12 @@ export type TransferRestrictions = {
           "name": "userWallet"
         },
         {
+          "name": "associatedTokenAccount"
+        },
+        {
           "name": "payer",
           "writable": true,
           "signer": true
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -858,6 +885,11 @@ export type TransferRestrictions = {
       "code": 6003,
       "name": "allTransfersPaused",
       "msg": "All transfers are paused"
+    },
+    {
+      "code": 6004,
+      "name": "invalidPda",
+      "msg": "Invalid PDA"
     }
   ],
   "types": [
