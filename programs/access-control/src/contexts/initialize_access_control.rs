@@ -11,11 +11,11 @@ pub const ACCESS_CONTROL_SEED: &[u8] = b"ac"; // access_control
 #[repr(u8)]
 #[derive(IntoPrimitive, AnchorDeserialize, AnchorSerialize, Clone, InitSpace, Copy, Debug)]
 pub enum Roles {
-    ContractAdmin = 1,
-    ReserveAdmin = 2,
-    WalletAdmin = 4,
-    TransferAdmin = 8,
-    All = 15,
+    ContractAdmin = 1,  // 0001
+    ReserveAdmin = 2,   // 0010
+    WalletsAdmin = 4,    // 0100
+    TransferAdmin = 8,  // 1000
+    All = 15,           // 1000
 }
 
 #[account()]
