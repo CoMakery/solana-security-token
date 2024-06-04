@@ -23,6 +23,7 @@ pub enum Roles {
 pub struct AccessControl {
     pub mint: Pubkey,
     pub authority: Pubkey,
+    pub max_total_supply: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -32,6 +33,7 @@ pub struct InitializeAccessControlArgs {
     pub symbol: String,
     pub uri: String,
     pub hook_program_id: Pubkey,
+    pub max_total_supply: u64,
 }
 
 #[derive(Accounts)]

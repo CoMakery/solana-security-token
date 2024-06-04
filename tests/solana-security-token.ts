@@ -64,6 +64,7 @@ describe("solana-security-token", () => {
     uri: "https://e.com",
     symbol: "XYZ",
     delegate: superAdmin.publicKey,
+    maxTotalSupply: new anchor.BN(1000000000),
   };
   const mintKeypair = Keypair.generate();
   const [authorityWalletRolePubkey, walletRoleBump] =
@@ -165,6 +166,7 @@ describe("solana-security-token", () => {
         symbol: setupAccessControlArgs.symbol,
         uri: setupAccessControlArgs.uri,
         hookProgramId: transferRestrictionsProgram.programId,
+        maxTotalSupply: setupAccessControlArgs.maxTotalSupply,
       },
       {
         accounts: {
@@ -290,7 +292,7 @@ describe("solana-security-token", () => {
     );
   });
 
-  it("failed to mint without ReserveAdmin role", async () => {
+  it("fails to mint without ReserveAdmin role", async () => {
     try {
       await accessControlProgram.rpc.mintSecurities(mintAmount, {
         accounts: {
@@ -305,6 +307,8 @@ describe("solana-security-token", () => {
         signers: [superAdmin],
         instructions: [],
       });
+
+      assert.fail('Minting without ReserveAdmin role should fail');
     } catch ({ error }) {
       assert.equal(error.errorCode.number, 6000);
       assert.equal(error.errorMessage, 'Unauthorized');
@@ -334,6 +338,31 @@ describe("solana-security-token", () => {
         authorityWalletRolePubkey
       );
     assert.deepEqual(walletRoleData.role, newRoles);
+  });
+
+  it("fails to mint more than max total supply", async () => {
+    const mintAmount = setupAccessControlArgs.maxTotalSupply.addn(1);
+    try {
+      await accessControlProgram.rpc.mintSecurities(setupAccessControlArgs.maxTotalSupply.addn(1), {
+        accounts: {
+          authority: superAdmin.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          accessControl: accessControlPubkey,
+          securityMint: mintKeypair.publicKey,
+          destinationAccount: userWalletAssociatedAccountPubkey,
+          destinationAuthority: userWalletPubkey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        },
+        signers: [superAdmin],
+        instructions: [],
+      });
+
+      assert.fail('Minting more than max total supply should fail');
+    } catch ({ error }) {
+      assert.equal(error.errorCode.number, 6002);
+      assert.equal(error.errorMessage, 'Cannot mint more than max total supply');
+      assert.equal(error.errorCode.code, 'MintExceedsMaxTotalSupply')
+    }
   });
 
   it("mints tokens to new account", async () => {
