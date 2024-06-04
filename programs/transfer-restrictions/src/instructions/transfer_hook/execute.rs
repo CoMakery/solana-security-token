@@ -10,5 +10,7 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         return Err(TransferRestrictionsError::TransferRuleLocked.into());
     }
 
+    ctx.accounts.validate_min_wallet_balance()?;
+
     Ok(())
 }
