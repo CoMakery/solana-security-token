@@ -282,6 +282,9 @@ export type TransferRestrictions = {
           "name": "associatedTokenAccount"
         },
         {
+          "name": "authorityWalletRole"
+        },
+        {
           "name": "payer",
           "writable": true,
           "signer": true
@@ -489,6 +492,9 @@ export type TransferRestrictions = {
           "name": "accessControlAccount"
         },
         {
+          "name": "authorityWalletRole"
+        },
+        {
           "name": "payer",
           "writable": true,
           "signer": true
@@ -505,6 +511,10 @@ export type TransferRestrictions = {
       "args": [
         {
           "name": "maxHolders",
+          "type": "u64"
+        },
+        {
+          "name": "minWalletBalance",
           "type": "u64"
         }
       ]
@@ -619,11 +629,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
-              },
-              {
-                "kind": "account",
-                "path": "userWallet"
+                "path": "associatedTokenAccount"
               }
             ]
           }
@@ -651,7 +657,7 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "transferRestrictionGroup",
+          "name": "group",
           "pda": {
             "seeds": [
               {
@@ -668,23 +674,25 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transfer_restriction_group.id",
+                "path": "group.id",
                 "account": "transferRestrictionGroup"
               }
             ]
           }
         },
         {
+          "name": "authorityWalletRole"
+        },
+        {
           "name": "userWallet"
+        },
+        {
+          "name": "associatedTokenAccount"
         },
         {
           "name": "payer",
           "writable": true,
           "signer": true
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -798,6 +806,11 @@ export type TransferRestrictions = {
       "code": 6002,
       "name": "transferRuleLocked",
       "msg": "Transfer rule locked"
+    },
+    {
+      "code": 6003,
+      "name": "balanceIsTooLow",
+      "msg": "Balance is too low"
     }
   ],
   "types": [
@@ -852,6 +865,10 @@ export type TransferRestrictions = {
           },
           {
             "name": "maxHolders",
+            "type": "u64"
+          },
+          {
+            "name": "minWalletBalance",
             "type": "u64"
           }
         ]

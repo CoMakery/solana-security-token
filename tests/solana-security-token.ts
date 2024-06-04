@@ -101,6 +101,7 @@ describe("solana-security-token", () => {
       transferRestrictionsProgram.programId
     );
   const maxHolders = new anchor.BN(10000);
+  const minWalletBalance = new anchor.BN(0);
   const transferGroup1 = new anchor.BN(1);
   const [transferRestrictionGroup1Pubkey, transferRestrictionGroup1Bump] =
     anchor.web3.PublicKey.findProgramAddressSync(
@@ -402,9 +403,10 @@ describe("solana-security-token", () => {
   it("creates transfer restriction data", async () => {
     const initTransferRestrictionDataTx =
       await transferRestrictionsProgram.methods
-        .initializeTransferRestrictionsData(maxHolders)
+        .initializeTransferRestrictionsData(maxHolders, minWalletBalance)
         .accountsStrict({
           transferRestrictionData: transferRestrictionDataPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
           accessControlAccount: accessControlPubkey,
           mint: mintKeypair.publicKey,
           payer: superAdmin.publicKey,
@@ -618,6 +620,7 @@ describe("solana-security-token", () => {
           transferRestrictionData: transferRestrictionDataPubkey,
           userWallet: userWalletPubkey,
           associatedTokenAccount: userWalletAssociatedAccountPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
           payer: superAdmin.publicKey,
           systemProgram: SystemProgram.programId,
         })
@@ -685,6 +688,7 @@ describe("solana-security-token", () => {
           userWallet: userWalletRecipientPubkey,
           associatedTokenAccount:
             userWalletRecipientAssociatedTokenAccountPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
           payer: superAdmin.publicKey,
           systemProgram: SystemProgram.programId,
         })
