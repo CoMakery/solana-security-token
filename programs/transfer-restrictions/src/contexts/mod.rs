@@ -41,3 +41,6 @@ pub use initialize_extra_meta_list::*;
 
 pub mod initialize_deployer_role;
 pub use initialize_deployer_role::*;
+
+pub mod freeze_wallet;
+pub use freeze_wallet::*;
