@@ -40,4 +40,8 @@ pub mod access_control {
     pub fn burn_securities(ctx: Context<BurnSecurities>, amount: u64) -> Result<()> {
         instructions::asset::burn_securities(ctx, amount)
     }
+
+    pub fn freeze_wallet(ctx: Context<FreezeWallet>) -> Result<()> {
+        instructions::asset::freeze_wallet(ctx)
+    }
 }
