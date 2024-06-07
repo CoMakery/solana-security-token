@@ -787,6 +787,59 @@ describe("solana-security-token", () => {
       TOKEN_2022_PROGRAM_ID
     );
     assert.equal(assAccountInfo.isFrozen, false);
+    try {
+      const freezeTx = await transferRestrictionsProgram.methods
+        .freezeWallet()
+        .accountsStrict({
+          authority: superAdmin.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          accessControl: accessControlPubkey,
+          securityMint: mintKeypair.publicKey,
+          targetAccount: userWalletAssociatedAccountPubkey,
+          targetAuthority: userWalletPubkey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        })
+        .signers([superAdmin])
+        .rpc({ commitment: confirmOptions });
+      assert.fail("Expected error not thrown");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.number, 6001);
+      assert.equal(error.errorMessage, 'Unauthorized');
+      assert.equal(error.errorCode.code, 'Unauthorized')
+    }
+  });
+
+  it("assigns Transfer role to super admin", async () => {
+    const newRoles = Roles.ReserveAdmin | Roles.ContractAdmin | Roles.TransferAdmin;
+    const assignRoleTx = await transferRestrictionsProgram.methods
+      .updateWalletRole(newRoles)
+      .accountsStrict({
+        walletRole: authorityWalletRolePubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        securityToken: mintKeypair.publicKey,
+        userWallet: superAdmin.publicKey,
+        payer: superAdmin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([superAdmin])
+      .rpc({ commitment: confirmOptions });
+    console.log("Assign Role Transaction Signature", assignRoleTx);
+
+    const walletRoleData =
+      await transferRestrictionsProgram.account.walletRole.fetch(
+        authorityWalletRolePubkey
+      );
+    assert.deepEqual(walletRoleData.role, newRoles);
+  });
+
+  it("freezes user wallet", async () => {
+    let assAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    assert.equal(assAccountInfo.isFrozen, false);
 
     const freezeTx = await transferRestrictionsProgram.methods
       .freezeWallet()
