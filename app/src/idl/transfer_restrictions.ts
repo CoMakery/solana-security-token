@@ -279,7 +279,40 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "authorityWalletRole",
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "initializeAccessControlArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "initializeDeployerRole",
+      "discriminator": [
+        20,
+        92,
+        210,
+        30,
+        61,
+        126,
+        220,
+        36
+      ],
+      "accounts": [
+        {
+          "name": "walletRole",
           "writable": true,
           "pda": {
             "seeds": [
@@ -301,15 +334,62 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "securityToken"
               },
               {
                 "kind": "account",
-                "path": "authority"
+                "path": "payer"
               }
             ]
           }
         },
+        {
+          "name": "accessControl",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityToken"
+              }
+            ]
+          }
+        },
+        {
+          "name": "securityToken"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initializeExtraAccountMetaList",
+      "discriminator": [
+        92,
+        197,
+        174,
+        197,
+        41,
+        124,
+        19,
+        3
+      ],
+      "accounts": [
         {
           "name": "extraMetasAccount",
           "writable": true,
@@ -341,30 +421,74 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "securityMint"
               }
             ]
           }
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
+          "name": "securityMint"
         },
         {
-          "name": "tokenProgram",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+          "name": "authorityWalletRole",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  97,
+                  108,
+                  108,
+                  101,
+                  116,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "accessControl",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": {
-              "name": "initializeAccessControlArgs"
-            }
-          }
-        }
-      ]
+      "args": []
     },
     {
       "name": "initializeSecurityAssociatedAccount",
@@ -1237,6 +1361,16 @@ export type TransferRestrictions = {
       "code": 6002,
       "name": "transferRuleLocked",
       "msg": "Transfer rule locked"
+    },
+    {
+      "code": 6003,
+      "name": "invalidAuthority",
+      "msg": "Invalid authority"
+    },
+    {
+      "code": 6004,
+      "name": "invalidRole",
+      "msg": "Invalid role"
     }
   ],
   "types": [
@@ -1247,6 +1381,10 @@ export type TransferRestrictions = {
         "fields": [
           {
             "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
             "type": "pubkey"
           }
         ]
@@ -1274,10 +1412,8 @@ export type TransferRestrictions = {
             "type": "string"
           },
           {
-            "name": "delegate",
-            "type": {
-              "option": "pubkey"
-            }
+            "name": "authority",
+            "type": "pubkey"
           }
         ]
       }
