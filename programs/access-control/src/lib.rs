@@ -47,4 +47,8 @@ pub mod access_control {
     ) -> Result<()> {
         instructions::asset::force_transfer_beetween(ctx, amount)
     }
+
+    pub fn freeze_wallet(ctx: Context<FreezeWallet>) -> Result<()> {
+        instructions::asset::freeze_wallet(ctx)
+    }
 }

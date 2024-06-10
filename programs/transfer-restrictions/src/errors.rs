@@ -8,4 +8,8 @@ pub enum TransferRestrictionsError {
     MaxHoldersReached,
     #[msg("Transfer rule locked")]
     TransferRuleLocked,
+    #[msg("Invalid authority")]
+    InvalidAuthority,
+    #[msg("Invalid role")]
+    InvalidRole,
 }

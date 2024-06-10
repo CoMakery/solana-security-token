@@ -20,3 +20,6 @@ pub use initialize_deployer_role::*;
 
 pub mod force_transfer_between;
 pub use force_transfer_between::*;
+
+pub mod freeze_wallet;
+pub use freeze_wallet::*;

@@ -199,6 +199,90 @@ export type AccessControl = {
       ]
     },
     {
+      "name": "freezeWallet",
+      "discriminator": [
+        93,
+        202,
+        159,
+        167,
+        22,
+        246,
+        255,
+        211
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "authorityWalletRole",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  97,
+                  108,
+                  108,
+                  101,
+                  116,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "accessControl",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "securityMint",
+          "writable": true
+        },
+        {
+          "name": "targetAccount",
+          "writable": true
+        },
+        {
+          "name": "targetAuthority"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initializeAccessControl",
       "discriminator": [
         244,
