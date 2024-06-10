@@ -1,21 +1,21 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{freeze_account, FreezeAccount};
+use anchor_spl::token_interface::{mint_to, MintTo};
 
-use crate::{errors::SolanaSecurityTokenError, FreezeWallet, ACCESS_CONTROL_SEED};
+use crate::{errors::AccessControlError, MintSecurities, ACCESS_CONTROL_SEED};
 
-pub fn freeze_wallet(ctx: Context<FreezeWallet>) -> Result<()> {
+pub fn mint_securities(ctx: Context<MintSecurities>, amount: u64) -> Result<()> {
     if !ctx
         .accounts
         .authority_wallet_role
-        .has_role(crate::Roles::TransferAdmin)
+        .has_role(crate::Roles::ReserveAdmin)
     {
-        return Err(SolanaSecurityTokenError::Unauthorized.into());
+        return Err(AccessControlError::Unauthorized.into());
     }
 
     let mint = ctx.accounts.security_mint.to_account_info();
-    let accounts = FreezeAccount {
+    let accounts = MintTo {
         mint: mint.clone(),
-        account: ctx.accounts.target_account.to_account_info(),
+        to: ctx.accounts.destination_account.to_account_info(),
         authority: ctx.accounts.access_control.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), accounts);
@@ -25,7 +25,7 @@ pub fn freeze_wallet(ctx: Context<FreezeWallet>) -> Result<()> {
 
     let seeds = &[ACCESS_CONTROL_SEED, mint.key.as_ref(), &[bump_seed]];
 
-    freeze_account(cpi_ctx.with_signer(&[&seeds[..]]))?;
+    mint_to(cpi_ctx.with_signer(&[&seeds[..]]), amount)?;
 
     Ok(())
 }

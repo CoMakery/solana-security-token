@@ -18,7 +18,8 @@ pub struct InitializeDeployerRole<'info> {
       bump,
     )]
     pub wallet_role: Account<'info, WalletRole>,
-    #[account(mut,
+    #[account(
+      constraint = security_token.key() == access_control.mint,
       seeds = [
         ACCESS_CONTROL_SEED,
         security_token.key().as_ref(),

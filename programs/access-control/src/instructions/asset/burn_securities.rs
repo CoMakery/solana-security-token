@@ -1,21 +1,21 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{mint_to, MintTo};
+use anchor_spl::token_interface::{burn, Burn};
 
-use crate::{errors::SolanaSecurityTokenError, MintSecurities, ACCESS_CONTROL_SEED};
+use crate::{errors::AccessControlError, BurnSecurities, ACCESS_CONTROL_SEED};
 
-pub fn mint_securities(ctx: Context<MintSecurities>, amount: u64) -> Result<()> {
+pub fn burn_securities(ctx: Context<BurnSecurities>, amount: u64) -> Result<()> {
     if !ctx
         .accounts
         .authority_wallet_role
         .has_role(crate::Roles::ReserveAdmin)
     {
-        return Err(SolanaSecurityTokenError::Unauthorized.into());
+        return Err(AccessControlError::Unauthorized.into());
     }
 
     let mint = ctx.accounts.security_mint.to_account_info();
-    let accounts = MintTo {
+    let accounts = Burn {
         mint: mint.clone(),
-        to: ctx.accounts.destination_account.to_account_info(),
+        from: ctx.accounts.target_account.to_account_info(),
         authority: ctx.accounts.access_control.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), accounts);
@@ -25,7 +25,7 @@ pub fn mint_securities(ctx: Context<MintSecurities>, amount: u64) -> Result<()> 
 
     let seeds = &[ACCESS_CONTROL_SEED, mint.key.as_ref(), &[bump_seed]];
 
-    mint_to(cpi_ctx.with_signer(&[&seeds[..]]), amount)?;
+    burn(cpi_ctx.with_signer(&[&seeds[..]]), amount)?;
 
     Ok(())
 }

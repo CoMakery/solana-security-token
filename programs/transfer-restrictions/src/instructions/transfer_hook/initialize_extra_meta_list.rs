@@ -1,13 +1,21 @@
 use crate::{
-    contexts::InitializeExtraAccountMetaList, errors::SolanaSecurityTokenError, get_extra_account_metas, Roles
+    contexts::InitializeExtraAccountMetaList, errors::TransferRestrictionsError,
+    get_extra_account_metas,
 };
+use access_control::Roles;
 use anchor_lang::prelude::*;
 use spl_tlv_account_resolution::state::ExtraAccountMetaList;
 use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
-pub fn initialize_extra_account_meta_list(ctx: Context<InitializeExtraAccountMetaList>) -> Result<()> {
-    if !ctx.accounts.authority_wallet_role.has_role(Roles::ContractAdmin) {
-        return Err(SolanaSecurityTokenError::Unauthorized.into());
+pub fn initialize_extra_account_meta_list(
+    ctx: Context<InitializeExtraAccountMetaList>,
+) -> Result<()> {
+    if !ctx
+        .accounts
+        .authority_wallet_role
+        .has_role(Roles::ContractAdmin)
+    {
+        return Err(TransferRestrictionsError::Unauthorized.into());
     }
 
     let extra_metas_account = &ctx.accounts.extra_metas_account;

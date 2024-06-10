@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, Token2022};
-
-use crate::{contexts::common::DISCRIMINATOR_LEN, AccessControl};
+use access_control::{self, AccessControl};
+use crate::contexts::common::DISCRIMINATOR_LEN;
 
 pub const TRANSFER_RESTRICTION_DATA_PREFIX: &str = "trd"; // transfer_restriction_data
 

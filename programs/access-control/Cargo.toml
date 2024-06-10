@@ -1,12 +1,12 @@
 [package]
-name = "transfer-restrictions"
+name = "access-control"
 version = "0.1.0"
-description = "Transfer restrictions for Solana tokens"
+description = "Access Control for Solana Programs"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "transfer_restrictions"
+name = "access_control"
 
 [features]
 default = []
@@ -17,9 +17,8 @@ no-log-ix-name = []
 idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
-anchor-lang = { version = "0.30.0", features = ["interface-instructions"] }
+anchor-lang = { version = "0.30.0" }
 anchor-spl = { version = "0.30.0" }
 spl-transfer-hook-interface = "0.6.3"
 spl-tlv-account-resolution = "0.6.3"
 num_enum = "0.7.2"
-access-control = { path = "../access-control", features = ["cpi"] }

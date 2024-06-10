@@ -1,9 +1,7 @@
-use crate::{get_meta_list_size, AccessControl, WalletRole, ACCESS_CONTROL_SEED, WALLET_ROLE_PREFIX};
+use crate::get_meta_list_size;
+use access_control::{self, AccessControl, WalletRole};
 use anchor_lang::prelude::*;
-use anchor_spl::{
-    token_2022::ID as TOKEN_2022_PROGRAM_ID,
-    token_interface::Mint,
-};
+use anchor_spl::{token_2022::ID as TOKEN_2022_PROGRAM_ID, token_interface::Mint};
 
 pub const META_LIST_ACCOUNT_SEED: &[u8] = b"extra-account-metas";
 
@@ -28,25 +26,16 @@ pub struct InitializeExtraAccountMetaList<'info> {
     pub security_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
-      seeds = [
-        WALLET_ROLE_PREFIX,
-        &security_mint.key().to_bytes(),
-        &payer.key().to_bytes(),
-      ],
-      bump,
+      constraint = authority_wallet_role.owner == payer.key(),
+      constraint = authority_wallet_role.access_control == access_control.key(),
     )]
     pub authority_wallet_role: Account<'info, WalletRole>,
 
     #[account(
       constraint = security_mint.key() == access_control.mint,
-      seeds = [
-        ACCESS_CONTROL_SEED,
-        security_mint.key().as_ref(),
-      ],
-      bump,
     )]
     pub access_control: Box<Account<'info, AccessControl>>,
-    
+
     #[account(mut)]
     pub payer: Signer<'info>,
 

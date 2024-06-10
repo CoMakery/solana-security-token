@@ -7,7 +7,7 @@ pub fn initialize_holder(ctx: Context<InitializeTransferRestrictionHolder>, id: 
   let transfer_restriction_holder = &mut ctx.accounts.transfer_restriction_holder;
   let transfer_restriction_data = &mut ctx.accounts.transfer_restriction_data;
   if transfer_restriction_data.current_holders_count == transfer_restriction_data.max_holders {
-    return Err(SolanaSecurityTokenError::MaxHoldersReached.into());
+    return Err(TransferRestrictionsError::MaxHoldersReached.into());
   }
 
   transfer_restriction_holder.transfer_restriction_data = transfer_restriction_data.key();

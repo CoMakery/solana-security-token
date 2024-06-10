@@ -3,6 +3,17 @@
 version = 3
 
 [[package]]
+name = "access-control"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "num_enum",
+ "spl-tlv-account-resolution",
+ "spl-transfer-hook-interface",
+]
+
+[[package]]
 name = "aead"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2403,6 +2414,7 @@ dependencies = [
 name = "transfer-restrictions"
 version = "0.1.0"
 dependencies = [
+ "access-control",
  "anchor-lang",
  "anchor-spl",
  "num_enum",
