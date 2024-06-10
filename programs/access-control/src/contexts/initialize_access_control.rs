@@ -4,7 +4,7 @@ use anchor_spl::token_interface::{
 };
 use num_enum::IntoPrimitive;
 
-use crate::contexts::common::DISCRIMINATOR_LEN;
+use crate::common::DISCRIMINATOR_LEN;
 
 pub const ACCESS_CONTROL_SEED: &[u8] = b"ac"; // access_control
 

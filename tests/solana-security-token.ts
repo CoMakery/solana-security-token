@@ -159,39 +159,41 @@ describe("solana-security-token", () => {
       transferRestrictionsProgram.programId
     );
 
-    const initializeAccessControlInstr = accessControlProgram.instruction.initializeAccessControl(
-      {
-        decimals: setupAccessControlArgs.decimals,
-        name: setupAccessControlArgs.name,
-        symbol: setupAccessControlArgs.symbol,
-        uri: setupAccessControlArgs.uri,
-        hookProgramId: transferRestrictionsProgram.programId,
-      },
-      {
+    const initializeAccessControlInstr =
+      accessControlProgram.instruction.initializeAccessControl(
+        {
+          decimals: setupAccessControlArgs.decimals,
+          name: setupAccessControlArgs.name,
+          symbol: setupAccessControlArgs.symbol,
+          uri: setupAccessControlArgs.uri,
+          hookProgramId: transferRestrictionsProgram.programId,
+        },
+        {
+          accounts: {
+            payer: setupAccessControlArgs.payer,
+            authority: setupAccessControlArgs.authority,
+            mint: mintKeypair.publicKey,
+            accessControl: accessControlPubkey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+          },
+        }
+      );
+
+    const initializeExtraAccountMetaListInstr =
+      transferRestrictionsProgram.instruction.initializeExtraAccountMetaList({
         accounts: {
-          payer: setupAccessControlArgs.payer,
-          authority: setupAccessControlArgs.authority,
-          mint: mintKeypair.publicKey,
+          extraMetasAccount: extraMetasAccount,
+          securityMint: mintKeypair.publicKey,
+          payer: superAdmin.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
           accessControl: accessControlPubkey,
           systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
         },
-      }
-    );
+      });
 
-    const initializeExtraAccountMetaListInstr = transferRestrictionsProgram.instruction.initializeExtraAccountMetaList({
-      accounts: {
-        extraMetasAccount: extraMetasAccount,
-        securityMint: mintKeypair.publicKey,
-        payer: superAdmin.publicKey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        accessControl: accessControlPubkey,
-        systemProgram: SystemProgram.programId,
-      },
-    });
-
-    const initializeDeployerRoleInstr = accessControlProgram.instruction
-      .initializeDeployerRole({
+    const initializeDeployerRoleInstr =
+      accessControlProgram.instruction.initializeDeployerRole({
         accounts: {
           payer: superAdmin.publicKey,
           accessControl: accessControlPubkey,
@@ -205,13 +207,16 @@ describe("solana-security-token", () => {
     const transaction = new Transaction().add(
       initializeAccessControlInstr,
       initializeDeployerRoleInstr,
-      initializeExtraAccountMetaListInstr,
+      initializeExtraAccountMetaListInstr
     );
 
     try {
-      console.log('Mint Keypair', mintKeypair.publicKey.toBase58());
-      console.log('Access Control Pubkey', accessControlPubkey.toBase58());
-      console.log('Authority Wallet Role Pubkey', authorityWalletRolePubkey.toBase58());
+      console.log("Mint Keypair", mintKeypair.publicKey.toBase58());
+      console.log("Access Control Pubkey", accessControlPubkey.toBase58());
+      console.log(
+        "Authority Wallet Role Pubkey",
+        authorityWalletRolePubkey.toBase58()
+      );
 
       // Send transaction
       const transactionSignature = await sendAndConfirmTransaction(
@@ -221,8 +226,7 @@ describe("solana-security-token", () => {
         { commitment: confirmOptions }
       );
       console.log("Transaction Signature", transactionSignature);
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
     }
 
@@ -233,12 +237,14 @@ describe("solana-security-token", () => {
       );
     assert.deepEqual(accessControlData.mint, mintKeypair.publicKey);
 
-    const walletRoleData =
-      await accessControlProgram.account.walletRole.fetch(
-        authorityWalletRolePubkey
-      );
+    const walletRoleData = await accessControlProgram.account.walletRole.fetch(
+      authorityWalletRolePubkey
+    );
     assert.deepEqual(walletRoleData.role, Roles.ContractAdmin);
-    assert.deepEqual(accessControlData.authority, setupAccessControlArgs.authority);
+    assert.deepEqual(
+      accessControlData.authority,
+      setupAccessControlArgs.authority
+    );
 
     let mintData = await getMint(
       connection,
@@ -254,13 +260,13 @@ describe("solana-security-token", () => {
 
     // Retrieve and verify the metadata pointer state
     const metadataPointer = getMetadataPointerState(mintData);
-    assert.deepEqual(metadataPointer.authority, accessControlPubkey)
-    assert.deepEqual(metadataPointer.metadataAddress, mintKeypair.publicKey)
+    assert.deepEqual(metadataPointer.authority, accessControlPubkey);
+    assert.deepEqual(metadataPointer.metadataAddress, mintKeypair.publicKey);
 
     // Retrieve and verify the metadata state
     const metadata = await getTokenMetadata(
       connection,
-      mintKeypair.publicKey, // Mint Account address
+      mintKeypair.publicKey // Mint Account address
     );
     assert.deepEqual(metadata.mint, mintKeypair.publicKey);
     assert.deepEqual(metadata.updateAuthority, accessControlPubkey);
@@ -308,10 +314,10 @@ describe("solana-security-token", () => {
       });
     } catch ({ error }) {
       assert.equal(error.errorCode.number, 6000);
-      assert.equal(error.errorMessage, 'Unauthorized');
-      assert.equal(error.errorCode.code, 'Unauthorized')
+      assert.equal(error.errorMessage, "Unauthorized");
+      assert.equal(error.errorCode.code, "Unauthorized");
     }
-  })
+  });
 
   it("assigns ReserveAdmin role to super admin", async () => {
     const newRoles = Roles.ReserveAdmin | Roles.ContractAdmin;
@@ -330,10 +336,9 @@ describe("solana-security-token", () => {
       .rpc({ commitment: confirmOptions });
     console.log("Assign Role Transaction Signature", assignRoleTx);
 
-    const walletRoleData =
-      await accessControlProgram.account.walletRole.fetch(
-        authorityWalletRolePubkey
-      );
+    const walletRoleData = await accessControlProgram.account.walletRole.fetch(
+      authorityWalletRolePubkey
+    );
     assert.deepEqual(walletRoleData.role, newRoles);
   });
 
@@ -895,13 +900,14 @@ describe("solana-security-token", () => {
       assert.fail("Expected error not thrown");
     } catch ({ error }) {
       assert.equal(error.errorCode.number, 6000);
-      assert.equal(error.errorMessage, 'Unauthorized');
-      assert.equal(error.errorCode.code, 'Unauthorized')
+      assert.equal(error.errorMessage, "Unauthorized");
+      assert.equal(error.errorCode.code, "Unauthorized");
     }
   });
 
   it("assigns Transfer role to super admin", async () => {
-    const newRoles = Roles.ReserveAdmin | Roles.ContractAdmin | Roles.TransferAdmin;
+    const newRoles =
+      Roles.ReserveAdmin | Roles.ContractAdmin | Roles.TransferAdmin;
     const assignRoleTx = await accessControlProgram.methods
       .updateWalletRole(newRoles)
       .accountsStrict({
