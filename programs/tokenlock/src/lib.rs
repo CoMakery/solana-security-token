@@ -53,8 +53,8 @@ mod tokenlock {
         )
     }
 
-    pub fn fund_release_schedule(
-        ctx: Context<FundReleaseSchedule>,
+    pub fn fund_release_schedule<'info>(
+        ctx: Context<'_, '_, '_, 'info, FundReleaseSchedule<'info>>,
         uuid: [u8; 16],
         amount: u64,
         commencement_timestamp: u64,

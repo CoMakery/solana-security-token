@@ -1,4 +1,4 @@
-use access_control::{program::AccessControl as AccessControlProgram, AccessControl, WalletRole};
+use access_control::{program::AccessControl as AccessControlProgram, AccessControl, WalletRole, ADMIN_ROLES};
 use anchor_lang::{prelude::*, Discriminator};
 use solana_program::program_memory::sol_memcmp;
 
@@ -17,7 +17,6 @@ pub struct InitializeTimeLock<'info> {
 
     #[account(
         constraint = authority_wallet_role.owner == authority.key(),
-        constraint = authority_wallet_role.has_role(access_control::Roles::ContractAdmin),
         constraint = authority_wallet_role.access_control == access_control.key(),
         owner = AccessControlProgram::id(),
     )]
@@ -50,6 +49,10 @@ pub fn initialize_timelock(ctx: Context<InitializeTimeLock>) -> Result<()> {
         != TokenLockDataWrapper::access_control(&tokenlock_account_data)
     {
         return Err(TokenlockErrors::InvalidAccessControlAccount.into());
+    }
+
+    if !ctx.accounts.authority_wallet_role.has_any_role(ADMIN_ROLES) {
+        return Err(TokenlockErrors::Unauthorized.into());
     }
 
     let timelock_account = &mut ctx.accounts.timelock_account;

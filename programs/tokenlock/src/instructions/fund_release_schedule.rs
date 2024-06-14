@@ -2,7 +2,10 @@ use access_control::{
     program::AccessControl as AccessControlProgram, AccessControl, WalletRole, ADMIN_ROLES,
 };
 use anchor_lang::{prelude::*, Discriminator};
-use anchor_spl::token_interface::{Token2022, TokenAccount};
+use anchor_spl::{
+    token_2022::spl_token_2022::onchain::invoke_transfer_checked,
+    token_interface::{Mint, Token2022, TokenAccount},
+};
 use solana_program::program_memory::{sol_memcmp, sol_memcpy};
 
 use crate::{
@@ -20,7 +23,10 @@ pub struct FundReleaseSchedule<'info> {
     )]
     pub timelock_account: Account<'info, TimelockData>,
 
-    #[account(mut)]
+    #[account(mut,
+        token::mint = mint_address,
+        token::token_program = token_program,
+    )]
     pub escrow_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(mut)]
@@ -36,9 +42,16 @@ pub struct FundReleaseSchedule<'info> {
     #[account(owner = AccessControlProgram::id())]
     pub access_control: Account<'info, AccessControl>,
 
+    #[account(
+        mint::token_program = token_program,
+        constraint = mint_address.key() == access_control.mint,
+    )]
+    pub mint_address: Box<InterfaceAccount<'info, Mint>>,
+
     #[account(mut,
-        constraint = *from.to_account_info().owner == *token_program.key,
-        constraint = from.owner == *authority.key,
+        associated_token::token_program = token_program,
+        associated_token::mint = mint_address,
+        associated_token::authority = authority,
         constraint = escrow_account.mint == from.mint
     )]
     pub from: Box<InterfaceAccount<'info, TokenAccount>>,
@@ -53,8 +66,8 @@ pub struct FundReleaseSchedule<'info> {
     pub token_program: Program<'info, Token2022>,
 }
 
-pub fn fund_release_schedule(
-    ctx: Context<FundReleaseSchedule>,
+pub fn fund_release_schedule<'info>(
+    ctx: Context<'_, '_, '_, 'info, FundReleaseSchedule<'info>>,
     uuid: [u8; 16],
     amount: u64,
     commencement_timestamp: u64,
@@ -186,13 +199,21 @@ pub fn fund_release_schedule(
         return Err(TokenlockErrors::InsufficientDataSpace.into());
     }
 
-    //transfer
-    transfer_spl(
-        &ctx.accounts.from.to_account_info(),
-        &ctx.accounts.escrow_account.to_account_info(),
-        &ctx.accounts.authority,
-        &ctx.accounts.token_program,
+    let decimals = ctx.accounts.mint_address.decimals;
+    let from_info = ctx.accounts.from.to_account_info();
+    let mint_info = ctx.accounts.mint_address.to_account_info();
+    let escrow_account_info = ctx.accounts.escrow_account.to_account_info();
+    let authority_info = ctx.accounts.authority.to_account_info();
+    invoke_transfer_checked(
+        &ctx.accounts.token_program.key,
+        from_info,
+        mint_info,
+        escrow_account_info,
+        authority_info,
+        ctx.remaining_accounts,
         amount,
+        decimals,
+        &[],
     )?;
 
     //add new cancelables
