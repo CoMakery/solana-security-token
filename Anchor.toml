@@ -10,6 +10,7 @@ skip-lint = false
 [programs.localnet]
 transfer_restrictions = "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
 security_transfer_hook = "4X79YRjz9KNMhdjdxXg2ZNTS3YnMGYdwJkBHnezMJwr3"
+tokenlock = "7CN3iHcRimZRa97M38cyMQAF68ecQYDqHfCUgBeSARG2"
 
 [registry]
 url = "https://api.apr.dev"
