@@ -2,18 +2,13 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import {
   TOKEN_2022_PROGRAM_ID,
-  getMint,
-  getAssociatedTokenAddressSync,
-  createAssociatedTokenAccountInstruction,
   getMetadataPointerState,
   getTokenMetadata,
-  getAccount,
   createTransferCheckedWithTransferHookInstruction,
 } from "@solana/spl-token";
 import {
   Keypair,
   sendAndConfirmTransaction,
-  SystemProgram,
   Transaction,
 } from "@solana/web3.js";
 
@@ -21,24 +16,15 @@ import { TransferRestrictions } from "../target/types/transfer_restrictions";
 import { AccessControl } from "../target/types/access_control";
 import { assert } from "chai";
 import { topUpWallet } from "./utils";
+import {
+  AccessControlHelper,
+  Roles,
+} from "./helpers/access-control_helper";
 
-const EXTRA_METAS_ACCOUNT_PREFIX = "extra-account-metas";
-const ACCESS_CONTROL_PREFIX = "ac";
-const WALLET_ROLE_PREFIX = "wallet_role";
-const TRANSFER_RESTRICTION_GROUP_PREFIX = "trg";
-const TRANSFER_RESTRICTION_DATA_PREFIX = "trd";
-const TRANSFER_RULE_PREFIX = "tr";
-const SECURITY_ASSOCIATED_ACCOUNT_PREFIX = "saa"; // security associated account
-const TRANSFER_RESTRICTION_HOLDER_PREFIX = "trh"; // transfer_restriction_holder
-
-enum Roles {
-  None = 0,
-  ContractAdmin = 1,
-  ReserveAdmin = 2,
-  WalletAdmin = 4,
-  TransferAdmin = 8,
-  All = 15,
-}
+import {
+  TransferRestrictionsHelper,
+} from "./helpers/transfer-restrictions_helper";
+import { MintHelper } from "./helpers/mint_helper";
 
 describe("solana-security-token", () => {
   const provider = anchor.AnchorProvider.env();
@@ -64,81 +50,43 @@ describe("solana-security-token", () => {
     uri: "https://e.com",
     symbol: "XYZ",
     delegate: superAdmin.publicKey,
+    hookProgramId: transferRestrictionsProgram.programId,
   };
   const mintKeypair = Keypair.generate();
-  const [authorityWalletRolePubkey, walletRoleBump] =
-    anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(WALLET_ROLE_PREFIX),
-        mintKeypair.publicKey.toBuffer(),
-        setupAccessControlArgs.authority.toBuffer(),
-      ],
-      accessControlProgram.programId
+  const mintHelper = new MintHelper(connection, mintKeypair.publicKey)
+  const accessControlHelper = new AccessControlHelper(accessControlProgram, mintKeypair.publicKey);
+  const transferRestrictionsHelper = new TransferRestrictionsHelper(
+    transferRestrictionsProgram,
+    mintKeypair.publicKey,
+    accessControlHelper.accessControlPubkey
+  );
+
+  const [authorityWalletRolePubkey] =
+    accessControlHelper.walletRolePDA(
+      setupAccessControlArgs.authority,
     );
   const [accessControlPubkey, accessControlBump] =
-    anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        anchor.utils.bytes.utf8.encode(ACCESS_CONTROL_PREFIX),
-        mintKeypair.publicKey.toBuffer(),
-      ],
-      accessControlProgram.programId
-    );
+    accessControlHelper.accessControlPDA();
   const userWallet = Keypair.generate();
   const userWalletPubkey = userWallet.publicKey;
-  const userWalletAssociatedAccountPubkey = getAssociatedTokenAddressSync(
-    mintKeypair.publicKey,
+  const userWalletAssociatedAccountPubkey = mintHelper.getAssocciatedTokenAddress(
     userWalletPubkey,
-    false,
-    TOKEN_2022_PROGRAM_ID
   );
   const mintAmount = new anchor.BN(1000000);
-  const [transferRestrictionDataPubkey, transferRestrictionDataBump] =
-    anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(TRANSFER_RESTRICTION_DATA_PREFIX),
-        mintKeypair.publicKey.toBuffer(),
-      ],
-      transferRestrictionsProgram.programId
-    );
+  const [transferRestrictionDataPubkey] =
+    transferRestrictionsHelper.transferRestrictionDataPDA();
   const maxHolders = new anchor.BN(10000);
   const transferGroup1 = new anchor.BN(1);
-  const [transferRestrictionGroup1Pubkey, transferRestrictionGroup1Bump] =
-    anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(TRANSFER_RESTRICTION_GROUP_PREFIX),
-        transferRestrictionDataPubkey.toBuffer(),
-        transferGroup1.toArrayLike(Buffer, "le", 8),
-      ],
-      transferRestrictionsProgram.programId
-    );
+  const [transferRestrictionGroup1Pubkey] =
+    transferRestrictionsHelper.groupPDA(transferGroup1);
   const senderHolderId = new anchor.BN(1);
-  const [holderSenderPubkey] = anchor.web3.PublicKey.findProgramAddressSync(
-    [
-      Buffer.from(TRANSFER_RESTRICTION_HOLDER_PREFIX),
-      transferRestrictionDataPubkey.toBuffer(),
-      senderHolderId.toArrayLike(Buffer, "le", 8),
-    ],
-    transferRestrictionsProgram.programId
-  );
+  const [holderSenderPubkey] = transferRestrictionsHelper.holderPDA(senderHolderId);
   const userWalletRecipient = Keypair.generate();
   const userWalletRecipientPubkey = userWalletRecipient.publicKey;
-  const userWalletRecipientAssociatedTokenAccountPubkey =
-    getAssociatedTokenAddressSync(
-      mintKeypair.publicKey,
-      userWalletRecipientPubkey,
-      false,
-      TOKEN_2022_PROGRAM_ID
-    );
+  const userWalletRecipientAssociatedTokenAccountPubkey = mintHelper.
+    getAssocciatedTokenAddress(userWalletRecipientPubkey);
   const recipientHolderId = new anchor.BN(2);
-  const [holderRecipientPubkey] =
-    anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(TRANSFER_RESTRICTION_HOLDER_PREFIX),
-        transferRestrictionDataPubkey.toBuffer(),
-        recipientHolderId.toArrayLike(Buffer, "le", 8),
-      ],
-      transferRestrictionsProgram.programId
-    );
+  const [holderRecipientPubkey] = transferRestrictionsHelper.holderPDA(recipientHolderId);
 
   before("tops up wallets", async () => {
     await topUpWallet(
@@ -150,55 +98,16 @@ describe("solana-security-token", () => {
   });
 
   it("creates mint with transfer hook, access control and super admin role", async () => {
-    const [extraMetasAccount] = anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        anchor.utils.bytes.utf8.encode(EXTRA_METAS_ACCOUNT_PREFIX),
-        mintKeypair.publicKey.toBuffer(),
-      ],
-      transferRestrictionsProgram.programId
-    );
+    const initializeAccessControlInstr = accessControlHelper.initializeAccessControlInstruction(setupAccessControlArgs);
 
-    const initializeAccessControlInstr = accessControlProgram.instruction.initializeAccessControl(
-      {
-        decimals: setupAccessControlArgs.decimals,
-        name: setupAccessControlArgs.name,
-        symbol: setupAccessControlArgs.symbol,
-        uri: setupAccessControlArgs.uri,
-        hookProgramId: transferRestrictionsProgram.programId,
-      },
-      {
-        accounts: {
-          payer: setupAccessControlArgs.payer,
-          authority: setupAccessControlArgs.authority,
-          mint: mintKeypair.publicKey,
-          accessControl: accessControlPubkey,
-          systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-        },
-      }
-    );
+    const initializeExtraAccountMetaListInstr = transferRestrictionsHelper.initializeExtraMetasAccount(
+      superAdmin.publicKey,
+      authorityWalletRolePubkey
+    )
 
-    const initializeExtraAccountMetaListInstr = transferRestrictionsProgram.instruction.initializeExtraAccountMetaList({
-      accounts: {
-        extraMetasAccount: extraMetasAccount,
-        securityMint: mintKeypair.publicKey,
-        payer: superAdmin.publicKey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        accessControl: accessControlPubkey,
-        systemProgram: SystemProgram.programId,
-      },
-    });
-
-    const initializeDeployerRoleInstr = accessControlProgram.instruction
-      .initializeDeployerRole({
-        accounts: {
-          payer: superAdmin.publicKey,
-          accessControl: accessControlPubkey,
-          securityToken: mintKeypair.publicKey,
-          walletRole: authorityWalletRolePubkey,
-          systemProgram: SystemProgram.programId,
-        },
-      });
+    const initializeDeployerRoleInstr = accessControlHelper.initializeDeployerRoleInstruction(
+      superAdmin.publicKey,
+    )
 
     // Add instructions to new transaction
     const transaction = new Transaction().add(
@@ -225,26 +134,14 @@ describe("solana-security-token", () => {
       console.error(error);
     }
 
-    const accessControlData =
-      await accessControlProgram.account.accessControl.fetch(
-        accessControlPubkey,
-        confirmOptions
-      );
+    const accessControlData = await accessControlHelper.accessControlData();
     assert.deepEqual(accessControlData.mint, mintKeypair.publicKey);
 
-    const walletRoleData =
-      await accessControlProgram.account.walletRole.fetch(
-        authorityWalletRolePubkey
-      );
+    const walletRoleData = await accessControlHelper.walletRoleData(authorityWalletRolePubkey);
     assert.deepEqual(walletRoleData.role, Roles.ContractAdmin);
     assert.deepEqual(accessControlData.authority, setupAccessControlArgs.authority);
 
-    let mintData = await getMint(
-      connection,
-      mintKeypair.publicKey,
-      confirmOptions,
-      TOKEN_2022_PROGRAM_ID
-    );
+    let mintData = await mintHelper.getMint();
     assert.deepEqual(mintData.mintAuthority, accessControlPubkey);
     assert.deepEqual(mintData.supply, BigInt(0));
     assert.deepEqual(mintData.decimals, decimals);
@@ -269,42 +166,20 @@ describe("solana-security-token", () => {
   });
 
   it("creates associated token account for user wallet", async () => {
-    const transaction = new Transaction().add(
-      createAssociatedTokenAccountInstruction(
-        superAdmin.publicKey,
-        userWalletAssociatedAccountPubkey,
-        userWalletPubkey,
-        mintKeypair.publicKey,
-        TOKEN_2022_PROGRAM_ID
-      )
-    );
-    const txCreateAssTokenAccount = await sendAndConfirmTransaction(
-      provider.connection,
-      transaction,
-      [superAdmin],
-      { commitment: confirmOptions }
-    );
-    console.log(
-      "Create Associated Token Account Transaction Signature",
-      txCreateAssTokenAccount
+    await mintHelper.createAssociatedTokenAccount(
+      userWalletPubkey,
+      superAdmin
     );
   });
 
   it("failed to mint without ReserveAdmin role", async () => {
     try {
-      await accessControlProgram.rpc.mintSecurities(mintAmount, {
-        accounts: {
-          authority: superAdmin.publicKey,
-          authorityWalletRole: authorityWalletRolePubkey,
-          accessControl: accessControlPubkey,
-          securityMint: mintKeypair.publicKey,
-          destinationAccount: userWalletAssociatedAccountPubkey,
-          destinationAuthority: userWalletPubkey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-        },
-        signers: [superAdmin],
-        instructions: [],
-      });
+      await accessControlHelper.mintSecurities(
+        mintAmount,
+        userWalletPubkey,
+        userWalletAssociatedAccountPubkey,
+        superAdmin
+      );
     } catch ({ error }) {
       assert.equal(error.errorCode.number, 6000);
       assert.equal(error.errorMessage, 'Unauthorized');
@@ -314,84 +189,44 @@ describe("solana-security-token", () => {
 
   it("assigns ReserveAdmin role to super admin", async () => {
     const newRoles = Roles.ReserveAdmin | Roles.ContractAdmin;
-    const assignRoleTx = await accessControlProgram.methods
-      .updateWalletRole(newRoles)
-      .accountsStrict({
-        walletRole: authorityWalletRolePubkey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        accessControl: accessControlPubkey,
-        securityToken: mintKeypair.publicKey,
-        userWallet: superAdmin.publicKey,
-        payer: superAdmin.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const assignRoleTx = await accessControlHelper.updateWalletRole(
+      superAdmin.publicKey,
+      newRoles,
+      superAdmin
+    );
     console.log("Assign Role Transaction Signature", assignRoleTx);
 
-    const walletRoleData =
-      await accessControlProgram.account.walletRole.fetch(
-        authorityWalletRolePubkey
-      );
+    const walletRoleData = await accessControlHelper.walletRoleData(authorityWalletRolePubkey);
     assert.deepEqual(walletRoleData.role, newRoles);
   });
 
   it("mints tokens to new account", async () => {
-    const mintTx = await accessControlProgram.methods
-      .mintSecurities(mintAmount)
-      .accountsStrict({
-        authority: superAdmin.publicKey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        accessControl: accessControlPubkey,
-        securityMint: mintKeypair.publicKey,
-        destinationAccount: userWalletAssociatedAccountPubkey,
-        destinationAuthority: userWalletPubkey,
-        tokenProgram: TOKEN_2022_PROGRAM_ID,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const mintTx = await accessControlHelper.mintSecurities(
+      mintAmount,
+      userWalletPubkey,
+      userWalletAssociatedAccountPubkey,
+      superAdmin,
+    );
     console.log("Mint Securities Transaction Signature", mintTx);
 
-    let mintData = await getMint(
-      connection,
-      mintKeypair.publicKey,
-      confirmOptions,
-      TOKEN_2022_PROGRAM_ID
-    );
+    let mintData = await mintHelper.getMint();
     assert.equal(mintData.supply.toString(), mintAmount.toString());
 
-    const assAccountInfo = await getAccount(
-      connection,
-      userWalletAssociatedAccountPubkey,
-      undefined,
-      TOKEN_2022_PROGRAM_ID
-    );
+    const assAccountInfo = await mintHelper.getAccount(userWalletAssociatedAccountPubkey);
     assert.equal(assAccountInfo.amount.toString(), mintAmount.toString());
   });
 
   it("burns token by reserve admin", async () => {
     const burnAmount = new anchor.BN(700000);
-    const burnTx = await accessControlProgram.methods
-      .burnSecurities(burnAmount)
-      .accountsStrict({
-        authority: superAdmin.publicKey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        accessControl: accessControlPubkey,
-        securityMint: mintKeypair.publicKey,
-        targetAccount: userWalletAssociatedAccountPubkey,
-        targetAuthority: userWalletPubkey,
-        tokenProgram: TOKEN_2022_PROGRAM_ID,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const burnTx = await accessControlHelper.burnSecurities(
+      burnAmount,
+      userWalletPubkey,
+      userWalletAssociatedAccountPubkey,
+      superAdmin
+    );
     console.log("Burn Securities Transaction Signature", burnTx);
 
-    const mintData = await getMint(
-      connection,
-      mintKeypair.publicKey,
-      confirmOptions,
-      TOKEN_2022_PROGRAM_ID
-    );
+    const mintData = await mintHelper.getMint();
     assert.equal(
       mintData.supply.toString(),
       mintAmount.sub(burnAmount).toString()
@@ -401,27 +236,17 @@ describe("solana-security-token", () => {
   // === TRANSFER RESTRICTIONS SETUP ===
   it("creates transfer restriction data", async () => {
     const initTransferRestrictionDataTx =
-      await transferRestrictionsProgram.methods
-        .initializeTransferRestrictionsData(maxHolders)
-        .accountsStrict({
-          transferRestrictionData: transferRestrictionDataPubkey,
-          accessControlAccount: accessControlPubkey,
-          mint: mintKeypair.publicKey,
-          payer: superAdmin.publicKey,
-          systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
+      await transferRestrictionsHelper.initializeTransferRestrictionData(
+        maxHolders,
+        superAdmin
+      );
     console.log(
       "Initialize Transfer Restrictions Data Transaction Signature",
       initTransferRestrictionDataTx
     );
 
     const transferRestrictionData =
-      await transferRestrictionsProgram.account.transferRestrictionData.fetch(
-        transferRestrictionDataPubkey
-      );
+      await transferRestrictionsHelper.transferRestrictionData();
     assert.deepEqual(
       transferRestrictionData.securityTokenMint,
       mintKeypair.publicKey
@@ -438,25 +263,18 @@ describe("solana-security-token", () => {
   });
 
   it("creates transfer restriction group 1", async () => {
-    const initTransferGroupTx = await transferRestrictionsProgram.methods
-      .initializeTransferRestrictionGroup(transferGroup1)
-      .accountsStrict({
-        transferRestrictionGroup: transferRestrictionGroup1Pubkey,
-        transferRestrictionData: transferRestrictionDataPubkey,
-        payer: superAdmin.publicKey,
-        accessControlAccount: accessControlPubkey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const initTransferGroupTx = await transferRestrictionsHelper
+      .initializeTransferRestrictionGroup(
+        transferGroup1,
+        superAdmin
+      );
     console.log(
       "Initialize Transfer Restriction Group Transaction Signature",
       initTransferGroupTx
     );
     const trGroupData =
-      await transferRestrictionsProgram.account.transferRestrictionGroup.fetch(
+      await transferRestrictionsHelper.groupData(
         transferRestrictionGroup1Pubkey,
-        confirmOptions
       );
     assert.equal(trGroupData.id.toString(), transferGroup1.toString());
     assert.equal(trGroupData.maxHolders.toString(), maxHolders.toString());
@@ -471,43 +289,28 @@ describe("solana-security-token", () => {
   });
 
   it("creates transfer rule 1 -> 1", async () => {
-    const [transferRulePubkey, transferRulePubkeyBump] =
-      anchor.web3.PublicKey.findProgramAddressSync(
-        [
-          Buffer.from(TRANSFER_RULE_PREFIX),
-          transferRestrictionGroup1Pubkey.toBuffer(),
-          transferRestrictionGroup1Pubkey.toBuffer(),
-        ],
-        transferRestrictionsProgram.programId
+    const [transferRulePubkey] =
+      transferRestrictionsHelper.transferRulePDA(
+        transferRestrictionGroup1Pubkey,
+        transferRestrictionGroup1Pubkey,
       );
     console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
 
     const tsNow = Date.now() / 1000;
     const lockedUntil = new anchor.BN(tsNow);
     // const lockedUntil = new anchor.BN(tsNow + 1000); // locked transfer rule
-    const initTransferRuleTx = await transferRestrictionsProgram.methods
-      .initializeTransferRule(lockedUntil)
-      .accountsStrict({
-        transferRule: transferRulePubkey,
-        transferRestrictionData: transferRestrictionDataPubkey,
-        transferRestrictionGroupFrom: transferRestrictionGroup1Pubkey,
-        transferRestrictionGroupTo: transferRestrictionGroup1Pubkey,
-        accessControlAccount: accessControlPubkey,
-        payer: superAdmin.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const initTransferRuleTx = await transferRestrictionsHelper.initializeTransferRule(
+      lockedUntil,
+      transferRestrictionGroup1Pubkey,
+      transferRestrictionGroup1Pubkey,
+      superAdmin
+    );
     console.log(
       "Initialize Transfer Rule Transaction Signature",
       initTransferRuleTx
     );
 
-    const transferRuleData =
-      await transferRestrictionsProgram.account.transferRule.fetch(
-        transferRulePubkey,
-        confirmOptions
-      );
+    const transferRuleData = await transferRestrictionsHelper.transferRuleData(transferRulePubkey)
     assert.equal(
       transferRuleData.lockedUntil.toString(),
       lockedUntil.toString()
@@ -527,26 +330,17 @@ describe("solana-security-token", () => {
   });
 
   it("creates holder for sender", async () => {
-    const initSenderHolderTx = await transferRestrictionsProgram.methods
-      .initializeTransferRestrictionHolder(senderHolderId)
-      .accountsStrict({
-        transferRestrictionHolder: holderSenderPubkey,
-        transferRestrictionData: transferRestrictionDataPubkey,
-        accessControlAccount: accessControlPubkey,
-        payer: superAdmin.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const initSenderHolderTx = await transferRestrictionsHelper
+      .initializeTransferRestrictionHolder(
+        senderHolderId,
+        superAdmin
+      );
     console.log(
       "Initialize Sender Holder Transaction Signature",
       initSenderHolderTx
     );
     const holderSenderData =
-      await transferRestrictionsProgram.account.transferRestrictionHolder.fetch(
-        holderSenderPubkey,
-        confirmOptions
-      );
+      await transferRestrictionsHelper.holderData(holderSenderPubkey);
     assert.equal(holderSenderData.id.toString(), senderHolderId.toString());
     assert.deepEqual(
       holderSenderData.transferRestrictionData,
@@ -559,25 +353,18 @@ describe("solana-security-token", () => {
   });
 
   it("creates holder for recipient", async () => {
-    const initRecipientHolderTx = await transferRestrictionsProgram.methods
-      .initializeTransferRestrictionHolder(recipientHolderId)
-      .accountsStrict({
-        transferRestrictionHolder: holderRecipientPubkey,
-        transferRestrictionData: transferRestrictionDataPubkey,
-        accessControlAccount: accessControlPubkey,
-        payer: superAdmin.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const initRecipientHolderTx = await transferRestrictionsHelper
+      .initializeTransferRestrictionHolder(
+        recipientHolderId,
+        superAdmin
+      );
     console.log(
       "Initialize Recipient Holder Transaction Signature",
       initRecipientHolderTx
     );
     const holderRecipientData =
-      await transferRestrictionsProgram.account.transferRestrictionHolder.fetch(
+      await transferRestrictionsHelper.holderData(
         holderRecipientPubkey,
-        confirmOptions
       );
     assert.equal(
       holderRecipientData.id.toString(),
@@ -595,42 +382,29 @@ describe("solana-security-token", () => {
 
   it("creates security associated token for sender", async () => {
     const [userWalletSenderSecurityAssociatedTokenAccountPubkey] =
-      anchor.web3.PublicKey.findProgramAddressSync(
-        [
-          Buffer.from(SECURITY_ASSOCIATED_ACCOUNT_PREFIX),
-          userWalletAssociatedAccountPubkey.toBuffer(),
-        ],
-        transferRestrictionsProgram.programId
+      transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userWalletAssociatedAccountPubkey
       );
     console.log(
       "Sender Security Associated Account Pubkey",
       userWalletSenderSecurityAssociatedTokenAccountPubkey.toBase58()
     );
     const initSecAssocAccountSenderTx =
-      await transferRestrictionsProgram.methods
-        .initializeSecurityAssociatedAccount()
-        .accountsStrict({
-          securityAssociatedAccount:
-            userWalletSenderSecurityAssociatedTokenAccountPubkey,
-          group: transferRestrictionGroup1Pubkey,
-          holder: holderSenderPubkey,
-          securityToken: mintKeypair.publicKey,
-          transferRestrictionData: transferRestrictionDataPubkey,
-          userWallet: userWalletPubkey,
-          associatedTokenAccount: userWalletAssociatedAccountPubkey,
-          payer: superAdmin.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
+      await transferRestrictionsHelper
+        .initializeSecurityAssociatedAccount(
+          transferRestrictionGroup1Pubkey,
+          holderSenderPubkey,
+          userWalletPubkey,
+          userWalletAssociatedAccountPubkey,
+          superAdmin
+        );
     console.log(
       "Initialize Security Associated Account Transaction Signature",
       initSecAssocAccountSenderTx
     );
     const senderSecurityAssociatedAccountData =
-      await transferRestrictionsProgram.account.securityAssociatedAccount.fetch(
-        userWalletSenderSecurityAssociatedTokenAccountPubkey,
-        confirmOptions
+      await transferRestrictionsHelper.securityAssociatedAccountData(
+        userWalletSenderSecurityAssociatedTokenAccountPubkey
       );
     assert.equal(
       senderSecurityAssociatedAccountData.group.toString(),
@@ -639,65 +413,47 @@ describe("solana-security-token", () => {
   });
 
   it("creates security associated token for recipient", async () => {
-    const transactionCreateAssocAccRecipient = new Transaction().add(
-      createAssociatedTokenAccountInstruction(
-        superAdmin.publicKey,
-        userWalletRecipientAssociatedTokenAccountPubkey,
+    try {
+      await mintHelper.createAssociatedTokenAccount(
         userWalletRecipientPubkey,
-        mintKeypair.publicKey,
-        TOKEN_2022_PROGRAM_ID
-      )
-    );
-    const txCreateRecipientAssTokenAccount = await sendAndConfirmTransaction(
-      provider.connection,
-      transactionCreateAssocAccRecipient,
-      [superAdmin],
-      { commitment: confirmOptions }
-    );
-    console.log(
-      "Create Recipient Associated Token Account Transaction Signature",
-      txCreateRecipientAssTokenAccount
-    );
+        superAdmin
+      );
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
 
     const [userWalletRecipientSecurityAssociatedTokenAccountPubkey] =
-      anchor.web3.PublicKey.findProgramAddressSync(
-        [
-          Buffer.from(SECURITY_ASSOCIATED_ACCOUNT_PREFIX),
-          userWalletRecipientAssociatedTokenAccountPubkey.toBuffer(),
-        ],
-        transferRestrictionsProgram.programId
+      transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userWalletRecipientAssociatedTokenAccountPubkey
       );
     console.log(
       "Recipient Security Associated Account Pubkey",
       userWalletRecipientSecurityAssociatedTokenAccountPubkey.toBase58()
     );
 
-    const initSecAssocAccountRecipientTx =
-      await transferRestrictionsProgram.methods
-        .initializeSecurityAssociatedAccount()
-        .accountsStrict({
-          securityAssociatedAccount:
-            userWalletRecipientSecurityAssociatedTokenAccountPubkey,
-          group: transferRestrictionGroup1Pubkey,
-          holder: holderRecipientPubkey,
-          securityToken: mintKeypair.publicKey,
-          transferRestrictionData: transferRestrictionDataPubkey,
-          userWallet: userWalletRecipientPubkey,
-          associatedTokenAccount:
+    try {
+      const initSecAssocAccountRecipientTx =
+        await transferRestrictionsHelper
+          .initializeSecurityAssociatedAccount(
+            transferRestrictionGroup1Pubkey,
+            holderRecipientPubkey,
+            userWalletRecipientPubkey,
             userWalletRecipientAssociatedTokenAccountPubkey,
-          payer: superAdmin.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
-    console.log(
-      "Initialize Security Associated Account Transaction Signature",
-      initSecAssocAccountRecipientTx
-    );
+            superAdmin
+          );
+      console.log(
+        "Initialize Security Associated Account Transaction Signature",
+        initSecAssocAccountRecipientTx
+      );
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+    
     const recipientSecurityAssociatedAccountData =
-      await transferRestrictionsProgram.account.securityAssociatedAccount.fetch(
-        userWalletRecipientSecurityAssociatedTokenAccountPubkey,
-        confirmOptions
+      await transferRestrictionsHelper.securityAssociatedAccountData(
+        userWalletRecipientSecurityAssociatedTokenAccountPubkey
       );
     assert.equal(
       recipientSecurityAssociatedAccountData.group.toString(),
@@ -732,17 +488,11 @@ describe("solana-security-token", () => {
       transferWithHookTx
     );
 
-    const senderAccountInfo = await getAccount(
-      connection,
+    const senderAccountInfo = await mintHelper.getAccount(
       userWalletAssociatedAccountPubkey,
-      undefined,
-      TOKEN_2022_PROGRAM_ID
     );
-    const recipientAccountInfo = await getAccount(
-      connection,
+    const recipientAccountInfo = await mintHelper.getAccount(
       userWalletRecipientAssociatedTokenAccountPubkey,
-      undefined,
-      TOKEN_2022_PROGRAM_ID
     );
     assert.deepEqual(senderAccountInfo.amount, BigInt(299000));
     assert.equal(
@@ -752,27 +502,16 @@ describe("solana-security-token", () => {
   });
 
   it("fails to freeze user wallet without Transfer role", async () => {
-    let assAccountInfo = await getAccount(
-      connection,
+    let assAccountInfo = await mintHelper.getAccount(
       userWalletAssociatedAccountPubkey,
-      confirmOptions,
-      TOKEN_2022_PROGRAM_ID
     );
     assert.equal(assAccountInfo.isFrozen, false);
     try {
-      await accessControlProgram.methods
-        .freezeWallet()
-        .accountsStrict({
-          authority: superAdmin.publicKey,
-          authorityWalletRole: authorityWalletRolePubkey,
-          accessControl: accessControlPubkey,
-          securityMint: mintKeypair.publicKey,
-          targetAccount: userWalletAssociatedAccountPubkey,
-          targetAuthority: userWalletPubkey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-        })
-        .signers([superAdmin])
-        .rpc({ commitment: confirmOptions });
+      await accessControlHelper.freezeWallet(
+        userWalletPubkey,
+        userWalletAssociatedAccountPubkey,
+        superAdmin,
+      );
       assert.fail("Expected error not thrown");
     } catch ({ error }) {
       assert.equal(error.errorCode.number, 6000);
@@ -783,57 +522,37 @@ describe("solana-security-token", () => {
 
   it("assigns Transfer role to super admin", async () => {
     const newRoles = Roles.ReserveAdmin | Roles.ContractAdmin | Roles.TransferAdmin;
-    const assignRoleTx = await accessControlProgram.methods
-      .updateWalletRole(newRoles)
-      .accountsStrict({
-        walletRole: authorityWalletRolePubkey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        accessControl: accessControlPubkey,
-        securityToken: mintKeypair.publicKey,
-        userWallet: superAdmin.publicKey,
-        payer: superAdmin.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const assignRoleTx = await accessControlHelper
+      .updateWalletRole(
+        superAdmin.publicKey,
+        newRoles,
+        superAdmin
+      );
     console.log("Assign Role Transaction Signature", assignRoleTx);
 
     const walletRoleData =
-      await transferRestrictionsProgram.account.walletRole.fetch(
+      await accessControlHelper.walletRoleData(
         authorityWalletRolePubkey
       );
     assert.deepEqual(walletRoleData.role, newRoles);
   });
 
   it("freezes user wallet", async () => {
-    let assAccountInfo = await getAccount(
-      connection,
+    let assAccountInfo = await mintHelper.getAccount(
       userWalletAssociatedAccountPubkey,
-      confirmOptions,
-      TOKEN_2022_PROGRAM_ID
     );
     assert.equal(assAccountInfo.isFrozen, false);
 
-    const freezeTx = await accessControlProgram.methods
-      .freezeWallet()
-      .accountsStrict({
-        authority: superAdmin.publicKey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        accessControl: accessControlPubkey,
-        securityMint: mintKeypair.publicKey,
-        targetAccount: userWalletAssociatedAccountPubkey,
-        targetAuthority: userWalletPubkey,
-        tokenProgram: TOKEN_2022_PROGRAM_ID,
-      })
-      .signers([superAdmin])
-      .rpc({ commitment: confirmOptions });
+    const freezeTx =
+      await accessControlHelper.freezeWallet(
+        userWalletPubkey,
+        userWalletAssociatedAccountPubkey,
+        superAdmin
+      );
     console.log("Freeze Wallet Transaction Signature", freezeTx);
 
-    assAccountInfo = await getAccount(
-      connection,
+    assAccountInfo = await mintHelper.getAccount(
       userWalletAssociatedAccountPubkey,
-      confirmOptions,
-      TOKEN_2022_PROGRAM_ID
     );
     assert.equal(assAccountInfo.isFrozen, true);
     assert.deepEqual(assAccountInfo.amount, BigInt(299000));
