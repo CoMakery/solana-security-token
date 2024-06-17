@@ -165,6 +165,9 @@ export type Tokenlock = {
           "name": "accessControl"
         },
         {
+          "name": "mintAddress"
+        },
+        {
           "name": "from",
           "writable": true
         },
@@ -357,8 +360,11 @@ export type Tokenlock = {
           "writable": true
         },
         {
+          "name": "mintAddress"
+        },
+        {
           "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
@@ -405,8 +411,11 @@ export type Tokenlock = {
           "writable": true
         },
         {
+          "name": "mintAddress"
+        },
+        {
           "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [

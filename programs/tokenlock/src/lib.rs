@@ -75,8 +75,8 @@ mod tokenlock {
         instructions::transfer(ctx, value)
     }
 
-    pub fn transfer_timelock(
-        ctx: Context<TransferTimelock>,
+    pub fn transfer_timelock<'info>(
+        ctx: Context<'_, '_, '_, 'info, TransferTimelock<'info>>,
         value: u64,
         timelock_id: u32,
     ) -> Result<()> {
