@@ -1,5 +1,8 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::Transfer;
+use anchor_spl::{
+    token_2022::spl_token_2022::onchain::invoke_transfer_checked,
+    token::Transfer,
+};
 use sha2::{Digest, Sha256};
 extern crate hex;
 use anchor_lang::solana_program::program_memory::sol_memcpy;
@@ -28,29 +31,36 @@ pub fn transfer_spl<'info>(
 }
 
 pub fn transfer_spl_from_escrow<'info>(
+    token_program: &AccountInfo<'info>,
     from: &AccountInfo<'info>,
     to: &AccountInfo<'info>,
     authority: &AccountInfo<'info>,
-    token_program: &AccountInfo<'info>,
     amount: u64,
-    mint_address: &Pubkey,
+    mint_info: &AccountInfo<'info>,
     tokenlock_account: &Pubkey,
+    remaining_accounts: &[AccountInfo<'info>],
+    decimals: u8,
     bump_seed: u8,
 ) -> Result<()> {
-    let cpi_accounts = Transfer {
-        from: from.clone(),
-        to: to.clone(),
-        authority: authority.clone(),
-    };
-
-    let cpi_ctx = CpiContext::new(token_program.clone(), cpi_accounts);
     let seeds = &[
         &TOKENLOCK_PDA_SEED[..],
-        &mint_address.as_ref()[..],
+        &mint_info.key.as_ref()[..],
         &tokenlock_account.as_ref()[..],
         &[bump_seed],
     ];
-    anchor_spl::token::transfer(cpi_ctx.with_signer(&[&seeds[..]]), amount)?;
+
+    invoke_transfer_checked(
+        token_program.key,
+        from.clone(),
+        mint_info.clone(),
+        to.clone(),
+        authority.clone(),
+        remaining_accounts,
+        amount,
+        decimals,
+        &[&seeds[..]],
+    )?;
+
 
     Ok(())
 }

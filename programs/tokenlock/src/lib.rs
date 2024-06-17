@@ -71,7 +71,7 @@ mod tokenlock {
         )
     }
 
-    pub fn transfer(ctx: Context<TransferFrom>, value: u64) -> Result<()> {
+    pub fn transfer<'info>(ctx: Context<'_, '_, '_, 'info, TransferFrom<'info>>, value: u64) -> Result<()> {
         instructions::transfer(ctx, value)
     }
 

@@ -1,5 +1,5 @@
 use anchor_lang::{prelude::*, Discriminator};
-use anchor_spl::token::{Token, TokenAccount};
+use anchor_spl::token_interface::{Mint, TokenAccount, Token2022};
 use solana_program::program_memory::sol_memcmp;
 
 use crate::{
@@ -18,7 +18,7 @@ pub struct TransferFrom<'info> {
     pub timelock_account: Account<'info, TimelockData>,
 
     #[account(mut)]
-    pub escrow_account: Account<'info, TokenAccount>,
+    pub escrow_account: Box<InterfaceAccount<'info, TokenAccount>>,
     /// CHECK: Escrow account authority
     pub pda_account: AccountInfo<'info>,
 
@@ -31,12 +31,17 @@ pub struct TransferFrom<'info> {
         constraint = *to.to_account_info().owner == *token_program.key,
         constraint = escrow_account.mint == to.mint
     )]
-    pub to: Account<'info, TokenAccount>,
+    pub to: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    pub token_program: Program<'info, Token>,
+    #[account(
+        mint::token_program = token_program,
+    )]
+    pub mint_address: Box<InterfaceAccount<'info, Mint>>,
+
+    pub token_program: Program<'info, Token2022>,
 }
 
-pub fn transfer(ctx: Context<TransferFrom>, value: u64) -> Result<()> {
+pub fn transfer<'info>(ctx: Context<'_, '_, '_, 'info, TransferFrom<'info>>, value: u64) -> Result<()> {
     if value == 0 {
         return Err(TokenlockErrors::AmountMustBeBiggerThanZero.into());
     }
@@ -56,7 +61,7 @@ pub fn transfer(ctx: Context<TransferFrom>, value: u64) -> Result<()> {
     if escrow_account != *ctx.accounts.escrow_account.to_account_info().key {
         return Err(TokenlockErrors::MisMatchedEscrow.into());
     }
-    if mint_address != ctx.accounts.to.mint {
+    if mint_address != ctx.accounts.to.mint || mint_address != ctx.accounts.mint_address.key() {
         return Err(TokenlockErrors::MisMatchedToken.into());
     }
 
@@ -108,13 +113,15 @@ pub fn transfer(ctx: Context<TransferFrom>, value: u64) -> Result<()> {
 
     // //transfer
     transfer_spl_from_escrow(
+        &ctx.accounts.token_program,
         &ctx.accounts.escrow_account.to_account_info(),
         &ctx.accounts.to.to_account_info(),
         &ctx.accounts.pda_account,
-        &ctx.accounts.token_program,
         value,
-        &mint_address,
+        &ctx.accounts.mint_address.to_account_info(),
         tokenlock_account.key,
+        &ctx.remaining_accounts,
+        ctx.accounts.mint_address.decimals,
         TokenLockDataWrapper::bump_seed(&tokenlock_account_data),
     )?;
     Ok(())
