@@ -1,5 +1,5 @@
 use anchor_lang::{prelude::*, Discriminator};
-use anchor_spl::token_interface::{Mint, TokenAccount, Token2022};
+use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 use solana_program::program_memory::sol_memcmp;
 
 use crate::{
@@ -41,7 +41,10 @@ pub struct TransferFrom<'info> {
     pub token_program: Program<'info, Token2022>,
 }
 
-pub fn transfer<'info>(ctx: Context<'_, '_, '_, 'info, TransferFrom<'info>>, value: u64) -> Result<()> {
+pub fn transfer<'info>(
+    ctx: Context<'_, '_, '_, 'info, TransferFrom<'info>>,
+    value: u64,
+) -> Result<()> {
     if value == 0 {
         return Err(TokenlockErrors::AmountMustBeBiggerThanZero.into());
     }
@@ -111,7 +114,6 @@ pub fn transfer<'info>(ctx: Context<'_, '_, '_, 'info, TransferFrom<'info>>, val
         return Err(TokenlockErrors::BadTransfer.into());
     }
 
-    // //transfer
     transfer_spl_from_escrow(
         &ctx.accounts.token_program,
         &ctx.accounts.escrow_account.to_account_info(),

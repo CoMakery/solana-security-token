@@ -83,7 +83,7 @@ mod tokenlock {
         instructions::transfer_timelock(ctx, value, timelock_id)
     }
 
-    pub fn cancel_timelock(ctx: Context<CancelTimelock>, timelock_id: u32) -> Result<()> {
+    pub fn cancel_timelock<'info>(ctx: Context<'_, '_, '_, 'info, CancelTimelock<'info>>, timelock_id: u32) -> Result<()> {
         instructions::cancel_timelock(ctx, timelock_id)
     }
 }

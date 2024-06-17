@@ -65,7 +65,7 @@ pub fn transfer_timelock<'info>(
     if escrow_account != *ctx.accounts.escrow_account.to_account_info().key {
         return Err(TokenlockErrors::MisMatchedEscrow.into());
     }
-    if mint_address != ctx.accounts.to.mint {
+    if mint_address != ctx.accounts.to.mint || mint_address != ctx.accounts.mint_address.key() {
         return Err(TokenlockErrors::MisMatchedToken.into());
     }
 

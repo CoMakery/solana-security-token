@@ -1,8 +1,8 @@
 use anchor_lang::{prelude::*, Discriminator};
-use anchor_spl::token::{Token, TokenAccount};
+use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 use solana_program::program_memory::sol_memcmp;
 
-use crate::{transfer_spl_from_escrow, utils, TimelockData, TokenLockData, TokenLockDataWrapper, TokenlockErrors};
+use crate::{transfer_spl_from_escrow, utils, TimelockData, TokenLockData, TokenLockDataWrapper, TokenlockErrors, TOKENLOCK_PDA_SEED};
 
 #[derive(Accounts)]
 pub struct CancelTimelock<'info> {
@@ -15,7 +15,7 @@ pub struct CancelTimelock<'info> {
     pub timelock_account: Account<'info, TimelockData>,
 
     #[account(mut)]
-    pub escrow_account: Account<'info, TokenAccount>,
+    pub escrow_account: Box<InterfaceAccount<'info, TokenAccount>>,
     /// CHECK: Escrow account authority
     pub pda_account: AccountInfo<'info>,
 
@@ -32,7 +32,7 @@ pub struct CancelTimelock<'info> {
     #[account(mut,
         constraint = *reclaimer.to_account_info().owner == *token_program.key,
     )]
-    pub reclaimer: Account<'info, TokenAccount>,
+    pub reclaimer: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(mut,
         constraint = *target_assoc.to_account_info().owner == *token_program.key,
@@ -40,12 +40,17 @@ pub struct CancelTimelock<'info> {
         constraint = target_assoc.owner == *target.key,
         constraint = escrow_account.mint == reclaimer.mint
     )]
-    pub target_assoc: Account<'info, TokenAccount>,
+    pub target_assoc: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    pub token_program: Program<'info, Token>,
+    #[account(
+        mint::token_program = token_program,
+    )]
+    pub mint_address: Box<InterfaceAccount<'info, Mint>>,
+
+    pub token_program: Program<'info, Token2022>,
 }
 
-pub fn cancel_timelock(ctx: Context<CancelTimelock>, timelock_id: u32) -> Result<()> {
+pub fn cancel_timelock<'info>(ctx: Context<'_, '_, '_, 'info, CancelTimelock<'info>>, timelock_id: u32) -> Result<()> {
     let timelock_account = &mut ctx.accounts.timelock_account;
     let tokenlock_account = &ctx.accounts.tokenlock_account;
     let tokenlock_account_data = tokenlock_account.try_borrow_data()?;
@@ -61,7 +66,7 @@ pub fn cancel_timelock(ctx: Context<CancelTimelock>, timelock_id: u32) -> Result
     if escrow_account != *ctx.accounts.escrow_account.to_account_info().key {
         return Err(TokenlockErrors::MisMatchedEscrow.into());
     }
-    if mint_address != ctx.accounts.reclaimer.mint {
+    if mint_address != ctx.accounts.reclaimer.mint || mint_address != ctx.accounts.mint_address.key() {
         return Err(TokenlockErrors::MisMatchedToken.into());
     }
 
@@ -88,25 +93,29 @@ pub fn cancel_timelock(ctx: Context<CancelTimelock>, timelock_id: u32) -> Result
         return Err(TokenlockErrors::TimelockHasntValue.into());
     }
 
-    //transfer
+    let split_at_pos = ctx.remaining_accounts.len() / 2;
     transfer_spl_from_escrow(
+        &ctx.accounts.token_program,
         &ctx.accounts.escrow_account.to_account_info(),
         &ctx.accounts.reclaimer.to_account_info(),
         &ctx.accounts.pda_account,
-        &ctx.accounts.token_program,
-        canceled_amount as u64,
-        &mint_address,
+        canceled_amount,
+        &ctx.accounts.mint_address.to_account_info(),
         tokenlock_account.key,
+        &ctx.remaining_accounts[..split_at_pos],
+        ctx.accounts.mint_address.decimals,
         TokenLockDataWrapper::bump_seed(&tokenlock_account_data),
     )?;
     transfer_spl_from_escrow(
+        &ctx.accounts.token_program,
         &ctx.accounts.escrow_account.to_account_info(),
         &ctx.accounts.target_assoc.to_account_info(),
         &ctx.accounts.pda_account,
-        &ctx.accounts.token_program,
-        paid_amount as u64,
-        &mint_address,
+        paid_amount,
+        &ctx.accounts.mint_address.to_account_info(),
         tokenlock_account.key,
+        &ctx.remaining_accounts[split_at_pos..],
+        ctx.accounts.mint_address.decimals,
         TokenLockDataWrapper::bump_seed(&tokenlock_account_data),
     )?;
 

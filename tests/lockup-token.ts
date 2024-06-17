@@ -14,7 +14,8 @@ import {
   SYSVAR_RENT_PUBKEY,
   SystemProgram,
   sendAndConfirmTransaction,
-  Transaction
+  Transaction,
+  ComputeBudgetProgram
 } from "@solana/web3.js";
 
 import {
@@ -24,7 +25,7 @@ import { Tokenlock } from "../target/types/tokenlock";
 
 import { TestEnvironment, TestEnvironmentParams } from "./helpers/test_environment";
 import { createAccount, solToLamports, topUpWallet } from "./utils";
-import { calcSignerHash, getTimelockAccount, lockedBalanceOf, unlockedBalanceOf, uuidBytes } from "./helpers/tokenlock_helper";
+import { BIPS_PRECISION, calcSignerHash, getTimelockAccount, lockedBalanceOf, unlockedBalanceOf, uuidBytes } from "./helpers/tokenlock_helper";
 import { getNowTs } from "./helpers/clock_helper";
 
 describe("solana-security-token", () => {
@@ -188,6 +189,7 @@ describe("solana-security-token", () => {
   });
 
   const investor = anchor.web3.Keypair.generate();
+  const fundedAmount = 1_000_000;
   it("funds release schedule", async () => {
     const timelockAccount = getTimelockAccount(
       tokenlockProgram.programId,
@@ -216,7 +218,6 @@ describe("solana-security-token", () => {
 
     const cancelableBy = [testEnvironment.reserveAdmin.publicKey];
 
-    const amount = 1_000_000;
     const scheduleId = 0;
     const commencementTimestamp = Math.floor(Date.now() / 1000);
     const funderAssociatedTokenAccount = testEnvironment.mintHelper.getAssocciatedTokenAddress(
@@ -226,7 +227,7 @@ describe("solana-security-token", () => {
 
     const fundReleaseScheduleInstruction = tokenlockProgram.instruction.fundReleaseSchedule(
       uuid,
-      new anchor.BN(amount),
+      new anchor.BN(fundedAmount),
       new anchor.BN(commencementTimestamp),
       scheduleId,
       cancelableBy,
@@ -308,7 +309,7 @@ describe("solana-security-token", () => {
       testEnvironment.mintKeypair.publicKey,
       escrowAccount,
       testEnvironment.reserveAdmin.publicKey,
-      amount,
+      fundedAmount,
       testEnvironment.confirmOptions
     );
 
@@ -325,7 +326,7 @@ describe("solana-security-token", () => {
     assert.deepEqual(timelockData.targetAccount, investor.publicKey);
     assert.deepEqual(timelockData.cancelables, cancelableBy);
     assert.equal(timelockData.timelocks.length, 1);
-    assert.equal(timelockData.timelocks[0].totalAmount.toNumber(), amount);
+    assert.equal(timelockData.timelocks[0].totalAmount.toNumber(), fundedAmount);
     assert.equal(timelockData.timelocks[0].commencementTimestamp.toNumber(), commencementTimestamp);
     assert.equal(timelockData.timelocks[0].tokensTransferred.toNumber(), 0);
     assert.equal(timelockData.timelocks[0].scheduleId, 0);
@@ -333,12 +334,12 @@ describe("solana-security-token", () => {
 
     assert.deepEqual(timelockData.timelocks[0].signerHash, calcSignerHash(testEnvironment.reserveAdmin.publicKey, uuid));
     const escrowAccountData = await testEnvironment.mintHelper.getAccount(escrowAccount);
-    assert.equal(escrowAccountData.amount.toString(), amount.toString());
+    assert.equal(escrowAccountData.amount.toString(), fundedAmount.toString());
     const tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(tokenlockDataPubkey);
     const unlockedBalance = unlockedBalanceOf(tokenlockData, timelockData, tsNow);
     const lockedBalance = lockedBalanceOf(tokenlockData, timelockData, tsNow);
-    assert.equal(unlockedBalance, amount * initialReleasePortionInBips / 10000);
-    assert.equal(lockedBalance, amount - amount * initialReleasePortionInBips / 10000);
+    assert.equal(unlockedBalance, fundedAmount * initialReleasePortionInBips / BIPS_PRECISION);
+    assert.equal(lockedBalance, fundedAmount - fundedAmount * initialReleasePortionInBips / BIPS_PRECISION);
   });
 
   let transferAmount;
@@ -507,5 +508,106 @@ describe("solana-security-token", () => {
     assert.equal(timelockDataAfterTransfer.timelocks[0].tokensTransferred.toNumber(), transferAmount + transferTimelockAmount);
     const investorTokenAccountData = await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
     assert.equal(investorTokenAccountData.amount.toString(), (transferAmount + transferTimelockAmount).toString());
+  });
+
+  it("cancel timelock from timelock", async () => {
+    const timelockAccount = getTimelockAccount(
+      tokenlockProgram.programId,
+      tokenlockDataPubkey,
+      investor.publicKey
+    );
+    const tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(tokenlockDataPubkey);
+    const timelockData = await tokenlockProgram.account.timelockData.fetch(timelockAccount);
+    const tsNow = await getNowTs(testEnvironment.connection);
+    const unlockedBalance = unlockedBalanceOf(tokenlockData, timelockData, tsNow);
+
+    const investorTokenAccountPubkey = testEnvironment.mintHelper.getAssocciatedTokenAddress(
+      investor.publicKey
+    );
+    const timelockIdx = 0;
+    const reclaimerTokenAccountPubkey = testEnvironment.mintHelper.getAssocciatedTokenAddress(
+      testEnvironment.reserveAdmin.publicKey
+    );
+    const cancelTimelockInstruction = tokenlockProgram.instruction.cancelTimelock(
+      timelockIdx,
+      {
+        accounts: {
+          tokenlockAccount: tokenlockDataPubkey,
+          timelockAccount,
+          escrowAccount: escrowAccount,
+          pdaAccount: escrowOwnerPubkey,
+          target: investor.publicKey,
+          targetAssoc: investorTokenAccountPubkey,
+          authority: testEnvironment.reserveAdmin.publicKey,
+          reclaimer: reclaimerTokenAccountPubkey,
+          mintAddress: testEnvironment.mintKeypair.publicKey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        },
+        signers: [testEnvironment.reserveAdmin]
+      }
+    )
+
+    const lockedUntil = new anchor.BN(tsNow);
+    const escrowGroupdId = new anchor.BN(2);
+    const reclaimerGroupId = new anchor.BN(1);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
+      lockedUntil,
+      testEnvironment.transferRestrictionsHelper.groupPDA(escrowGroupdId)[0],
+      testEnvironment.transferRestrictionsHelper.groupPDA(reclaimerGroupId)[0],
+      testEnvironment.reserveAdmin,
+    )
+
+    const mintInfo = await testEnvironment.mintHelper.getMint();
+    const transferHook = getTransferHook(mintInfo);
+    assert.ok(transferHook);
+
+    await addExtraAccountMetasForExecute(
+      testEnvironment.connection,
+      cancelTimelockInstruction,
+      transferHook.programId,
+      escrowAccount,
+      testEnvironment.mintKeypair.publicKey,
+      reclaimerTokenAccountPubkey,
+      escrowOwnerPubkey,
+      transferAmount,
+      testEnvironment.confirmOptions
+    );
+
+    await addExtraAccountMetasForExecute(
+      testEnvironment.connection,
+      cancelTimelockInstruction,
+      transferHook.programId,
+      escrowAccount,
+      testEnvironment.mintKeypair.publicKey,
+      investorTokenAccountPubkey,
+      escrowOwnerPubkey,
+      transferAmount,
+      testEnvironment.confirmOptions
+    );
+
+    const modifyComputeUnitsInstruction = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400000,
+    });
+
+    const transferTxSignature = await sendAndConfirmTransaction(
+      testEnvironment.connection,
+      new Transaction().add(...[modifyComputeUnitsInstruction, cancelTimelockInstruction]),
+      [testEnvironment.reserveAdmin],
+      { commitment: testEnvironment.confirmOptions }
+    );
+    console.log("Cancel Timelock Transaction Signature", transferTxSignature);
+
+
+    const timelockDataAfterTransfer = await tokenlockProgram.account.timelockData.fetch(timelockAccount);
+    assert.equal(timelockDataAfterTransfer.timelocks[0].tokensTransferred.toNumber(),
+      timelockDataAfterTransfer.timelocks[0].totalAmount.toNumber());
+    const investorTokenAccountData = await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
+    assert.equal(investorTokenAccountData.amount.toString(),
+      (initialReleasePortionInBips * fundedAmount / BIPS_PRECISION).toString()
+    );
+    const escrowAccountData = await testEnvironment.mintHelper.getAccount(escrowAccount);
+    assert.equal(escrowAccountData.amount.toString(),
+      "0"
+    )
   });
 });

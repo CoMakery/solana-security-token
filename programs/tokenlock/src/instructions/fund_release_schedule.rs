@@ -9,7 +9,7 @@ use anchor_spl::{
 use solana_program::program_memory::{sol_memcmp, sol_memcpy};
 
 use crate::{
-    common::PUBKEY_SIZE, transfer_spl, utils, Timelock, TimelockData, TokenLockData,
+    common::PUBKEY_SIZE, utils, Timelock, TimelockData, TokenLockData,
     TokenLockDataWrapper, TokenlockErrors,
 };
 

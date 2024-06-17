@@ -200,7 +200,7 @@ export function lockedBalanceOf(
   return amount;
 }
 
-const BIPS_PRECISION: number = 10000;
+export const BIPS_PRECISION: number = 10000;
 
 function calculateUnlockedForReleaseSchedule(
   commencementTimestamp: number,
