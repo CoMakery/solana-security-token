@@ -186,4 +186,158 @@ describe("solana-security-token", () => {
     assert.equal(tokenLockData.releaseSchedules[0].periodBetweenReleasesInSeconds.toNumber(), periodBetweenReleasesInSeconds);
     console.log("Create Release Schedule Transaction Signature", createReleaseScheduleTxSignature);
   });
+
+  const investor = anchor.web3.Keypair.generate();
+  it("funds release schedule", async () => {
+    const timelockAccount = getTimelockAccount(
+      tokenlockProgram.programId,
+      tokenlockDataPubkey,
+      investor.publicKey
+    );
+    let accInfo = await testEnvironment.connection.getAccountInfo(timelockAccount);
+    if (accInfo === null) {
+      const tx = await tokenlockProgram.rpc.initializeTimelock(
+        {
+          accounts: {
+            tokenlockAccount: tokenlockDataPubkey,
+            timelockAccount: timelockAccount,
+            authorityWalletRole: testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.reserveAdmin.publicKey)[0],
+            accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+            authority: testEnvironment.reserveAdmin.publicKey,
+            targetAccount: investor.publicKey,
+            systemProgram: SystemProgram.programId,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          signers: [testEnvironment.reserveAdmin],
+        },
+      );
+      console.log("Initialize Timelock Transaction Signature", tx);
+    }
+
+    const cancelableBy = [testEnvironment.reserveAdmin.publicKey];
+
+    const amount = 1_000_000;
+    const scheduleId = 0;
+    const commencementTimestamp = Math.floor(Date.now() / 1000);
+    const funderAssociatedTokenAccount = testEnvironment.mintHelper.getAssocciatedTokenAddress(
+      testEnvironment.reserveAdmin.publicKey,
+    );
+    const authorityWalletRole = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.reserveAdmin.publicKey)[0];
+
+    const fundReleaseScheduleInstruction = tokenlockProgram.instruction.fundReleaseSchedule(
+      uuid,
+      new anchor.BN(amount),
+      new anchor.BN(commencementTimestamp),
+      scheduleId,
+      cancelableBy,
+      {
+        accounts: {
+          tokenlockAccount: tokenlockDataPubkey,
+          timelockAccount: timelockAccount,
+          escrowAccount: escrowAccount,
+          authorityWalletRole: authorityWalletRole,
+          accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+          mintAddress: testEnvironment.mintKeypair.publicKey,
+          from: funderAssociatedTokenAccount,
+          to: investor.publicKey,
+          authority: testEnvironment.reserveAdmin.publicKey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID
+        },
+        signers: [testEnvironment.reserveAdmin],
+      },
+    );
+
+    // Initialize holders
+    const reserveAdminHolderId = new anchor.BN(1);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
+      reserveAdminHolderId,
+      testEnvironment.reserveAdmin,
+    );
+    const recipientHolderId = new anchor.BN(2);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
+      recipientHolderId,
+      testEnvironment.reserveAdmin,
+    );
+
+    // Initialize transfer groups
+    const reserveAdminGroupId = new anchor.BN(1);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
+      reserveAdminGroupId,
+      testEnvironment.reserveAdmin,
+    );
+    const recipientGroupId = new anchor.BN(2);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
+      recipientGroupId,
+      testEnvironment.reserveAdmin,
+    );
+
+    // Initialize Security Associated Accounts
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      testEnvironment.transferRestrictionsHelper.groupPDA(reserveAdminGroupId)[0],
+      testEnvironment.transferRestrictionsHelper.holderPDA(reserveAdminHolderId)[0],
+      testEnvironment.reserveAdmin.publicKey,
+      testEnvironment.mintHelper.getAssocciatedTokenAddress(testEnvironment.reserveAdmin.publicKey),
+      testEnvironment.reserveAdmin,
+    )
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      testEnvironment.transferRestrictionsHelper.groupPDA(recipientGroupId)[0],
+      testEnvironment.transferRestrictionsHelper.holderPDA(recipientHolderId)[0],
+      escrowOwnerPubkey,
+      escrowAccount,
+      testEnvironment.reserveAdmin,
+    )
+    // Initialize Transfer Restrictions Rule
+    const tsNow = await getNowTs(testEnvironment.connection);
+    const lockedUntil = new anchor.BN(tsNow);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
+      lockedUntil,
+      testEnvironment.transferRestrictionsHelper.groupPDA(reserveAdminGroupId)[0],
+      testEnvironment.transferRestrictionsHelper.groupPDA(recipientGroupId)[0],
+      testEnvironment.reserveAdmin,
+    )
+
+    const mintInfo = await testEnvironment.mintHelper.getMint();
+    const transferHook = getTransferHook(mintInfo);
+    assert.ok(transferHook);
+
+    await addExtraAccountMetasForExecute(
+      testEnvironment.connection,
+      fundReleaseScheduleInstruction,
+      transferHook.programId,
+      funderAssociatedTokenAccount,
+      testEnvironment.mintKeypair.publicKey,
+      escrowAccount,
+      testEnvironment.reserveAdmin.publicKey,
+      amount,
+      testEnvironment.confirmOptions
+    );
+
+    const fundReleaseScheduleWithHookTx = await sendAndConfirmTransaction(
+      testEnvironment.connection,
+      new Transaction().add(fundReleaseScheduleInstruction),
+      [testEnvironment.reserveAdmin], // userWallet
+      { commitment: testEnvironment.confirmOptions }
+    );
+    console.log("FundReleaseSchedule With Hook Transaction Signature", fundReleaseScheduleWithHookTx);
+
+    const timelockData = await tokenlockProgram.account.timelockData.fetch(timelockAccount);
+    assert.deepEqual(timelockData.tokenlockAccount, tokenlockDataPubkey);
+    assert.deepEqual(timelockData.targetAccount, investor.publicKey);
+    assert.deepEqual(timelockData.cancelables, cancelableBy);
+    assert.equal(timelockData.timelocks.length, 1);
+    assert.equal(timelockData.timelocks[0].totalAmount.toNumber(), amount);
+    assert.equal(timelockData.timelocks[0].commencementTimestamp.toNumber(), commencementTimestamp);
+    assert.equal(timelockData.timelocks[0].tokensTransferred.toNumber(), 0);
+    assert.equal(timelockData.timelocks[0].scheduleId, 0);
+    assert.equal(timelockData.timelocks[0].cancelableByCount, 1);
+
+    assert.deepEqual(timelockData.timelocks[0].signerHash, calcSignerHash(testEnvironment.reserveAdmin.publicKey, uuid));
+    const escrowAccountData = await testEnvironment.mintHelper.getAccount(escrowAccount);
+    assert.equal(escrowAccountData.amount.toString(), amount.toString());
+    const tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(tokenlockDataPubkey);
+    const unlockedBalance = unlockedBalanceOf(tokenlockData, timelockData, tsNow);
+    const lockedBalance = lockedBalanceOf(tokenlockData, timelockData, tsNow);
+    assert.equal(unlockedBalance, amount * initialReleasePortionInBips / 10000);
+    assert.equal(lockedBalance, amount - amount * initialReleasePortionInBips / 10000);
+  });
 });
