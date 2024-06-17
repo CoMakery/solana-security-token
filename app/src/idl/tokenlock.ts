@@ -61,8 +61,11 @@ export type Tokenlock = {
           "writable": true
         },
         {
+          "name": "mintAddress"
+        },
+        {
           "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
