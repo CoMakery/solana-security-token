@@ -150,4 +150,40 @@ describe("solana-security-token", () => {
     assert.equal(tokenlockData.maxReleaseDelay.toString(), maxReleaseDelay.toString());
     assert.equal(tokenlockData.minTimelockAmount.toString(), minTimelockAmount.toString());
   });
+
+  const uuid = uuidBytes();
+  let signerHash: number[];
+  const releaseCount = 10;
+  const delayUntilFirstReleaseInSeconds = 0;
+  const initialReleasePortionInBips = 1000;
+  const periodBetweenReleasesInSeconds = 86400;
+  it("adds release schedule", async () => {
+    const authourityPubkey = testEnvironment.contractAdmin.publicKey;
+    signerHash = calcSignerHash(authourityPubkey, uuid);
+
+    const createReleaseScheduleTxSignature = await tokenlockProgram.rpc.createReleaseSchedule(
+      uuid,
+      releaseCount,
+      new anchor.BN(delayUntilFirstReleaseInSeconds),
+      initialReleasePortionInBips,
+      new anchor.BN(periodBetweenReleasesInSeconds),
+      {
+        accounts: {
+          tokenlockAccount: tokenlockDataPubkey,
+          authority: authourityPubkey,
+          authorityWalletRole: testEnvironment.accessControlHelper.walletRolePDA(authourityPubkey)[0],
+          accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+        },
+        signers: [testEnvironment.contractAdmin],
+      },
+    );
+    const tokenLockData = await tokenlockProgram.account.tokenLockData.fetch(tokenlockDataPubkey);
+    assert.equal(tokenLockData.releaseSchedules.length, 1);
+    assert.deepEqual(tokenLockData.releaseSchedules[0].signerHash, signerHash);
+    assert.equal(tokenLockData.releaseSchedules[0].releaseCount, releaseCount);
+    assert.equal(tokenLockData.releaseSchedules[0].delayUntilFirstReleaseInSeconds.toNumber(), delayUntilFirstReleaseInSeconds);
+    assert.equal(tokenLockData.releaseSchedules[0].initialReleasePortionInBips, initialReleasePortionInBips);
+    assert.equal(tokenLockData.releaseSchedules[0].periodBetweenReleasesInSeconds.toNumber(), periodBetweenReleasesInSeconds);
+    console.log("Create Release Schedule Transaction Signature", createReleaseScheduleTxSignature);
+  });
 });
