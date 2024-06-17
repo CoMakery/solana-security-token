@@ -341,6 +341,7 @@ describe("solana-security-token", () => {
     assert.equal(lockedBalance, amount - amount * initialReleasePortionInBips / 10000);
   });
 
+  let transferAmount;
   it("transfers for recipient", async () => {
     const timelockAccount = getTimelockAccount(
       tokenlockProgram.programId,
@@ -351,7 +352,7 @@ describe("solana-security-token", () => {
     const timelockData = await tokenlockProgram.account.timelockData.fetch(timelockAccount);
     const tsNow = await getNowTs(testEnvironment.connection);
     const unlockedBalance = unlockedBalanceOf(tokenlockData, timelockData, tsNow);
-    const transferAmount = unlockedBalance * 0.35;
+    transferAmount = unlockedBalance * 0.35;
 
     await topUpWallet(
       testEnvironment.connection,
@@ -448,19 +449,22 @@ describe("solana-security-token", () => {
     const timelockData = await tokenlockProgram.account.timelockData.fetch(timelockAccount);
     const tsNow = await getNowTs(testEnvironment.connection);
     const unlockedBalance = unlockedBalanceOf(tokenlockData, timelockData, tsNow);
-    const transferAmount = unlockedBalance * 0.35;
+    const transferTimelockAmount = unlockedBalance * 0.35;
 
     await topUpWallet(
       testEnvironment.connection,
       investor.publicKey,
       solToLamports(1)
     );
-    const investorTokenAccountPubkey = await testEnvironment.mintHelper.getAssocciatedTokenAddress(
+    const investorTokenAccountPubkey = testEnvironment.mintHelper.getAssocciatedTokenAddress(
       investor.publicKey
     );
+    console.log(`tokenlockPubkey:`, tokenlockDataPubkey.toString());
+    const timelockId = 0;
     // to can be any token account from the group which allows to receive tokens from escrowAccount group
-    const transferInstruction = tokenlockProgram.instruction.transferTimelock(
-      new anchor.BN(transferAmount),
+    const transferTimelockInstruction = tokenlockProgram.instruction.transferTimelock(
+      new anchor.BN(transferTimelockAmount),
+      timelockId,
       {
         accounts: {
           tokenlockAccount: tokenlockDataPubkey,
@@ -481,30 +485,27 @@ describe("solana-security-token", () => {
 
     await addExtraAccountMetasForExecute(
       testEnvironment.connection,
-      transferInstruction,
+      transferTimelockInstruction,
       transferHook.programId,
       escrowAccount,
       testEnvironment.mintKeypair.publicKey,
       investorTokenAccountPubkey,
       escrowOwnerPubkey,
-      transferAmount,
+      transferTimelockAmount,
       testEnvironment.confirmOptions
     );
 
     const transferTxSignature = await sendAndConfirmTransaction(
       testEnvironment.connection,
-      new Transaction().add(transferInstruction),
-      [investor], // userWallet
+      new Transaction().add(transferTimelockInstruction),
+      [investor],
       { commitment: testEnvironment.confirmOptions }
     );
-    console.log("Transfer Transaction Signature", transferTxSignature);
+    console.log("Transfer Timelock Transaction Signature", transferTxSignature);
 
     const timelockDataAfterTransfer = await tokenlockProgram.account.timelockData.fetch(timelockAccount);
-    assert.equal(timelockDataAfterTransfer.timelocks[0].tokensTransferred.toNumber(), 2 * transferAmount);
+    assert.equal(timelockDataAfterTransfer.timelocks[0].tokensTransferred.toNumber(), transferAmount + transferTimelockAmount);
     const investorTokenAccountData = await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
-    assert.equal(investorTokenAccountData.amount.toString(), (2 * transferAmount).toString());
+    assert.equal(investorTokenAccountData.amount.toString(), (transferAmount + transferTimelockAmount).toString());
   });
-
-  // it("cancels release schedule", async () => {
-  // });
 });
