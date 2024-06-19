@@ -2,7 +2,10 @@ use anchor_lang::{prelude::*, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 use solana_program::program_memory::sol_memcmp;
 
-use crate::{transfer_spl_from_escrow, utils, TimelockData, TokenLockData, TokenLockDataWrapper, TokenlockErrors, TOKENLOCK_PDA_SEED};
+use crate::{
+    transfer_spl_from_escrow, utils, TimelockData, TokenLockData, TokenLockDataWrapper,
+    TokenlockErrors,
+};
 
 #[derive(Accounts)]
 pub struct CancelTimelock<'info> {
@@ -50,7 +53,10 @@ pub struct CancelTimelock<'info> {
     pub token_program: Program<'info, Token2022>,
 }
 
-pub fn cancel_timelock<'info>(ctx: Context<'_, '_, '_, 'info, CancelTimelock<'info>>, timelock_id: u32) -> Result<()> {
+pub fn cancel_timelock<'info>(
+    ctx: Context<'_, '_, '_, 'info, CancelTimelock<'info>>,
+    timelock_id: u32,
+) -> Result<()> {
     let timelock_account = &mut ctx.accounts.timelock_account;
     let tokenlock_account = &ctx.accounts.tokenlock_account;
     let tokenlock_account_data = tokenlock_account.try_borrow_data()?;
@@ -66,7 +72,9 @@ pub fn cancel_timelock<'info>(ctx: Context<'_, '_, '_, 'info, CancelTimelock<'in
     if escrow_account != *ctx.accounts.escrow_account.to_account_info().key {
         return Err(TokenlockErrors::MisMatchedEscrow.into());
     }
-    if mint_address != ctx.accounts.reclaimer.mint || mint_address != ctx.accounts.mint_address.key() {
+    if mint_address != ctx.accounts.reclaimer.mint
+        || mint_address != ctx.accounts.mint_address.key()
+    {
         return Err(TokenlockErrors::MisMatchedToken.into());
     }
 

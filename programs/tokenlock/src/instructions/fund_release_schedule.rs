@@ -9,8 +9,8 @@ use anchor_spl::{
 use solana_program::program_memory::{sol_memcmp, sol_memcpy};
 
 use crate::{
-    common::PUBKEY_SIZE, utils, Timelock, TimelockData, TokenLockData,
-    TokenLockDataWrapper, TokenlockErrors,
+    common::PUBKEY_SIZE, utils, Timelock, TimelockData, TokenLockData, TokenLockDataWrapper,
+    TokenlockErrors,
 };
 
 #[derive(Accounts)]
@@ -93,7 +93,6 @@ pub fn fund_release_schedule<'info>(
 
     let mint_address = TokenLockDataWrapper::mint_address(&tokenlock_account_data);
     let escrow_account = TokenLockDataWrapper::escrow_account(&tokenlock_account_data);
-
     //constraint
     if mint_address != ctx.accounts.from.mint {
         return Err(TokenlockErrors::MisMatchedToken.into());
