@@ -61,7 +61,7 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
                 },
                 Seed::AccountKey { index: 5 },
                 Seed::AccountData {
-                    account_index: 7,
+                    account_index: 6,
                     data_index: 8,
                     length: 8,
                 },
