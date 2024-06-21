@@ -1289,10 +1289,10 @@ describe("solana-security-token", () => {
       undefined,
       TOKEN_2022_PROGRAM_ID
     );
-    assert.deepEqual(senderAccountInfo.amount, BigInt(298000));
+    assert.deepEqual(senderAccountInfo.amount, BigInt(297000));
     assert.equal(
       recipientAccountInfo.amount.toString(),
-      "2000"
+      "3000"
     );
   });
 });

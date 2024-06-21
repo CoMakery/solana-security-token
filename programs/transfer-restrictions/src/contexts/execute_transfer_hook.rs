@@ -2,8 +2,8 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 use crate::{
-    SecurityAssociatedAccount, TransferRestrictionData, TransferRestrictionGroup,
-    SECURITY_ASSOCIATED_ACCOUNT_PREFIX, TRANSFER_RESTRICTION_GROUP_PREFIX,
+    SecurityAssociatedAccount, TransferRestrictionData, TransferRestrictionGroup, TransferRule,
+    TRANSFER_RESTRICTION_GROUP_PREFIX, TRANSFER_RULE_PREFIX,
 };
 
 #[derive(Accounts)]
@@ -62,5 +62,13 @@ pub struct ExecuteTransferHook<'info> {
     )]
     pub transfer_restriction_group_to: Box<Account<'info, TransferRestrictionGroup>>,
 
+    #[account(
+      seeds = [
+        TRANSFER_RULE_PREFIX.as_bytes(),
+        &transfer_restriction_group_from.key().to_bytes(),
+        &transfer_restriction_group_to.key().to_bytes(),
+      ],
+      bump,
+    )]
     pub transfer_rule: Box<Account<'info, TransferRule>>,
 }
