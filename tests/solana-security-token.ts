@@ -17,6 +17,7 @@ import {
   sendAndConfirmTransaction,
   SystemProgram,
   Transaction,
+  ComputeBudgetProgram,
 } from "@solana/web3.js";
 
 import { TransferRestrictions } from "../target/types/transfer_restrictions";
@@ -845,9 +846,13 @@ describe("solana-security-token", () => {
       confirmOptions
     );
 
+    const modifyComputeUnitsInstruction = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400000,
+    });
+
     const transferWithHookTx = await sendAndConfirmTransaction(
       connection,
-      new Transaction().add(forceTransferBetweenInstruction),
+      new Transaction().add(...[modifyComputeUnitsInstruction, forceTransferBetweenInstruction]),
       [reserveAdmin], // userWallet
       { commitment: confirmOptions }
     );
