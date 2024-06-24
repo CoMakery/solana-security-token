@@ -6,7 +6,7 @@ import {
   SystemProgram,
   sendAndConfirmTransaction,
   Transaction,
-  Signer
+  Signer,
 } from "@solana/web3.js";
 
 export async function topUpWallet(
@@ -31,7 +31,9 @@ export async function createAccount(
   programId = undefined
 ) {
   const newAccount = Keypair.generate();
-  const balanceNeeded = await connection.getMinimumBalanceForRentExemption(space);
+  const balanceNeeded = await connection.getMinimumBalanceForRentExemption(
+    space
+  );
   const instruction = SystemProgram.createAccount({
     fromPubkey: signer.publicKey,
     newAccountPubkey: newAccount.publicKey,
@@ -40,7 +42,11 @@ export async function createAccount(
     programId,
   });
 
-  const res = await sendAndConfirmTransaction(connection, new Transaction().add(instruction), [signer, newAccount]);
+  const res = await sendAndConfirmTransaction(
+    connection,
+    new Transaction().add(instruction),
+    [signer, newAccount]
+  );
   if (res) {
     return newAccount.publicKey;
   }
@@ -55,7 +61,11 @@ export async function createAccountWithSeed(
   space: number,
   extLamports: number
 ) {
-  const pubkey = await PublicKey.createWithSeed(payer.publicKey, seed, programId);
+  const pubkey = await PublicKey.createWithSeed(
+    payer.publicKey,
+    seed,
+    programId
+  );
   const accInfo = await connection.getAccountInfo(pubkey);
   if (accInfo != null) return pubkey;
 
@@ -71,7 +81,7 @@ export async function createAccountWithSeed(
       space,
       lamports: fee + extLamports,
       programId,
-    }),
+    })
   );
   // Execute the transaction against the cluster.
   await sendAndConfirmTransaction(connection, tx, [payer]);

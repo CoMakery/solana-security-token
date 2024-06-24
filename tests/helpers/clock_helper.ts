@@ -1,9 +1,6 @@
-import {
-  Connection,
-  SYSVAR_CLOCK_PUBKEY,
-} from '@solana/web3.js';
+import { Connection, SYSVAR_CLOCK_PUBKEY } from "@solana/web3.js";
 
-import { BinaryReader } from 'borsh';
+import { BinaryReader } from "borsh";
 
 class Clock {
   slot = 0;

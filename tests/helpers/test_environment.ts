@@ -1,11 +1,11 @@
-import { 
+import {
   Program,
   AnchorProvider,
   workspace,
   setProvider,
-  BN
- } from "@coral-xyz/anchor";
- import {
+  BN,
+} from "@coral-xyz/anchor";
+import {
   Keypair,
   sendAndConfirmTransaction,
   Transaction,
@@ -15,10 +15,13 @@ import {
 import { TransferRestrictions } from "../../target/types/transfer_restrictions";
 import { AccessControl } from "../../target/types/access_control";
 import { MintHelper } from "./mint_helper";
-import { AccessControlHelper, Roles, SetupAccessControlArgs } from "./access-control_helper";
+import {
+  AccessControlHelper,
+  Roles,
+  SetupAccessControlArgs,
+} from "./access-control_helper";
 import { TransferRestrictionsHelper } from "./transfer-restrictions_helper";
 import { solToLamports, topUpWallet } from "../utils";
-
 
 export class TestEnvironmentParams {
   mint: {
@@ -33,16 +36,18 @@ export class TestEnvironmentParams {
 
 export class TestEnvironment {
   params: TestEnvironmentParams;
-  accessControlProgram = workspace
-    .AccessControl as Program<AccessControl>;
-  transferRestrictionsProgram = workspace
-    .TransferRestrictions as Program<TransferRestrictions>;
+  accessControlProgram = workspace.AccessControl as Program<AccessControl>;
+  transferRestrictionsProgram =
+    workspace.TransferRestrictions as Program<TransferRestrictions>;
   provider = AnchorProvider.env();
   connection = this.provider.connection;
   confirmOptions: Commitment = "confirmed";
   mintKeypair = Keypair.generate();
-  mintHelper = new MintHelper(this.connection, this.mintKeypair.publicKey)
-  accessControlHelper = new AccessControlHelper(this.accessControlProgram, this.mintKeypair.publicKey);
+  mintHelper = new MintHelper(this.connection, this.mintKeypair.publicKey);
+  accessControlHelper = new AccessControlHelper(
+    this.accessControlProgram,
+    this.mintKeypair.publicKey
+  );
   transferRestrictionsHelper = new TransferRestrictionsHelper(
     this.transferRestrictionsProgram,
     this.mintKeypair.publicKey,
@@ -97,26 +102,33 @@ export class TestEnvironment {
     );
   }
 
-  private async setupProgramsData(setupAccessControlArgs: SetupAccessControlArgs) {
+  private async setupProgramsData(
+    setupAccessControlArgs: SetupAccessControlArgs
+  ) {
     const [contractAdminRolePubkey] = this.accessControlHelper.walletRolePDA(
-        this.contractAdmin.publicKey,
+      this.contractAdmin.publicKey
+    );
+    const initializeAccessControlInstr =
+      this.accessControlHelper.initializeAccessControlInstruction(
+        setupAccessControlArgs
       );
-    const initializeAccessControlInstr = this.accessControlHelper.initializeAccessControlInstruction(setupAccessControlArgs);
 
-    const initializeExtraAccountMetaListInstr = this.transferRestrictionsHelper.initializeExtraMetasAccount(
-      this.contractAdmin.publicKey,
-      contractAdminRolePubkey
-    )
+    const initializeExtraAccountMetaListInstr =
+      this.transferRestrictionsHelper.initializeExtraMetasAccount(
+        this.contractAdmin.publicKey,
+        contractAdminRolePubkey
+      );
 
-    const initializeDeployerRoleInstr = this.accessControlHelper.initializeDeployerRoleInstruction(
-      this.contractAdmin.publicKey,
-    )
+    const initializeDeployerRoleInstr =
+      this.accessControlHelper.initializeDeployerRoleInstruction(
+        this.contractAdmin.publicKey
+      );
 
     // Add instructions to new transaction
     const transaction = new Transaction().add(
       initializeAccessControlInstr,
       initializeDeployerRoleInstr,
-      initializeExtraAccountMetaListInstr,
+      initializeExtraAccountMetaListInstr
     );
 
     // Send transaction
@@ -130,7 +142,7 @@ export class TestEnvironment {
       "Setup Mint, AccessControl and TransferRestriction data Transaction Signature",
       transactionSignature
     );
-  } 
+  }
 
   async setup() {
     await this.topupAdminsWallets();
@@ -156,10 +168,9 @@ export class TestEnvironment {
       this.contractAdmin
     );
 
-    const reserveAdminAssociatedTokenAccount = this.mintHelper.getAssocciatedTokenAddress(
-      this.reserveAdmin.publicKey
-    );
-    
+    const reserveAdminAssociatedTokenAccount =
+      this.mintHelper.getAssocciatedTokenAddress(this.reserveAdmin.publicKey);
+
     await this.accessControlHelper.mintSecurities(
       new BN(this.params.initialSupply),
       this.reserveAdmin.publicKey,

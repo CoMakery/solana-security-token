@@ -1,15 +1,12 @@
-import { v4 as uuidv4 } from 'uuid';
-import { sha256 } from 'js-sha256';
-import {
-  PublicKey
-} from "@solana/web3.js";
-
+import { v4 as uuidv4 } from "uuid";
+import { sha256 } from "js-sha256";
+import { PublicKey } from "@solana/web3.js";
 
 export function uuidBytes(): number[] {
-  const uuid = uuidv4().replace(/-/g, '');
+  const uuid = uuidv4().replace(/-/g, "");
   const bytes: number[] = [];
   for (let c = 0; c < uuid.length; c += 2) {
-      bytes.push(parseInt(uuid.substr(c, 2), 16));
+    bytes.push(parseInt(uuid.substr(c, 2), 16));
   }
 
   return bytes;
@@ -23,15 +20,19 @@ export function calcSignerHash(key: PublicKey, uuid: number[]) {
 export function compareSignerHash(hash1, hash2) {
   if (hash1.length !== hash2.length) return false;
   for (let i = 0; i < hash1.length; i++) {
-      if (hash1[i] !== hash2[i]) return false;
+    if (hash1[i] !== hash2[i]) return false;
   }
   return true;
 }
 
-export function getTimelockAccount(programId: PublicKey, tokenlockAccount: PublicKey, target: PublicKey): PublicKey {
+export function getTimelockAccount(
+  programId: PublicKey,
+  tokenlockAccount: PublicKey,
+  target: PublicKey
+): PublicKey {
   const [timelockAccount] = PublicKey.findProgramAddressSync(
-      [tokenlockAccount.toBuffer(), target.toBuffer()],
-      programId,
+    [tokenlockAccount.toBuffer(), target.toBuffer()],
+    programId
   );
   return timelockAccount;
 }
@@ -42,24 +43,20 @@ export function getTimelockAccount(programId: PublicKey, tokenlockAccount: Publi
  * @param {*} timelockId - timelock index
  * @returns {Object} timelock object, otherwise throw exception
  */
-export function timelockOf(
-  timelockAccount: any,
-  timelockId: number
-): any {
+export function timelockOf(timelockAccount: any, timelockId: number): any {
   if (timelockId < timelockAccount.timelocks.length) {
-      return timelockAccount.timelocks[timelockId];
+    return timelockAccount.timelocks[timelockId];
   }
 
-  throw new Error('Timelock index out of range');
+  throw new Error("Timelock index out of range");
 }
-
 
 /**
  * Get count of added timelocks in account
  */
 function timelockCountOf(timelockAccount: any): number {
   if (timelockAccount === null) {
-      return 0;
+    return 0;
   }
 
   return timelockAccount.timelocks.length;
@@ -67,16 +64,18 @@ function timelockCountOf(timelockAccount: any): number {
 
 function checkAndgetTimelock(timelockAccount: any, timelockIndex: number): any {
   if (timelockAccount === null) {
-      return null;
+    return null;
   }
 
   const timelock = timelockOf(timelockAccount, timelockIndex);
   if (timelock == null) {
-      return null;
+    return null;
   }
 
-  if (timelock.totalAmount.toNumber() <= timelock.tokensTransferred.toNumber()) {
-      return null;
+  if (
+    timelock.totalAmount.toNumber() <= timelock.tokensTransferred.toNumber()
+  ) {
+    return null;
   }
 
   return timelock;
@@ -97,13 +96,13 @@ function calculateUnlocked(
   releaseSchedule: any
 ): number {
   return calculateUnlockedForReleaseSchedule(
-      commencementTimestamp,
-      currentTimestamp,
-      amount,
-      releaseSchedule.releaseCount,
-      releaseSchedule.delayUntilFirstReleaseInSeconds.toNumber(),
-      releaseSchedule.initialReleasePortionInBips,
-      releaseSchedule.periodBetweenReleasesInSeconds.toNumber(),
+    commencementTimestamp,
+    currentTimestamp,
+    amount,
+    releaseSchedule.releaseCount,
+    releaseSchedule.delayUntilFirstReleaseInSeconds.toNumber(),
+    releaseSchedule.initialReleasePortionInBips,
+    releaseSchedule.periodBetweenReleasesInSeconds.toNumber()
   );
 }
 
@@ -118,15 +117,20 @@ function totalUnlockedToDateOfTimelock(
   nowTs: number
 ) {
   if (timelockAccount === null) {
-      return 0;
+    return 0;
   }
 
   const timelock = timelockOf(timelockAccount, timelockId);
   if (timelock == null) return 0;
   const releaseSchedule = getReleaseSchedule(account, timelock.scheduleId);
-  
+
   if (releaseSchedule == null) return 0;
-  return calculateUnlocked(timelock.commencementTimestamp, nowTs, timelock.totalAmount.toNumber(), releaseSchedule);
+  return calculateUnlocked(
+    timelock.commencementTimestamp,
+    nowTs,
+    timelock.totalAmount.toNumber(),
+    releaseSchedule
+  );
 }
 
 /**
@@ -141,8 +145,14 @@ export function unlockedBalanceOfTimelock(
   const timelock = checkAndgetTimelock(timelockAccount, timelockIndex);
   if (timelock === null) return null;
 
-  return totalUnlockedToDateOfTimelock(account, timelockAccount, timelockIndex, nowTs)
-      - timelock.tokensTransferred.toNumber();
+  return (
+    totalUnlockedToDateOfTimelock(
+      account,
+      timelockAccount,
+      timelockIndex,
+      nowTs
+    ) - timelock.tokensTransferred.toNumber()
+  );
 }
 
 /**
@@ -157,7 +167,15 @@ function lockedBalanceOfTimelock(
   const timelock = checkAndgetTimelock(timelockAccount, timelockIndex);
   if (timelock === null) return null;
 
-  return timelock.totalAmount.toNumber() - totalUnlockedToDateOfTimelock(account, timelockAccount, timelockIndex, nowTs);
+  return (
+    timelock.totalAmount.toNumber() -
+    totalUnlockedToDateOfTimelock(
+      account,
+      timelockAccount,
+      timelockIndex,
+      nowTs
+    )
+  );
 }
 
 /**
@@ -169,13 +187,13 @@ export function unlockedBalanceOf(
   nowTs: number
 ): number {
   if (timelockAccount === null) {
-      return 0;
+    return 0;
   }
 
   let amount = 0;
   const timelockCount = timelockAccount.timelocks.length;
   for (let i = 0; i < timelockCount; i++) {
-      amount += unlockedBalanceOfTimelock(account, timelockAccount, i, nowTs);
+    amount += unlockedBalanceOfTimelock(account, timelockAccount, i, nowTs);
   }
   return amount;
 }
@@ -189,13 +207,13 @@ export function lockedBalanceOf(
   nowTs: number
 ): number {
   if (timelockAccount === null) {
-      return 0;
+    return 0;
   }
 
   let amount = 0;
   const timelockCount = timelockCountOf(timelockAccount);
   for (let i = 0; i < timelockCount; i++) {
-      amount += lockedBalanceOfTimelock(account, timelockAccount, i, nowTs);
+    amount += lockedBalanceOfTimelock(account, timelockAccount, i, nowTs);
   }
   return amount;
 }
@@ -209,7 +227,7 @@ function calculateUnlockedForReleaseSchedule(
   releaseCount: number,
   delayUntilFirstReleaseInSeconds: number,
   initialReleasePortionInBips: number,
-  periodBetweenReleasesInSeconds: number,
+  periodBetweenReleasesInSeconds: number
 ): number {
   if (commencementTimestamp > currentTimestamp) return 0;
 
@@ -219,28 +237,38 @@ function calculateUnlockedForReleaseSchedule(
   // unlocked amounts in each period are truncated and round down remainders smaller than the smallest unit
   // unlocking the full amount unlocks any remainder amounts in the final unlock period
   // this is done first to reduce computation
-  if (secondsElapsed >= delayUntilFirstReleaseInSeconds + (periodBetweenReleasesInSeconds * (releaseCount - 1))) {
-      return amount;
+  if (
+    secondsElapsed >=
+    delayUntilFirstReleaseInSeconds +
+      periodBetweenReleasesInSeconds * (releaseCount - 1)
+  ) {
+    return amount;
   }
 
   let unlocked = 0;
   // unlock the initial release if the delay has elapsed
   if (secondsElapsed >= delayUntilFirstReleaseInSeconds) {
-      unlocked = (amount * initialReleasePortionInBips) / BIPS_PRECISION;
+    unlocked = (amount * initialReleasePortionInBips) / BIPS_PRECISION;
 
-      // if at least one period after the delay has passed
-      if (secondsElapsed - delayUntilFirstReleaseInSeconds >= periodBetweenReleasesInSeconds) {
-          // calculate the number of additional periods that have passed (not including the initial release)
-          // this discards any remainders (ie it truncates / rounds down)
-          // eslint-disable-next-line max-len
-          const additionalUnlockedPeriods = (secondsElapsed - delayUntilFirstReleaseInSeconds) / periodBetweenReleasesInSeconds;
+    // if at least one period after the delay has passed
+    if (
+      secondsElapsed - delayUntilFirstReleaseInSeconds >=
+      periodBetweenReleasesInSeconds
+    ) {
+      // calculate the number of additional periods that have passed (not including the initial release)
+      // this discards any remainders (ie it truncates / rounds down)
+      // eslint-disable-next-line max-len
+      const additionalUnlockedPeriods =
+        (secondsElapsed - delayUntilFirstReleaseInSeconds) /
+        periodBetweenReleasesInSeconds;
 
-          // calculate the amount of unlocked tokens for the additionalUnlockedPeriods
-          // multiplication is applied before division to delay truncating to the smallest unit
-          // this distributes unlocked tokens more evenly across unlock periods
-          // than truncated division followed by multiplication
-          unlocked += ((amount - unlocked) * additionalUnlockedPeriods) / (releaseCount - 1);
-      }
+      // calculate the amount of unlocked tokens for the additionalUnlockedPeriods
+      // multiplication is applied before division to delay truncating to the smallest unit
+      // this distributes unlocked tokens more evenly across unlock periods
+      // than truncated division followed by multiplication
+      unlocked +=
+        ((amount - unlocked) * additionalUnlockedPeriods) / (releaseCount - 1);
+    }
   }
 
   return unlocked;

@@ -4,7 +4,7 @@ import {
   Connection,
   Transaction,
   Keypair,
-  sendAndConfirmTransaction
+  sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
 import {
@@ -14,16 +14,19 @@ import {
   getMint,
   getAccount,
   Account,
-  createAssociatedTokenAccountInstruction
+  createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
-
 
 export class MintHelper {
   mintPubkey: PublicKey;
   confirmOptions: Commitment = "confirmed";
   connection: Connection;
 
-  constructor(connection: Connection, mintPubkey: PublicKey, confirmOptions: Commitment = "confirmed") {
+  constructor(
+    connection: Connection,
+    mintPubkey: PublicKey,
+    confirmOptions: Commitment = "confirmed"
+  ) {
     this.connection = connection;
     this.mintPubkey = mintPubkey;
     this.confirmOptions = confirmOptions;
@@ -38,7 +41,10 @@ export class MintHelper {
     );
   }
 
-  getAssocciatedTokenAddress(walletPubkey: PublicKey, allowOwnerOffCurve = false): PublicKey {
+  getAssocciatedTokenAddress(
+    walletPubkey: PublicKey,
+    allowOwnerOffCurve = false
+  ): PublicKey {
     return getAssociatedTokenAddressSync(
       this.mintPubkey,
       walletPubkey,
@@ -47,7 +53,9 @@ export class MintHelper {
     );
   }
 
-  async getAccount(userWalletAssociatedAccountPubkey: PublicKey): Promise<Account> {
+  async getAccount(
+    userWalletAssociatedAccountPubkey: PublicKey
+  ): Promise<Account> {
     return getAccount(
       this.connection,
       userWalletAssociatedAccountPubkey,
@@ -67,7 +75,7 @@ export class MintHelper {
       userWalletPubkey,
       this.mintPubkey,
       TOKEN_2022_PROGRAM_ID
-    )
+    );
   }
 
   async createAssociatedTokenAccount(
@@ -75,15 +83,14 @@ export class MintHelper {
     payer: Keypair,
     allowOwnerOffCurve = false
   ): Promise<PublicKey> {
-    const userWalletAssociatedTokenAccountPubkey = this.getAssocciatedTokenAddress(
-      userWalletPubkey,
-      allowOwnerOffCurve
-    );
-    const associatedTokenAccountInstruction = this.createAssociatedTokenAccountInstruction(
-      payer.publicKey,
-      userWalletPubkey,
-      userWalletAssociatedTokenAccountPubkey
-    );
+    const userWalletAssociatedTokenAccountPubkey =
+      this.getAssocciatedTokenAddress(userWalletPubkey, allowOwnerOffCurve);
+    const associatedTokenAccountInstruction =
+      this.createAssociatedTokenAccountInstruction(
+        payer.publicKey,
+        userWalletPubkey,
+        userWalletAssociatedTokenAccountPubkey
+      );
 
     const transactionCreateAssocAccRecipient = new Transaction().add(
       associatedTokenAccountInstruction

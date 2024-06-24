@@ -1,13 +1,5 @@
-import {
-  BN,
-  Program,
-} from "@coral-xyz/anchor";
-import {
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  Commitment
-} from "@solana/web3.js";
+import { BN, Program } from "@coral-xyz/anchor";
+import { Keypair, PublicKey, SystemProgram, Commitment } from "@solana/web3.js";
 import { TransferRestrictions } from "../../target/types/transfer_restrictions";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
@@ -34,7 +26,7 @@ export class TransferRestrictionsHelper {
     this.program = transferRestrictionsProgram;
     this.mintPubkey = mintPubkey;
     this.transferRestrictionDataPubkey = this.transferRestrictionDataPDA()[0];
-    this.accessControlPubkey = accessControlPubkey
+    this.accessControlPubkey = accessControlPubkey;
     this.confirmOptions = confirmOptions;
   }
 
@@ -49,12 +41,13 @@ export class TransferRestrictionsHelper {
   }
 
   async transferRestrictionData(): Promise<any> {
-    return this.program.account.transferRestrictionData.fetch(this.transferRestrictionDataPubkey, this.confirmOptions);
+    return this.program.account.transferRestrictionData.fetch(
+      this.transferRestrictionDataPubkey,
+      this.confirmOptions
+    );
   }
 
-  groupPDA(
-    groupId: BN,
-  ): [PublicKey, number] {
+  groupPDA(groupId: BN): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from(TRANSFER_RESTRICTION_GROUP_PREFIX),
@@ -66,7 +59,10 @@ export class TransferRestrictionsHelper {
   }
 
   async groupData(groupPubkey: PublicKey): Promise<any> {
-    return this.program.account.transferRestrictionGroup.fetch(groupPubkey, this.confirmOptions);
+    return this.program.account.transferRestrictionGroup.fetch(
+      groupPubkey,
+      this.confirmOptions
+    );
   }
 
   holderPDA(holderId: BN): [PublicKey, number] {
@@ -81,10 +77,16 @@ export class TransferRestrictionsHelper {
   }
 
   async holderData(holderPubkey: PublicKey): Promise<any> {
-    return this.program.account.transferRestrictionHolder.fetch(holderPubkey, this.confirmOptions);
+    return this.program.account.transferRestrictionHolder.fetch(
+      holderPubkey,
+      this.confirmOptions
+    );
   }
 
-  transferRulePDA(groupFromPubkey: PublicKey, groupToPubkey: PublicKey): [PublicKey, number] {
+  transferRulePDA(
+    groupFromPubkey: PublicKey,
+    groupToPubkey: PublicKey
+  ): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from(TRANSFER_RULE_PREFIX),
@@ -96,7 +98,10 @@ export class TransferRestrictionsHelper {
   }
 
   async transferRuleData(transferRulePubkey: PublicKey): Promise<any> {
-    return this.program.account.transferRule.fetch(transferRulePubkey, this.confirmOptions);
+    return this.program.account.transferRule.fetch(
+      transferRulePubkey,
+      this.confirmOptions
+    );
   }
 
   securityAssociatedAccountPDA(
@@ -111,21 +116,26 @@ export class TransferRestrictionsHelper {
     );
   }
 
-  async securityAssociatedAccountData(securityAssociatedAccountPubkey: PublicKey): Promise<any> {
-    return this.program.account.securityAssociatedAccount.fetch(securityAssociatedAccountPubkey, this.confirmOptions);
+  async securityAssociatedAccountData(
+    securityAssociatedAccountPubkey: PublicKey
+  ): Promise<any> {
+    return this.program.account.securityAssociatedAccount.fetch(
+      securityAssociatedAccountPubkey,
+      this.confirmOptions
+    );
   }
 
   extraMetasAccountPDA(): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(EXTRA_METAS_ACCOUNT_PREFIX),
-        this.mintPubkey.toBuffer(),
-      ],
+      [Buffer.from(EXTRA_METAS_ACCOUNT_PREFIX), this.mintPubkey.toBuffer()],
       this.program.programId
     );
   }
 
-  initializeExtraMetasAccount(payer: PublicKey, authorityWalletRolePubkey: PublicKey): any {
+  initializeExtraMetasAccount(
+    payer: PublicKey,
+    authorityWalletRolePubkey: PublicKey
+  ): any {
     return this.program.instruction.initializeExtraAccountMetaList({
       accounts: {
         extraMetasAccount: this.extraMetasAccountPDA()[0],
@@ -138,10 +148,7 @@ export class TransferRestrictionsHelper {
     });
   }
 
-  initializeTransferRestrictionData(
-    maxHolders: BN,
-    payer: Keypair
-  ): any {
+  initializeTransferRestrictionData(maxHolders: BN, payer: Keypair): any {
     return this.program.methods
       .initializeTransferRestrictionsData(maxHolders)
       .accountsStrict({
@@ -158,7 +165,7 @@ export class TransferRestrictionsHelper {
 
   async initializeTransferRestrictionGroup(
     groupId: BN,
-    payer: Keypair,
+    payer: Keypair
   ): Promise<string> {
     const [transferRestrictionGroup1Pubkey] = this.groupPDA(groupId);
 
@@ -181,7 +188,10 @@ export class TransferRestrictionsHelper {
     transferRuleToPubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
-    const [transferRulePubkey] = this.transferRulePDA(transferRuleFromPubkey, transferRuleToPubkey);
+    const [transferRulePubkey] = this.transferRulePDA(
+      transferRuleFromPubkey,
+      transferRuleToPubkey
+    );
 
     return this.program.methods
       .initializeTransferRule(lockedUntil)
@@ -224,8 +234,10 @@ export class TransferRestrictionsHelper {
     userWalletAssociatedAccountPubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
-    const [securityAssociatedAccountPubkey] = this.securityAssociatedAccountPDA(userWalletAssociatedAccountPubkey);
-    
+    const [securityAssociatedAccountPubkey] = this.securityAssociatedAccountPDA(
+      userWalletAssociatedAccountPubkey
+    );
+
     return this.program.methods
       .initializeSecurityAssociatedAccount()
       .accountsStrict({
