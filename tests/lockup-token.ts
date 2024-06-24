@@ -34,7 +34,7 @@ import {
 } from "./helpers/tokenlock_helper";
 import { getNowTs } from "./helpers/clock_helper";
 
-describe("solana-security-token", () => {
+describe("token lockup", () => {
   const testEnvironmentParams: TestEnvironmentParams = {
     mint: {
       decimals: 6,
@@ -306,7 +306,7 @@ describe("solana-security-token", () => {
     const cancelableBy = [testEnvironment.reserveAdmin.publicKey];
 
     const scheduleId = 0;
-    const commencementTimestamp = Math.floor(Date.now() / 1000);
+    const commencementTimestamp = await getNowTs(testEnvironment.connection);
     const funderAssociatedTokenAccount =
       testEnvironment.mintHelper.getAssocciatedTokenAddress(
         testEnvironment.reserveAdmin.publicKey
