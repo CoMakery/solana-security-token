@@ -41,6 +41,13 @@ pub mod access_control {
         instructions::asset::burn_securities(ctx, amount)
     }
 
+    pub fn force_transfer_between<'info>(
+        ctx: Context<'_, '_, '_, 'info, ForceTransferBetween<'info>>,
+        amount: u64,
+    ) -> Result<()> {
+        instructions::asset::force_transfer_beetween(ctx, amount)
+    }
+
     pub fn freeze_wallet(ctx: Context<FreezeWallet>) -> Result<()> {
         instructions::asset::freeze_wallet(ctx)
     }

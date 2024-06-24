@@ -29,7 +29,7 @@ impl WalletRole {
 }
 
 #[derive(Accounts)]
-#[instruction()]
+#[instruction(role: u8)]
 pub struct InitializeWalletRole<'info> {
   #[account(init, payer = payer, space = DISCRIMINATOR_LEN + WalletRole::INIT_SPACE,
     seeds = [

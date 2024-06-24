@@ -1,7 +1,10 @@
 use crate::get_meta_list_size;
-use access_control::{self, AccessControl, WalletRole};
 use anchor_lang::prelude::*;
-use anchor_spl::{token_2022::ID as TOKEN_2022_PROGRAM_ID, token_interface::Mint};
+use anchor_spl::{
+    token_2022::ID as TOKEN_2022_PROGRAM_ID,
+    token_interface::Mint,
+};
+use access_control::{self, AccessControl, WalletRole };
 
 pub const META_LIST_ACCOUNT_SEED: &[u8] = b"extra-account-metas";
 
@@ -35,7 +38,7 @@ pub struct InitializeExtraAccountMetaList<'info> {
       constraint = security_mint.key() == access_control.mint,
     )]
     pub access_control: Box<Account<'info, AccessControl>>,
-
+    
     #[account(mut)]
     pub payer: Signer<'info>,
 

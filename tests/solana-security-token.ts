@@ -5,6 +5,7 @@ import {
   getMetadataPointerState,
   getTokenMetadata,
   createTransferCheckedWithTransferHookInstruction,
+  getAccount,
 } from "@solana/spl-token";
 import {
   Keypair,
@@ -15,7 +16,7 @@ import {
 import { TransferRestrictions } from "../target/types/transfer_restrictions";
 import { AccessControl } from "../target/types/access_control";
 import { assert } from "chai";
-import { topUpWallet } from "./utils";
+import { solToLamports, topUpWallet } from "./utils";
 import {
   AccessControlHelper,
   Roles,
@@ -92,9 +93,9 @@ describe("solana-security-token", () => {
     await topUpWallet(
       provider.connection,
       superAdmin.publicKey,
-      100000000000000
+      solToLamports(10)
     );
-    await topUpWallet(provider.connection, userWallet.publicKey, 1000000000000);
+    await topUpWallet(provider.connection, userWallet.publicKey, solToLamports(10));
   });
 
   it("creates mint with transfer hook, access control and super admin role", async () => {
@@ -450,7 +451,7 @@ describe("solana-security-token", () => {
       console.error(error);
       throw error;
     }
-    
+
     const recipientSecurityAssociatedAccountData =
       await transferRestrictionsHelper.securityAssociatedAccountData(
         userWalletRecipientSecurityAssociatedTokenAccountPubkey
@@ -498,6 +499,79 @@ describe("solana-security-token", () => {
     assert.equal(
       recipientAccountInfo.amount.toString(),
       transferAmount.toString()
+    );
+  });
+
+  const reserveAdmin = Keypair.generate();
+  it("assigns Reserve Admin role to new wallet", async () => {
+    const newRoles = Roles.ReserveAdmin;
+
+    const txSignature = await accessControlHelper.initializeWalletRole(
+      reserveAdmin.publicKey,
+      newRoles,
+      superAdmin
+    );
+    console.log("Assign Role Transaction Signature", txSignature);
+
+    const walletRolePDA = accessControlHelper.walletRolePDA(reserveAdmin.publicKey)[0];
+    const walletRoleData = await accessControlHelper.walletRoleData(walletRolePDA);
+    assert.deepEqual(walletRoleData.role, newRoles);
+    await topUpWallet(
+      provider.connection,
+      reserveAdmin.publicKey,
+      solToLamports(1)
+    );
+  });
+
+  const forceTransferAmount = 1000;
+  it("forces transfer between", async () => {
+    let senderAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    const initialSenderAmount = senderAccountInfo.amount;
+    let recipientAccountInfo = await getAccount(
+      connection,
+      userWalletRecipientAssociatedTokenAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    const initialRecipientAmount = recipientAccountInfo.amount;
+
+    const txSignature = await accessControlHelper.forceTransferBetween(
+      forceTransferAmount,
+      userWalletPubkey,
+      userWalletAssociatedAccountPubkey,
+      userWalletRecipientPubkey,
+      userWalletRecipientAssociatedTokenAccountPubkey,
+      reserveAdmin,
+      connection
+    );
+
+    console.log("Force Transfer Transaction Signature", txSignature);
+
+    senderAccountInfo = await getAccount(
+      connection,
+      userWalletAssociatedAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    recipientAccountInfo = await getAccount(
+      connection,
+      userWalletRecipientAssociatedTokenAccountPubkey,
+      confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+
+    assert.deepEqual(
+      senderAccountInfo.amount.toString(),
+      (initialSenderAmount - BigInt(forceTransferAmount)).toString()
+    );
+    assert.equal(
+      recipientAccountInfo.amount.toString(),
+      (initialRecipientAmount + BigInt(forceTransferAmount)).toString()
     );
   });
 
@@ -555,6 +629,6 @@ describe("solana-security-token", () => {
       userWalletAssociatedAccountPubkey,
     );
     assert.equal(assAccountInfo.isFrozen, true);
-    assert.deepEqual(assAccountInfo.amount, BigInt(299000));
+    assert.deepEqual(assAccountInfo.amount, BigInt(298000));
   });
 });

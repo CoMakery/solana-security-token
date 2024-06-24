@@ -8,10 +8,17 @@ import {
   PublicKey,
   SystemProgram,
   Commitment,
+  Connection,
+  ComputeBudgetProgram,
+  sendAndConfirmTransaction,
+  Transaction
 } from "@solana/web3.js";
 import { AccessControl } from "../../target/types/access_control";
 import {
   TOKEN_2022_PROGRAM_ID,
+  addExtraAccountMetasForExecute,
+  getMint,
+  getTransferHook,
 } from "@solana/spl-token";
 
 export const ACCESS_CONTROL_PREFIX = "ac";
@@ -78,10 +85,6 @@ export class AccessControlHelper {
   }
 
   initializeAccessControlInstruction(setupAccessControlArgs: SetupAccessControlArgs): any {
-    console.log("initializeAccessControlInstruction");
-    console.log(`hookProgramId: ${setupAccessControlArgs.hookProgramId}`);
-    
-    
     return this.program.instruction.initializeAccessControl(
       {
         decimals: setupAccessControlArgs.decimals,
@@ -230,5 +233,67 @@ export class AccessControlHelper {
       })
       .signers([signer])
       .rpc({ commitment: this.confirmOptions });
+  }
+
+  async forceTransferBetween(
+    amount: number | bigint,
+    fromOwnerPubkey: PublicKey,
+    fromAccountPubkey: PublicKey,
+    toOwnerPubkey: PublicKey,
+    toAccountPubkey: PublicKey,
+    signer: Keypair,
+    connection: Connection
+  ) {
+    const reserveAdminRolePubkey = this.walletRolePDA(signer.publicKey)[0];
+
+    const forceTransferBetweenInstruction = this.program.instruction.forceTransferBetween(
+      new BN(amount.toString()),
+      {
+        accounts: {
+          authority: signer.publicKey,
+          authorityWalletRole: reserveAdminRolePubkey,
+          accessControlAccount: this.accessControlPubkey,
+          securityMint: this.mintPubkey,
+          sourceAccount: fromAccountPubkey,
+          sourceAuthority: fromOwnerPubkey,
+          destinationAccount: toAccountPubkey,
+          destinationAuthority: toOwnerPubkey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        },
+      }
+    );
+
+    const mintInfo = await getMint(
+      connection,
+      this.mintPubkey,
+      this.confirmOptions,
+      TOKEN_2022_PROGRAM_ID
+    );
+    const transferHook = getTransferHook(mintInfo);
+
+    await addExtraAccountMetasForExecute(
+      connection,
+      forceTransferBetweenInstruction,
+      transferHook.programId,
+      fromAccountPubkey,
+      this.mintPubkey,
+      toAccountPubkey,
+      fromOwnerPubkey,
+      amount,
+      this.confirmOptions
+    );
+
+    const modifyComputeUnitsInstruction = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400000,
+    });
+
+    const transferWithHookTxSignature = await sendAndConfirmTransaction(
+      connection,
+      new Transaction().add(...[modifyComputeUnitsInstruction, forceTransferBetweenInstruction]),
+      [signer],
+      { commitment: this.confirmOptions }
+    );
+
+    return transferWithHookTxSignature;
   }
 }
