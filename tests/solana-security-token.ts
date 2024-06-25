@@ -67,7 +67,7 @@ describe("solana-security-token", () => {
     uri: "https://e.com",
     symbol: "XYZ",
     delegate: superAdmin.publicKey,
-    maxTotalSupply: new anchor.BN(1000000000),
+    maxTotalSupply: new anchor.BN(1_000_000_000),
   };
   const mintKeypair = Keypair.generate();
   const [authorityWalletRolePubkey, walletRoleBump] =
@@ -95,7 +95,7 @@ describe("solana-security-token", () => {
     false,
     TOKEN_2022_PROGRAM_ID
   );
-  const mintAmount = new anchor.BN(1000000);
+  const mintAmount = new anchor.BN(1_000_000);
   const [transferRestrictionDataPubkey, transferRestrictionDataBump] =
     anchor.web3.PublicKey.findProgramAddressSync(
       [
@@ -169,6 +169,7 @@ describe("solana-security-token", () => {
           symbol: setupAccessControlArgs.symbol,
           uri: setupAccessControlArgs.uri,
           hookProgramId: transferRestrictionsProgram.programId,
+          maxTotalSupply: setupAccessControlArgs.maxTotalSupply,
         },
         {
           accounts: {
@@ -347,7 +348,7 @@ describe("solana-security-token", () => {
   it("fails to mint more than max total supply", async () => {
     const mintAmount = setupAccessControlArgs.maxTotalSupply.addn(1);
     try {
-      await accessControlProgram.rpc.mintSecurities(setupAccessControlArgs.maxTotalSupply.addn(1), {
+      await accessControlProgram.rpc.mintSecurities(mintAmount, {
         accounts: {
           authority: superAdmin.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,

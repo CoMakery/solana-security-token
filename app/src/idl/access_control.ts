@@ -787,6 +787,11 @@ export type AccessControl = {
       "code": 6001,
       "name": "invalidRole",
       "msg": "Invalid role"
+    },
+    {
+      "code": 6002,
+      "name": "mintExceedsMaxTotalSupply",
+      "msg": "Cannot mint more than max total supply"
     }
   ],
   "types": [
@@ -802,6 +807,10 @@ export type AccessControl = {
           {
             "name": "authority",
             "type": "pubkey"
+          },
+          {
+            "name": "maxTotalSupply",
+            "type": "u64"
           }
         ]
       }
@@ -830,6 +839,10 @@ export type AccessControl = {
           {
             "name": "hookProgramId",
             "type": "pubkey"
+          },
+          {
+            "name": "maxTotalSupply",
+            "type": "u64"
           }
         ]
       }
