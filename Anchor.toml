@@ -8,8 +8,8 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
+access_control = "4X79YRjz9KNMhdjdxXg2ZNTS3YnMGYdwJkBHnezMJwr3"
 transfer_restrictions = "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
-security_transfer_hook = "4X79YRjz9KNMhdjdxXg2ZNTS3YnMGYdwJkBHnezMJwr3"
 
 [registry]
 url = "https://api.apr.dev"

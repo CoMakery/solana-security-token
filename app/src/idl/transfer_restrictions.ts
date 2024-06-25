@@ -809,6 +809,16 @@ export type TransferRestrictions = {
     },
     {
       "code": 6003,
+      "name": "invalidAuthority",
+      "msg": "Invalid authority"
+    },
+    {
+      "code": 6004,
+      "name": "invalidRole",
+      "msg": "Invalid role"
+    },
+    {
+      "code": 6005,
       "name": "balanceIsTooLow",
       "msg": "Balance is too low"
     }
