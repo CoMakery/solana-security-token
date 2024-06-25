@@ -7,7 +7,7 @@ pub fn initialize_security_associated_account(
     ctx: Context<InitializeSecurityAssociatedAccount>,
 ) -> Result<()> {
     let wallet_role = &ctx.accounts.authority_wallet_role;
-    if !(wallet_role.has_role(Roles::WalletAdmin) || wallet_role.has_role(Roles::ContractAdmin)) {
+    if !(wallet_role.has_role(Roles::WalletsAdmin) || wallet_role.has_role(Roles::ContractAdmin)) {
         return Err(TransferRestrictionsError::Unauthorized.into());
     }
 

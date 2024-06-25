@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 
 pub fn update_wallet_group(ctx: Context<UpdateWalletGroup>) -> Result<()> {
     let wallet_role = &ctx.accounts.authority_wallet_role;
-    if !(wallet_role.has_role(Roles::WalletAdmin) || wallet_role.has_role(Roles::ContractAdmin)) {
+    if !(wallet_role.has_role(Roles::WalletsAdmin) || wallet_role.has_role(Roles::ContractAdmin)) {
         return Err(TransferRestrictionsError::Unauthorized.into());
     }
     // check group max count
