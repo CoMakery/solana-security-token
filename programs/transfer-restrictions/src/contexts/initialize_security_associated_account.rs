@@ -31,7 +31,7 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
       constraint = group.transfer_restriction_data == transfer_restriction_data.key(),
     )]
     pub group: Account<'info, TransferRestrictionGroup>,
-    #[account(
+    #[account(mut,
       constraint = holder.transfer_restriction_data == transfer_restriction_data.key(),
     )]
     pub holder: Account<'info, TransferRestrictionHolder>,
@@ -53,7 +53,7 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
       bump
     )]
     pub transfer_restriction_data: Account<'info, TransferRestrictionData>,
-    /// CHECK: Wallet address to be controlled by the access control
+    /// CHECK: Wallet address
     pub user_wallet: AccountInfo<'info>,
     #[account(
       associated_token::token_program = anchor_spl::token_interface::spl_token_2022::id(),

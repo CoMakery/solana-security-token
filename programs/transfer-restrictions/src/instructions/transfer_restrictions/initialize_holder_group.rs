@@ -18,5 +18,8 @@ pub fn initialize_holder_group(ctx: Context<InitializeHolderGroup>) -> Result<()
     holder_group.holder = ctx.accounts.holder.key();
     holder_group.current_wallets_count = 0;
 
+    let group = &mut ctx.accounts.group;
+    group.current_holders_count = group.current_holders_count.checked_add(1).unwrap();
+
     Ok(())
 }

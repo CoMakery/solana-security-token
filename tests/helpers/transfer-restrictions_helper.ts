@@ -305,4 +305,35 @@ export class TransferRestrictionsHelper {
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });
   }
+
+  async updateWalletGroup(
+    userWalletSecAssociatedAccountPubkey: PublicKey,
+    groupCurrentPubkey: PublicKey,
+    groupNewPubkey: PublicKey,
+    holderGroupCurrentPubkey: PublicKey,
+    holderGroupNewPubkey: PublicKey,
+    authorityWalletRole: PublicKey,
+    userWalletPubkey: PublicKey,
+    userTokenAccountPubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    return this.program.methods
+      .updateWalletGroup()
+      .accountsStrict({
+        securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
+        securityToken: this.mintPubkey,
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        transferRestrictionGroupCurrent: groupCurrentPubkey,
+        transferRestrictionGroupNew: groupNewPubkey,
+        holderGroupCurrent: holderGroupCurrentPubkey,
+        holderGroupNew: holderGroupNewPubkey,
+        authorityWalletRole,
+        userWallet: userWalletPubkey,
+        userAssociatedTokenAccount: userTokenAccountPubkey,
+        payer: payer.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+  }
 }
