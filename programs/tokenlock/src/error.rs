@@ -41,7 +41,7 @@ pub enum TokenlockErrors {
     #[msg("Timelock has no value left")]
     TimelockHasntValue,
 
-    #[msg("You are not allowed to cancel this timelock")]
+    #[msg("Permission denied, address must be present in cancelableBy")]
     HasntCancelTimelockPermission,
 
     #[msg("Amount bigger than unlocked")]
