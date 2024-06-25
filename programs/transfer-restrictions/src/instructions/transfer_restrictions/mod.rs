@@ -16,5 +16,8 @@ pub use initialize_security_associated_account::*;
 pub mod update_wallet_group;
 pub use update_wallet_group::*;
 
+pub mod initialize_holder_group;
+pub use initialize_holder_group::*;
+
 pub mod pause;
 pub use pause::*;

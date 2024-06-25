@@ -9,6 +9,7 @@ export const TRANSFER_RESTRICTION_DATA_PREFIX = "trd";
 export const TRANSFER_RULE_PREFIX = "tr";
 export const SECURITY_ASSOCIATED_ACCOUNT_PREFIX = "saa"; // security associated account
 export const TRANSFER_RESTRICTION_HOLDER_PREFIX = "trh"; // transfer_restriction_holder
+export const TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX = "trhg"; // transfer_restriction_holder_group
 
 export class TransferRestrictionsHelper {
   program: Program<TransferRestrictions>;
@@ -79,6 +80,24 @@ export class TransferRestrictionsHelper {
   async holderData(holderPubkey: PublicKey): Promise<any> {
     return this.program.account.transferRestrictionHolder.fetch(
       holderPubkey,
+      this.confirmOptions
+    );
+  }
+
+  holderGroupPDA(holderPubkey: PublicKey, groupId: BN): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from(TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX),
+        holderPubkey.toBuffer(),
+        groupId.toArrayLike(Buffer, "le", 8),
+      ],
+      this.program.programId
+    );
+  }
+
+  async holderGroupData(holderGroupPubkey: PublicKey): Promise<any> {
+    return this.program.account.holderGroup.fetch(
+      holderGroupPubkey,
       this.confirmOptions
     );
   }
@@ -236,6 +255,7 @@ export class TransferRestrictionsHelper {
   async initializeSecurityAssociatedAccount(
     groupPubkey: PublicKey,
     holderPubkey: PublicKey,
+    holderGroupPubkey: PublicKey,
     userWalletPubkey: PublicKey,
     userWalletAssociatedAccountPubkey: PublicKey,
     authorityWalletRolePubkey: PublicKey,
@@ -251,10 +271,33 @@ export class TransferRestrictionsHelper {
         securityAssociatedAccount: securityAssociatedAccountPubkey,
         group: groupPubkey,
         holder: holderPubkey,
+        holderGroup: holderGroupPubkey,
         securityToken: this.mintPubkey,
         transferRestrictionData: this.transferRestrictionDataPubkey,
         userWallet: userWalletPubkey,
         associatedTokenAccount: userWalletAssociatedAccountPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: payer.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+  }
+
+  async initializeHolderGroup(
+    holderGroupPubkey: PublicKey,
+    holderPubkey: PublicKey,
+    groupPubkey: PublicKey,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    return this.program.methods
+      .initializeHolderGroup()
+      .accountsStrict({
+        holderGroup: holderGroupPubkey,
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        group: groupPubkey,
+        holder: holderPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
         payer: payer.publicKey,
         systemProgram: SystemProgram.programId,

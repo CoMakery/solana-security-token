@@ -16,5 +16,11 @@ pub fn initialize_security_associated_account(
     security_associated_account.group = ctx.accounts.group.id;
     security_associated_account.holder = *ctx.accounts.holder.to_account_info().key;
 
+    let holder_group = &mut ctx.accounts.holder_group;
+    holder_group.current_wallets_count = holder_group.current_wallets_count.checked_add(1).unwrap();
+
+    let holder = &mut ctx.accounts.holder;
+    holder.current_wallets_count = holder.current_wallets_count.checked_add(1).unwrap();
+
     Ok(())
 }
