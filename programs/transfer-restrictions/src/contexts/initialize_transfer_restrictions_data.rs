@@ -29,7 +29,7 @@ impl TransferRestrictionData {
     pub fn can_leave_group(&self, new_group_id: u64, wallet_balance: u64) -> bool {
         new_group_id == 0
             || self.min_wallet_balance == 0
-            || wallet_balance <= self.min_wallet_balance
+            || wallet_balance >= self.min_wallet_balance
     }
 }
 
