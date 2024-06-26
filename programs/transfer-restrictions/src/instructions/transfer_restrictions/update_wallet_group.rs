@@ -14,7 +14,7 @@ pub fn update_wallet_group(ctx: Context<UpdateWalletGroup>) -> Result<()> {
     let associated_token_account = &ctx.accounts.associated_token_account;
     let group = &ctx.accounts.group;
 
-    if transfer_restriction_data.can_leave_group(group.id, associated_token_account.amount) {
+    if !transfer_restriction_data.can_leave_group(group.id, associated_token_account.amount) {
         return Err(TransferRestrictionsError::BalanceIsTooLow.into());
     }
 
