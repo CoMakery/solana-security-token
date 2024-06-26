@@ -4,7 +4,7 @@ use anchor_spl::token_interface::{
 };
 use num_enum::IntoPrimitive;
 
-use crate::common::DISCRIMINATOR_LEN;
+use crate::contexts::common::DISCRIMINATOR_LEN;
 
 pub const ACCESS_CONTROL_SEED: &[u8] = b"ac"; // access_control
 
@@ -28,6 +28,7 @@ pub const ADMIN_ROLES: u8 = Roles::ContractAdmin as u8
 pub struct AccessControl {
     pub mint: Pubkey,
     pub authority: Pubkey,
+    pub max_total_supply: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -37,6 +38,7 @@ pub struct InitializeAccessControlArgs {
     pub symbol: String,
     pub uri: String,
     pub hook_program_id: Pubkey,
+    pub max_total_supply: u64,
 }
 
 #[derive(Accounts)]

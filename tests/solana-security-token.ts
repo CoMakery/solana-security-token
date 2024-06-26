@@ -46,6 +46,7 @@ describe("solana-security-token", () => {
     uri: "https://e.com",
     symbol: "XYZ",
     delegate: superAdmin.publicKey,
+    maxTotalSupply: new anchor.BN(1_000_000_000),
     hookProgramId: transferRestrictionsProgram.programId,
   };
   const mintKeypair = Keypair.generate();
@@ -212,6 +213,31 @@ describe("solana-security-token", () => {
       authorityWalletRolePubkey
     );
     assert.deepEqual(walletRoleData.role, newRoles);
+  });
+
+  it("fails to mint more than max total supply", async () => {
+    const mintAmount = setupAccessControlArgs.maxTotalSupply.addn(1);
+    try {
+      await accessControlProgram.rpc.mintSecurities(mintAmount, {
+        accounts: {
+          authority: superAdmin.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          accessControl: accessControlPubkey,
+          securityMint: mintKeypair.publicKey,
+          destinationAccount: userWalletAssociatedAccountPubkey,
+          destinationAuthority: userWalletPubkey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        },
+        signers: [superAdmin],
+        instructions: [],
+      });
+
+      assert.fail('Minting more than max total supply should fail');
+    } catch ({ error }) {
+      assert.equal(error.errorCode.number, 6002);
+      assert.equal(error.errorMessage, "Cannot mint more than max total supply");
+      assert.equal(error.errorCode.code, "MintExceedsMaxTotalSupply");
+    }
   });
 
   it("mints tokens to new account", async () => {

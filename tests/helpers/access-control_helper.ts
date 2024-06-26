@@ -38,6 +38,7 @@ export class SetupAccessControlArgs {
   payer: PublicKey;
   authority: PublicKey;
   hookProgramId: PublicKey;
+  maxTotalSupply: BN;
 }
 
 export class AccessControlHelper {
@@ -88,6 +89,7 @@ export class AccessControlHelper {
         symbol: setupAccessControlArgs.symbol,
         uri: setupAccessControlArgs.uri,
         hookProgramId: setupAccessControlArgs.hookProgramId,
+        maxTotalSupply: setupAccessControlArgs.maxTotalSupply,
       },
       {
         accounts: {

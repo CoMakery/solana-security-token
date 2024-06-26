@@ -155,6 +155,7 @@ export class TestEnvironment {
       symbol: this.params.mint.symbol,
       delegate: this.contractAdmin.publicKey,
       hookProgramId: this.transferRestrictionsProgram.programId,
+      maxTotalSupply: new BN(100_000_000_000_000),
     };
     await this.setupProgramsData(setupAccessControlArgs);
     await this.mintHelper.createAssociatedTokenAccount(
