@@ -6,9 +6,9 @@ jobs:
   Test:
     runs-on: [ubuntu-22.04]
     env:
-      RUST_VERSION: 1.77.0
-      SOLANA_VERSION: 1.18.12
-      ANCHOR_VERSION: 0.30.0
+      RUST_VERSION: 1.78.0
+      SOLANA_VERSION: 1.18.17
+      ANCHOR_VERSION: 0.30.1
 
     steps:
       - name: Checkout
