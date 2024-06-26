@@ -4,10 +4,7 @@ use anchor_spl::{
     token_interface::get_mint_extension_data,
 };
 
-use crate::{
-    common::DISCRIMINATOR_LEN, errors::TransferRestrictionsError, verify_pda, ExecuteTransferHook,
-    TransferRule, TRANSFER_RULE_PREFIX,
-};
+use crate::{errors::TransferRestrictionsError, ExecuteTransferHook};
 
 pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
     let mint_data: &AccountInfo = &ctx.accounts.mint.to_account_info();
@@ -31,6 +28,8 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
     if transfer_rule.locked_until > Clock::get()?.unix_timestamp as u64 {
         return Err(TransferRestrictionsError::TransferRuleLocked.into());
     }
+
+    ctx.accounts.validate_min_wallet_balance()?;
 
     Ok(())
 }

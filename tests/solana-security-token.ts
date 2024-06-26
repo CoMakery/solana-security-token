@@ -67,6 +67,7 @@ describe("solana-security-token", () => {
     uri: "https://e.com",
     symbol: "XYZ",
     delegate: superAdmin.publicKey,
+    maxTotalSupply: new anchor.BN(1_000_000_000),
   };
   const mintKeypair = Keypair.generate();
   const [authorityWalletRolePubkey, walletRoleBump] =
@@ -94,7 +95,7 @@ describe("solana-security-token", () => {
     false,
     TOKEN_2022_PROGRAM_ID
   );
-  const mintAmount = new anchor.BN(1000000);
+  const mintAmount = new anchor.BN(1_000_000);
   const [transferRestrictionDataPubkey, transferRestrictionDataBump] =
     anchor.web3.PublicKey.findProgramAddressSync(
       [
@@ -104,6 +105,7 @@ describe("solana-security-token", () => {
       transferRestrictionsProgram.programId
     );
   const maxHolders = new anchor.BN(10000);
+  const minWalletBalance = new anchor.BN(0);
   const transferGroup1 = new anchor.BN(1);
   const [transferRestrictionGroup1Pubkey, transferRestrictionGroup1Bump] =
     anchor.web3.PublicKey.findProgramAddressSync(
@@ -168,6 +170,7 @@ describe("solana-security-token", () => {
           symbol: setupAccessControlArgs.symbol,
           uri: setupAccessControlArgs.uri,
           hookProgramId: transferRestrictionsProgram.programId,
+          maxTotalSupply: setupAccessControlArgs.maxTotalSupply,
         },
         {
           accounts: {
@@ -343,6 +346,31 @@ describe("solana-security-token", () => {
     assert.deepEqual(walletRoleData.role, newRoles);
   });
 
+  it("fails to mint more than max total supply", async () => {
+    const mintAmount = setupAccessControlArgs.maxTotalSupply.addn(1);
+    try {
+      await accessControlProgram.rpc.mintSecurities(mintAmount, {
+        accounts: {
+          authority: superAdmin.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          accessControl: accessControlPubkey,
+          securityMint: mintKeypair.publicKey,
+          destinationAccount: userWalletAssociatedAccountPubkey,
+          destinationAuthority: userWalletPubkey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        },
+        signers: [superAdmin],
+        instructions: [],
+      });
+
+      assert.fail('Minting more than max total supply should fail');
+    } catch ({ error }) {
+      assert.equal(error.errorCode.number, 6002);
+      assert.equal(error.errorMessage, 'Cannot mint more than max total supply');
+      assert.equal(error.errorCode.code, 'MintExceedsMaxTotalSupply')
+    }
+  });
+
   it("mints tokens to new account", async () => {
     const mintTx = await accessControlProgram.methods
       .mintSecurities(mintAmount)
@@ -409,9 +437,10 @@ describe("solana-security-token", () => {
   it("creates transfer restriction data", async () => {
     const initTransferRestrictionDataTx =
       await transferRestrictionsProgram.methods
-        .initializeTransferRestrictionsData(maxHolders)
+        .initializeTransferRestrictionsData(maxHolders, minWalletBalance)
         .accountsStrict({
           transferRestrictionData: transferRestrictionDataPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
           accessControlAccount: accessControlPubkey,
           mint: mintKeypair.publicKey,
           payer: superAdmin.publicKey,
@@ -626,6 +655,7 @@ describe("solana-security-token", () => {
           transferRestrictionData: transferRestrictionDataPubkey,
           userWallet: userWalletPubkey,
           associatedTokenAccount: userWalletAssociatedAccountPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
           payer: superAdmin.publicKey,
           systemProgram: SystemProgram.programId,
         })
@@ -693,6 +723,7 @@ describe("solana-security-token", () => {
           userWallet: userWalletRecipientPubkey,
           associatedTokenAccount:
             userWalletRecipientAssociatedTokenAccountPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
           payer: superAdmin.publicKey,
           systemProgram: SystemProgram.programId,
         })
@@ -1091,7 +1122,7 @@ describe("solana-security-token", () => {
       );
       expect.fail('Expected an error, but none was thrown.');
     } catch (error) {
-      const errorMessage = 'AnchorError occurred. Error Code: AllTransfersPaused. Error Number: 6003. Error Message: All transfers are paused.';
+      const errorMessage = 'AnchorError occurred. Error Code: AllTransfersPaused. Error Number: 6004. Error Message: All transfers are paused.';
       const containsError = error.logs.some((log: string | string[]) => log.includes(errorMessage));
       assert.isTrue(containsError);
     }
@@ -1177,7 +1208,8 @@ describe("solana-security-token", () => {
         securityAssociatedAccount: userWalletRecipientSecurityAssociatedTokenAccountPubkey,
         securityToken: mintKeypair.publicKey,
         transferRestrictionData: transferRestrictionDataPubkey,
-        transferRestrictionGroup: transferRestrictionGroup2Pubkey,
+        group: transferRestrictionGroup2Pubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
         userWallet: userWalletRecipientPubkey,
         associatedTokenAccount: userWalletRecipientAssociatedTokenAccountPubkey,
         payer: superAdmin.publicKey,

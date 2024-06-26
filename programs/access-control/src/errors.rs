@@ -6,4 +6,6 @@ pub enum AccessControlError {
     Unauthorized,
     #[msg("Invalid role")]
     InvalidRole,
+    #[msg("Cannot mint more than max total supply")]
+    MintExceedsMaxTotalSupply,
 }

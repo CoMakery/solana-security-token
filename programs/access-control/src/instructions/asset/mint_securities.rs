@@ -12,6 +12,15 @@ pub fn mint_securities(ctx: Context<MintSecurities>, amount: u64) -> Result<()> 
         return Err(AccessControlError::Unauthorized.into());
     }
 
+    let new_supply = ctx
+        .accounts
+        .security_mint
+        .supply
+        .checked_add(amount)
+        .unwrap();
+    if new_supply > ctx.accounts.access_control.max_total_supply {
+        return Err(AccessControlError::MintExceedsMaxTotalSupply.into());
+    }
     let mint = ctx.accounts.security_mint.to_account_info();
     let accounts = MintTo {
         mint: mint.clone(),
