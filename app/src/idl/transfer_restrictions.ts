@@ -823,6 +823,10 @@ export type TransferRestrictions = {
           {
             "name": "authority",
             "type": "pubkey"
+          },
+          {
+            "name": "maxTotalSupply",
+            "type": "u64"
           }
         ]
       }
