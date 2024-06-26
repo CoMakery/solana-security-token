@@ -37,6 +37,7 @@ describe("solana-security-token", () => {
 
   const superAdmin = Keypair.generate();
 
+  const minWalletBalance = new anchor.BN(0);
   const decimals = 6;
   const setupAccessControlArgs = {
     decimals,
@@ -46,6 +47,7 @@ describe("solana-security-token", () => {
     uri: "https://e.com",
     symbol: "XYZ",
     delegate: superAdmin.publicKey,
+    minWalletBalance,
     maxTotalSupply: new anchor.BN(1_000_000_000),
     hookProgramId: transferRestrictionsProgram.programId,
   };
@@ -68,8 +70,10 @@ describe("solana-security-token", () => {
     accessControlHelper.accessControlPDA();
   const userWallet = Keypair.generate();
   const userWalletPubkey = userWallet.publicKey;
-  const userWalletAssociatedAccountPubkey =
-    mintHelper.getAssocciatedTokenAddress(userWalletPubkey);
+  const userWalletAssociatedAccountPubkey = mintHelper.getAssocciatedTokenAddress(
+    userWalletPubkey
+  );
+
   const mintAmount = new anchor.BN(1000000);
   const [transferRestrictionDataPubkey] =
     transferRestrictionsHelper.transferRestrictionDataPDA();
@@ -280,6 +284,8 @@ describe("solana-security-token", () => {
     const initTransferRestrictionDataTx =
       await transferRestrictionsHelper.initializeTransferRestrictionData(
         maxHolders,
+        minWalletBalance,
+        authorityWalletRolePubkey,
         superAdmin
       );
     console.log(
@@ -438,6 +444,7 @@ describe("solana-security-token", () => {
         holderSenderPubkey,
         userWalletPubkey,
         userWalletAssociatedAccountPubkey,
+        authorityWalletRolePubkey,
         superAdmin
       );
     console.log(
@@ -481,6 +488,7 @@ describe("solana-security-token", () => {
           holderRecipientPubkey,
           userWalletRecipientPubkey,
           userWalletRecipientAssociatedTokenAccountPubkey,
+          authorityWalletRolePubkey,
           superAdmin
         );
       console.log(

@@ -1,20 +1,16 @@
+use access_control::WalletRole;
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 use crate::{
-  contexts::common::DISCRIMINATOR_LEN,
-  TransferRestrictionData,
-  TransferRestrictionGroup,
-  TransferRestrictionHolder,
-  TRANSFER_RESTRICTION_DATA_PREFIX,
+  contexts::common::DISCRIMINATOR_LEN, TransferRestrictionData, TransferRestrictionGroup,
+  TransferRestrictionHolder, TRANSFER_RESTRICTION_DATA_PREFIX,
 };
-
 
 pub const SECURITY_ASSOCIATED_ACCOUNT_PREFIX: &str = "saa"; // security associated account
 
 #[account]
-#[derive(Default)]
-#[derive(InitSpace)]
+#[derive(Default, InitSpace)]
 pub struct SecurityAssociatedAccount {
   pub group: u64,
   pub holder: Pubkey,
@@ -40,9 +36,9 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
   )]
   pub holder: Account<'info, TransferRestrictionHolder>,
   #[account(
-      constraint = security_token.key() == transfer_restriction_data.security_token_mint,
-      token::token_program = anchor_spl::token_interface::spl_token_2022::id(),
-    )]
+    constraint = security_token.key() == transfer_restriction_data.security_token_mint,
+    token::token_program = anchor_spl::token_interface::spl_token_2022::id(),
+  )]
   pub security_token: Box<InterfaceAccount<'info, Mint>>,
   #[account(
     seeds = [
@@ -60,6 +56,11 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
     associated_token::authority = user_wallet,
   )]
   pub associated_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+  #[account(
+    constraint = authority_wallet_role.owner == payer.key(),
+    constraint = authority_wallet_role.access_control == transfer_restriction_data.access_control_account.key(),
+  )]
+  pub authority_wallet_role: Account<'info, WalletRole>,
   #[account(mut)]
   pub payer: Signer<'info>,
   pub system_program: Program<'info, System>,

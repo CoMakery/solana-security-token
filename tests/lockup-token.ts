@@ -44,6 +44,7 @@ describe("token lockup", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
+    minWalletBalance: 0
   };
   const testEnvironment = new TestEnvironment(testEnvironmentParams);
   const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;
@@ -377,7 +378,10 @@ describe("token lockup", () => {
       testEnvironment.mintHelper.getAssocciatedTokenAddress(
         testEnvironment.reserveAdmin.publicKey
       ),
-      testEnvironment.reserveAdmin
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
       testEnvironment.transferRestrictionsHelper.groupPDA(recipientGroupId)[0],
@@ -386,7 +390,10 @@ describe("token lockup", () => {
       )[0],
       escrowOwnerPubkey,
       escrowAccount,
-      testEnvironment.reserveAdmin
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
     );
     // Initialize Transfer Restrictions Rule
     const tsNow = await getNowTs(testEnvironment.connection);
@@ -470,7 +477,7 @@ describe("token lockup", () => {
     assert.equal(
       lockedBalance,
       fundedAmount -
-        (fundedAmount * initialReleasePortionInBips) / BIPS_PRECISION
+      (fundedAmount * initialReleasePortionInBips) / BIPS_PRECISION
     );
   });
 
@@ -542,7 +549,10 @@ describe("token lockup", () => {
       testEnvironment.transferRestrictionsHelper.holderPDA(investorHolderId)[0],
       investor.publicKey,
       investorTokenAccountPubkey,
-      testEnvironment.reserveAdmin
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
     );
     // Initialize Transfer Restrictions Rule
     const lockedUntil = new anchor.BN(tsNow);

@@ -148,13 +148,19 @@ export class TransferRestrictionsHelper {
     });
   }
 
-  initializeTransferRestrictionData(maxHolders: BN, payer: Keypair): any {
+  initializeTransferRestrictionData(
+    maxHolders: BN,
+    minWalletBalance: BN,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): any {
     return this.program.methods
-      .initializeTransferRestrictionsData(maxHolders)
+      .initializeTransferRestrictionsData(maxHolders, minWalletBalance)
       .accountsStrict({
         transferRestrictionData: this.transferRestrictionDataPubkey,
         accessControlAccount: this.accessControlPubkey,
         mint: this.mintPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
         payer: payer.publicKey,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -232,6 +238,7 @@ export class TransferRestrictionsHelper {
     holderPubkey: PublicKey,
     userWalletPubkey: PublicKey,
     userWalletAssociatedAccountPubkey: PublicKey,
+    authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
     const [securityAssociatedAccountPubkey] = this.securityAssociatedAccountPDA(
@@ -248,6 +255,7 @@ export class TransferRestrictionsHelper {
         transferRestrictionData: this.transferRestrictionDataPubkey,
         userWallet: userWalletPubkey,
         associatedTokenAccount: userWalletAssociatedAccountPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
         payer: payer.publicKey,
         systemProgram: SystemProgram.programId,
       })

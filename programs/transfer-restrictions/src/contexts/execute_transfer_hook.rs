@@ -2,8 +2,8 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 use crate::{
-    SecurityAssociatedAccount, TransferRestrictionData, TransferRestrictionGroup, TransferRule,
-    TRANSFER_RESTRICTION_GROUP_PREFIX,
+    errors::TransferRestrictionsError, SecurityAssociatedAccount, TransferRestrictionData,
+    TransferRestrictionGroup, TransferRule, TRANSFER_RESTRICTION_GROUP_PREFIX,
 };
 
 #[derive(Accounts)]
@@ -67,4 +67,15 @@ pub struct ExecuteTransferHook<'info> {
     // from locked account
     // to locked account
     // 
+}
+
+impl<'info> ExecuteTransferHook<'info> {
+    pub fn validate_min_wallet_balance(&self) -> Result<()> {
+        let min_wallet_balance = self.transfer_restriction_data.min_wallet_balance;
+        let source_account = &self.source_account;
+        if min_wallet_balance > 0 && source_account.amount < min_wallet_balance {
+            return Err(TransferRestrictionsError::BalanceIsTooLow.into());
+        }
+        Ok(())
+    }
 }

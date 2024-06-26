@@ -29,8 +29,9 @@ pub mod transfer_restrictions {
     pub fn initialize_transfer_restrictions_data(
         ctx: Context<InitializeTransferRestrictionData>,
         max_holders: u64,
+        min_wallet_balance: u64,
     ) -> Result<()> {
-        instructions::transfer_restrictions::initialize_data(ctx, max_holders)
+        instructions::transfer_restrictions::initialize_data(ctx, max_holders, min_wallet_balance)
     }
 
     pub fn initialize_transfer_restriction_group(

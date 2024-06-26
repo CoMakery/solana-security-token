@@ -32,6 +32,7 @@ export class TestEnvironmentParams {
   };
   initialSupply: number;
   maxHolders: number;
+  minWalletBalance: number;
 }
 
 export class TestEnvironment {
@@ -166,6 +167,8 @@ export class TestEnvironment {
 
     await this.transferRestrictionsHelper.initializeTransferRestrictionData(
       new BN(this.params.maxHolders),
+      new BN(this.params.minWalletBalance),
+      this.accessControlHelper.walletRolePDA(this.contractAdmin.publicKey)[0],
       this.contractAdmin
     );
 

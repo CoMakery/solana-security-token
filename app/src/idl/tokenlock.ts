@@ -609,7 +609,7 @@ export type Tokenlock = {
     {
       "code": 6013,
       "name": "hasntCancelTimelockPermission",
-      "msg": "You are not allowed to cancel this timelock"
+      "msg": "Permission denied, address must be present in cancelableBy"
     },
     {
       "code": 6014,

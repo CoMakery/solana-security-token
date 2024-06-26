@@ -12,4 +12,6 @@ pub enum TransferRestrictionsError {
     InvalidAuthority,
     #[msg("Invalid role")]
     InvalidRole,
+    #[msg("Balance is too low")]
+    BalanceIsTooLow,
 }
