@@ -356,4 +356,22 @@ export class TransferRestrictionsHelper {
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });
   }
+
+  async setHolderMax(
+    maxHolders: BN,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ) : Promise<string> {
+    return this.program.methods
+      .setHolderMax(maxHolders)
+      .accountsStrict({
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        accessControlAccount: this.accessControlPubkey,
+        mint: this.mintPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: payer.publicKey,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+    }
 }
