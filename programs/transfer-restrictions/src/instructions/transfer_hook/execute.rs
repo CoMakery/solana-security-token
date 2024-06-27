@@ -17,9 +17,14 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         return Ok(());
     }
 
-    // TODO: add transfer restrictions checks here
+    let transfer_restriction_data = &ctx.accounts.transfer_restriction_data;
+    if transfer_restriction_data.paused {
+        return Err(TransferRestrictionsError::AllTransfersPaused.into());
+    }
+
     let transfer_rule = &ctx.accounts.transfer_rule;
 
+    // TODO: add transfer restrictions checks here
     if transfer_rule.locked_until > Clock::get()?.unix_timestamp as u64 {
         return Err(TransferRestrictionsError::TransferRuleLocked.into());
     }

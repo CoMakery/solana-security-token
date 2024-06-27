@@ -23,3 +23,6 @@ pub use force_transfer_between::*;
 
 pub mod freeze_wallet;
 pub use freeze_wallet::*;
+
+pub mod thaw_wallet;
+pub use thaw_wallet::*;

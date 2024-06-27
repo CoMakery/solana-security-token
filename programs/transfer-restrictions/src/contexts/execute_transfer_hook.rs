@@ -3,7 +3,7 @@ use anchor_spl::token_interface::{Mint, TokenAccount};
 
 use crate::{
     errors::TransferRestrictionsError, SecurityAssociatedAccount, TransferRestrictionData,
-    TransferRestrictionGroup, TransferRule, TRANSFER_RESTRICTION_GROUP_PREFIX,
+    TransferRestrictionGroup, TransferRule, TRANSFER_RESTRICTION_GROUP_PREFIX, TRANSFER_RULE_PREFIX,
 };
 
 #[derive(Accounts)]
@@ -62,6 +62,14 @@ pub struct ExecuteTransferHook<'info> {
     )]
     pub transfer_restriction_group_to: Box<Account<'info, TransferRestrictionGroup>>,
 
+    #[account(
+      seeds = [
+        TRANSFER_RULE_PREFIX.as_bytes(),
+        &transfer_restriction_group_from.key().to_bytes(),
+        &transfer_restriction_group_to.key().to_bytes(),
+      ],
+      bump,
+    )]
     pub transfer_rule: Box<Account<'info, TransferRule>>,
 
     // from locked account

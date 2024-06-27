@@ -12,6 +12,7 @@ pub struct TransferRestrictionData {
     pub access_control_account: Pubkey,
     pub current_holders_count: u64,
     pub max_holders: u64,
+    pub paused: bool,
     pub min_wallet_balance: u64,
 }
 

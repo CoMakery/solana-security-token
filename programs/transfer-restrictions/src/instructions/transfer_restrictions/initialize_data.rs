@@ -19,6 +19,7 @@ pub fn initialize_data(
     transfer_restriction_data.current_holders_count = 0;
     transfer_restriction_data.max_holders = max_holders;
     transfer_restriction_data.min_wallet_balance = min_wallet_balance;
+    transfer_restriction_data.paused = false;
 
     Ok(())
 }
