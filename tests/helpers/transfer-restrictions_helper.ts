@@ -173,6 +173,7 @@ export class TransferRestrictionsHelper {
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): any {
+    const [groupPDA] = this.groupPDA(new BN(0));
     return this.program.methods
       .initializeTransferRestrictionsData(maxHolders, minWalletBalance)
       .accountsStrict({
@@ -181,6 +182,7 @@ export class TransferRestrictionsHelper {
         mint: this.mintPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
         payer: payer.publicKey,
+        zeroTransferRestrictionGroup: groupPDA,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })

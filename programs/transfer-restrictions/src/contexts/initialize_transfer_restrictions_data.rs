@@ -1,4 +1,4 @@
-use crate::contexts::common::DISCRIMINATOR_LEN;
+use crate::{contexts::common::DISCRIMINATOR_LEN, TransferRestrictionGroup, TRANSFER_RESTRICTION_GROUP_PREFIX};
 use access_control::{self, AccessControl, WalletRole};
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, Token2022};
@@ -45,6 +45,15 @@ pub struct InitializeTransferRestrictionData<'info> {
       bump,
     )]
     pub transfer_restriction_data: Account<'info, TransferRestrictionData>,
+    #[account(init, payer = payer, space = DISCRIMINATOR_LEN + TransferRestrictionGroup::INIT_SPACE,
+    seeds = [
+        TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(),
+        &transfer_restriction_data.key().to_bytes(),
+        &0u64.to_le_bytes()
+    ],
+    bump,
+    )]
+    pub zero_transfer_restriction_group: Account<'info, TransferRestrictionGroup>,
     #[account(
         mint::token_program = token_program,
     )]
