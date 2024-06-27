@@ -18,6 +18,11 @@ pub enum Roles {
     All = 15,           // 1000
 }
 
+pub const ADMIN_ROLES: u8 = Roles::ContractAdmin as u8
+    | Roles::ReserveAdmin as u8
+    | Roles::WalletsAdmin as u8
+    | Roles::TransferAdmin as u8;
+
 #[account()]
 #[derive(InitSpace)]
 pub struct AccessControl {
@@ -98,7 +103,7 @@ impl<'info> InitializeAccessControl<'info> {
         let mint = self.mint.key();
         let (_pda, bump_seed) =
             Pubkey::find_program_address(&[ACCESS_CONTROL_SEED, mint.as_ref()], program_id);
-  
+
         let seeds = &[ACCESS_CONTROL_SEED, mint.as_ref(), &[bump_seed]];
 
         token_metadata_initialize(cpi_ctx.with_signer(&[&seeds[..]]), name, symbol, uri)?;

@@ -71,6 +71,10 @@ pub struct ExecuteTransferHook<'info> {
       bump,
     )]
     pub transfer_rule: Box<Account<'info, TransferRule>>,
+
+    // from locked account
+    // to locked account
+    // 
 }
 
 impl<'info> ExecuteTransferHook<'info> {

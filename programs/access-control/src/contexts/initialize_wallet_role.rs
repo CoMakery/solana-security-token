@@ -22,6 +22,10 @@ impl WalletRole {
     let role = role as u8;
     self.role & role == role
   }
+
+  pub fn has_any_role(&self, roles: u8) -> bool {
+    self.role & roles != 0
+  }
 }
 
 #[derive(Accounts)]
