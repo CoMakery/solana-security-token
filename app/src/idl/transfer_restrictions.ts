@@ -903,6 +903,61 @@ export type TransferRestrictions = {
       ]
     },
     {
+      "name": "setHolderMax",
+      "discriminator": [
+        254,
+        104,
+        250,
+        53,
+        13,
+        151,
+        2,
+        161
+      ],
+      "accounts": [
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "holderMax",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "setMinWalletBalance",
       "discriminator": [
         219,

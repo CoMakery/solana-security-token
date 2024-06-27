@@ -79,4 +79,8 @@ pub mod transfer_restrictions {
     ) -> Result<()> {
         instructions::transfer_restrictions::set_min_wallet_balance(ctx, min_wallet_balance)
     }
+
+    pub fn set_holder_max(ctx: Context<SetHolderMax>, holder_max: u64) -> Result<()> {
+        instructions::transfer_restrictions::set_holder_max(ctx, holder_max)
+    }
 }

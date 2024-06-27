@@ -24,3 +24,6 @@ pub use pause::*;
 
 pub mod set_min_wallet_balance;
 pub use set_min_wallet_balance::*;
+
+pub mod set_holder_max;
+pub use set_holder_max::*;

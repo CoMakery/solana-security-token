@@ -1095,4 +1095,18 @@ describe("solana-security-token", () => {
       await transferRestrictionsHelper.transferRestrictionData();
     assert.equal(transferRestrictionData.minWalletBalance.toString(), newMinWalletBalance.toString());
   });
+
+  it("sets holder max count by transfer admin", async () => {
+    const newMaxHolders = new anchor.BN(9999);
+    const setMaxHoldersTx = await transferRestrictionsHelper.setHolderMax(
+      newMaxHolders,
+      accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
+      transferAdmin
+    );
+    console.log("Set Max Holders Transaction Signature", setMaxHoldersTx);
+
+    const transferRestrictionData =
+      await transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(transferRestrictionData.maxHolders.toString(), newMaxHolders.toString());
+  });
 });
