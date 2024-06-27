@@ -394,4 +394,27 @@ export class TransferRestrictionsHelper {
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });
   }
+
+  async setAllowTransferRule(
+    lockedUntil: BN,
+    transferRulePubkey: PublicKey,
+    transferRestrictionGroupFromPubkey: PublicKey,
+    transferRestrictionGroupToPubkey: PublicKey,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    return this.program.methods
+      .setAllowTransferRule(lockedUntil)
+      .accountsStrict({
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        transferRule: transferRulePubkey,
+        transferRestrictionGroupFrom: transferRestrictionGroupFromPubkey,
+        transferRestrictionGroupTo: transferRestrictionGroupToPubkey,
+        accessControlAccount: this.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: payer.publicKey,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+  }
 }
