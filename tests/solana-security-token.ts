@@ -910,7 +910,7 @@ describe("solana-security-token", () => {
 
   it("initialize holder group 2", async () => {
     const [userWalletNewHolderGroupPubkey] =
-    transferRestrictionsHelper.holderGroupPDA(holderSenderPubkey, transferGroup2Id);
+      transferRestrictionsHelper.holderGroupPDA(holderSenderPubkey, transferGroup2Id);
     const [group2Pubkey] = transferRestrictionsHelper.groupPDA(transferGroup2Id);
     const [transferAdminWalletRole] = accessControlHelper.walletRolePDA(transferAdmin.publicKey);
 
@@ -1108,5 +1108,22 @@ describe("solana-security-token", () => {
     const transferRestrictionData =
       await transferRestrictionsHelper.transferRestrictionData();
     assert.equal(transferRestrictionData.maxHolders.toString(), newMaxHolders.toString());
+  });
+
+  it("sets holder group max count by transfer admin", async () => {
+    const newMaxHolders = new anchor.BN(9999);
+    const [groupPubkey] =
+      transferRestrictionsHelper.groupPDA(transferGroup1);
+
+    const setMaxHoldersTx = await transferRestrictionsHelper.setHolderGroupMax(
+      newMaxHolders,
+      groupPubkey,
+      accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
+      transferAdmin
+    );
+    console.log("Set Group Max Holders Transaction Signature", setMaxHoldersTx);
+
+    const groupData = await transferRestrictionsHelper.groupData(groupPubkey);
+    assert.equal(groupData.maxHolders.toString(), newMaxHolders.toString());
   });
 });
