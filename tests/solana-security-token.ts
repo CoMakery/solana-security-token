@@ -118,15 +118,9 @@ describe("solana-security-token", () => {
         authorityWalletRolePubkey
       );
 
-    const initializeDeployerRoleInstr =
-      accessControlHelper.initializeDeployerRoleInstruction(
-        superAdmin.publicKey
-      );
-
     // Add instructions to new transaction
     const transaction = new Transaction().add(
       initializeAccessControlInstr,
-      initializeDeployerRoleInstr,
       initializeExtraAccountMetaListInstr
     );
 

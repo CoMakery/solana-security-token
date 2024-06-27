@@ -21,10 +21,6 @@ pub mod access_control {
         instructions::access_control::initialize(ctx, args)
     }
 
-    pub fn initialize_deployer_role(ctx: Context<InitializeDeployerRole>) -> Result<()> {
-        instructions::access_control::initialize_deployer_role(ctx)
-    }
-
     pub fn initialize_wallet_role(ctx: Context<InitializeWalletRole>, role: u8) -> Result<()> {
         instructions::access_control::initialize_wallet_role(ctx, role)
     }

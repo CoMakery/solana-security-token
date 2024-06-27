@@ -120,15 +120,9 @@ export class TestEnvironment {
         contractAdminRolePubkey
       );
 
-    const initializeDeployerRoleInstr =
-      this.accessControlHelper.initializeDeployerRoleInstruction(
-        this.contractAdmin.publicKey
-      );
-
     // Add instructions to new transaction
     const transaction = new Transaction().add(
       initializeAccessControlInstr,
-      initializeDeployerRoleInstr,
       initializeExtraAccountMetaListInstr
     );
 

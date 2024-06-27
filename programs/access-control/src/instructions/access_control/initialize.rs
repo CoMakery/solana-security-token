@@ -1,6 +1,6 @@
 use crate::{
     contexts::InitializeAccessControl, update_account_lamports_to_minimum_balance,
-    InitializeAccessControlArgs,
+    InitializeAccessControlArgs, Roles,
 };
 use anchor_lang::prelude::*;
 
@@ -21,6 +21,11 @@ pub fn initialize(
         ctx.accounts.payer.to_account_info(),
         ctx.accounts.system_program.to_account_info(),
     )?;
+
+    let wallet_role = &mut ctx.accounts.wallet_role;
+    wallet_role.role = Roles::ContractAdmin as u8;
+    wallet_role.owner = ctx.accounts.payer.key();
+    wallet_role.access_control = ctx.accounts.access_control.key();
 
     Ok(())
 }

@@ -82,6 +82,8 @@ export class AccessControlHelper {
   initializeAccessControlInstruction(
     setupAccessControlArgs: SetupAccessControlArgs
   ): any {
+    const walletRolePubkey = this.walletRolePDA(setupAccessControlArgs.payer)[0];
+
     return this.program.instruction.initializeAccessControl(
       {
         decimals: setupAccessControlArgs.decimals,
@@ -97,25 +99,12 @@ export class AccessControlHelper {
           authority: setupAccessControlArgs.authority,
           mint: this.mintPubkey,
           accessControl: this.accessControlPubkey,
+          walletRole: walletRolePubkey,
           systemProgram: SystemProgram.programId,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         },
       }
     );
-  }
-
-  initializeDeployerRoleInstruction(payer: PublicKey): any {
-    const authorityWalletRolePubkey = this.walletRolePDA(payer)[0];
-
-    return this.program.instruction.initializeDeployerRole({
-      accounts: {
-        payer,
-        accessControl: this.accessControlPubkey,
-        securityToken: this.mintPubkey,
-        walletRole: authorityWalletRolePubkey,
-        systemProgram: SystemProgram.programId,
-      },
-    });
   }
 
   async accessControlData(): Promise<any> {

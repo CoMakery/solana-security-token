@@ -540,39 +540,6 @@ export type AccessControl = {
           }
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": {
-              "name": "initializeAccessControlArgs"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "initializeDeployerRole",
-      "discriminator": [
-        20,
-        92,
-        210,
-        30,
-        61,
-        126,
-        220,
-        36
-      ],
-      "accounts": [
-        {
           "name": "walletRole",
           "writable": true,
           "pda": {
@@ -595,7 +562,7 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "mint"
               },
               {
                 "kind": "account",
@@ -605,37 +572,24 @@ export type AccessControl = {
           }
         },
         {
-          "name": "accessControl",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  99
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "securityToken"
-              }
-            ]
-          }
-        },
-        {
-          "name": "securityToken"
-        },
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "initializeAccessControlArgs"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "initializeWalletRole",
