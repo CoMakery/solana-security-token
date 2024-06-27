@@ -21,3 +21,6 @@ pub use initialize_holder_group::*;
 
 pub mod pause;
 pub use pause::*;
+
+pub mod set_min_wallet_balance;
+pub use set_min_wallet_balance::*;

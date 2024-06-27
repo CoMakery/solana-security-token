@@ -1081,4 +1081,18 @@ describe("solana-security-token", () => {
       "3000"
     );
   });
+
+  it("sets min wallet balance by transfer admin", async () => {
+    const newMinWalletBalance = new anchor.BN(1000);
+    const setMinWalletBalanceTx = await transferRestrictionsHelper.setMinWalletBalance(
+      newMinWalletBalance,
+      accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
+      transferAdmin
+    );
+    console.log("Set Min Wallet Balance Transaction Signature", setMinWalletBalanceTx);
+
+    const transferRestrictionData =
+      await transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(transferRestrictionData.minWalletBalance.toString(), newMinWalletBalance.toString());
+  });
 });

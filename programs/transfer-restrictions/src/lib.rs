@@ -72,4 +72,11 @@ pub mod transfer_restrictions {
     pub fn initialize_holder_group(ctx: Context<InitializeHolderGroup>) -> Result<()> {
         instructions::transfer_restrictions::initialize_holder_group(ctx)
     }
+
+    pub fn set_min_wallet_balance(
+        ctx: Context<SetMinWalletBalance>,
+        min_wallet_balance: u64,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::set_min_wallet_balance(ctx, min_wallet_balance)
+    }
 }

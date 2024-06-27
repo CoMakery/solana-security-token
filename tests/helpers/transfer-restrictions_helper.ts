@@ -338,4 +338,22 @@ export class TransferRestrictionsHelper {
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });
   }
+
+  async setMinWalletBalance(
+    minWalletBalance: BN,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    return this.program.methods
+      .setMinWalletBalance(minWalletBalance)
+      .accountsStrict({
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        accessControlAccount: this.accessControlPubkey,
+        mint: this.mintPubkey,
+        payer: payer.publicKey,
+        authorityWalletRole: authorityWalletRolePubkey,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+  }
 }
