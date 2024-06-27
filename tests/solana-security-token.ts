@@ -21,6 +21,7 @@ import { AccessControlHelper, Roles } from "./helpers/access-control_helper";
 
 import { TransferRestrictionsHelper } from "./helpers/transfer-restrictions_helper";
 import { MintHelper } from "./helpers/mint_helper";
+import { getNowTs } from "./helpers/clock_helper";
 
 describe("solana-security-token", () => {
   const provider = anchor.AnchorProvider.env();
@@ -342,7 +343,7 @@ describe("solana-security-token", () => {
     );
     console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
 
-    const tsNow = Date.now() / 1000;
+    const tsNow = await getNowTs(connection);
     const lockedUntil = new anchor.BN(tsNow);
     // const lockedUntil = new anchor.BN(tsNow + 1000); // locked transfer rule
     const initTransferRuleTx =
@@ -1002,7 +1003,7 @@ describe("solana-security-token", () => {
     );
     console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
 
-    const tsNow = Date.now() / 1000 - 1;
+    const tsNow = await getNowTs(connection);
     const lockedUntil = new anchor.BN(tsNow);
 
     const initTransferRuleTx = await transferRestrictionsHelper.initializeTransferRule(
