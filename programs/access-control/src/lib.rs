@@ -51,4 +51,8 @@ pub mod access_control {
     pub fn freeze_wallet(ctx: Context<FreezeWallet>) -> Result<()> {
         instructions::asset::freeze_wallet(ctx)
     }
+
+    pub fn thaw_wallet(ctx: Context<ThawWallet>) -> Result<()> {
+        instructions::asset::thaw_wallet(ctx)
+    }
 }

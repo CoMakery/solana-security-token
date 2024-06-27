@@ -64,4 +64,8 @@ pub mod transfer_restrictions {
     pub fn update_wallet_group(ctx: Context<UpdateWalletGroup>) -> Result<()> {
         instructions::transfer_restrictions::update_wallet_group(ctx)
     }
+
+    pub fn pause(ctx: Context<Pause>, paused: bool) -> Result<()> {
+        instructions::transfer_restrictions::pause(ctx, paused)
+    }
 }
