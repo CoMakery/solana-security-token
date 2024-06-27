@@ -38,3 +38,6 @@ pub use set_holder_max::*;
 
 pub mod set_holder_group_max;
 pub use set_holder_group_max::*;
+
+pub mod set_allow_transfer_rule;
+pub use set_allow_transfer_rule::*;

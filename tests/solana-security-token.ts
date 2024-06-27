@@ -1126,4 +1126,26 @@ describe("solana-security-token", () => {
     const groupData = await transferRestrictionsHelper.groupData(groupPubkey);
     assert.equal(groupData.maxHolders.toString(), newMaxHolders.toString());
   });
+
+  it("sets transfer rule locked until by transfer admin", async () => {
+    const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
+      transferRestrictionGroup2Pubkey,
+      transferRestrictionGroup1Pubkey
+    );
+    const tsNow = await getNowTs(connection);
+    const lockedUntil = new anchor.BN(tsNow + 1000);
+
+    const setLockedUntilTx = await transferRestrictionsHelper.setAllowTransferRule(
+      lockedUntil,
+      transferRulePubkey,
+      transferRestrictionGroup2Pubkey,
+      transferRestrictionGroup1Pubkey,
+      accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
+      transferAdmin
+    );
+    console.log("Set Locked Until Transaction Signature", setLockedUntilTx);
+
+    const transferRuleData = await transferRestrictionsHelper.transferRuleData(transferRulePubkey);
+    assert.equal(transferRuleData.lockedUntil.toString(), lockedUntil.toString());
+  });
 });

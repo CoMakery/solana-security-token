@@ -90,4 +90,11 @@ pub mod transfer_restrictions {
     ) -> Result<()> {
         instructions::transfer_restrictions::set_holder_group_max(ctx, holder_group_max)
     }
+
+    pub fn set_allow_transfer_rule(
+        ctx: Context<SetAllowTransferRule>,
+        locked_until: u64,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::set_allow_transfer_rule(ctx, locked_until)
+    }
 }
