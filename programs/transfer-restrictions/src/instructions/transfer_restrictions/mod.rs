@@ -27,3 +27,6 @@ pub use set_min_wallet_balance::*;
 
 pub mod set_holder_max;
 pub use set_holder_max::*;
+
+pub mod set_holder_group_max;
+pub use set_holder_group_max::*;

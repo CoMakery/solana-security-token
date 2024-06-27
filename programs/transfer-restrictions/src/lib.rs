@@ -83,4 +83,11 @@ pub mod transfer_restrictions {
     pub fn set_holder_max(ctx: Context<SetHolderMax>, holder_max: u64) -> Result<()> {
         instructions::transfer_restrictions::set_holder_max(ctx, holder_max)
     }
+
+    pub fn set_holder_group_max(
+        ctx: Context<SetHolderGroupMax>,
+        holder_group_max: u64,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::set_holder_group_max(ctx, holder_group_max)
+    }
 }

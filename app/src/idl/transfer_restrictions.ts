@@ -903,6 +903,85 @@ export type TransferRestrictions = {
       ]
     },
     {
+      "name": "setHolderGroupMax",
+      "discriminator": [
+        83,
+        33,
+        238,
+        145,
+        212,
+        216,
+        16,
+        197
+      ],
+      "accounts": [
+        {
+          "name": "transferRestrictionData",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "group",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "group.id",
+                "account": "transferRestrictionGroup"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "holderGroupMax",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "setHolderMax",
       "discriminator": [
         254,
