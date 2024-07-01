@@ -109,7 +109,7 @@ describe("token lockup", () => {
     assert.deepEqual(metadata.mint, testEnvironment.mintKeypair.publicKey);
     assert.deepEqual(
       metadata.updateAuthority,
-      testEnvironment.accessControlHelper.accessControlPubkey
+      testEnvironment.contractAdmin.publicKey
     );
     assert.equal(metadata.name, testEnvironmentParams.mint.name);
     assert.equal(metadata.symbol, testEnvironmentParams.mint.symbol);
