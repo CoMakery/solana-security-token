@@ -6,6 +6,7 @@ import {
   getTokenMetadata,
   createTransferCheckedWithTransferHookInstruction,
   getAccount,
+  createUpdateFieldInstruction,
 } from "@solana/spl-token";
 import {
   Keypair,
@@ -174,10 +175,63 @@ describe("solana-security-token", () => {
       mintKeypair.publicKey // Mint Account address
     );
     assert.deepEqual(metadata.mint, mintKeypair.publicKey);
-    assert.deepEqual(metadata.updateAuthority, accessControlPubkey);
+    assert.deepEqual(metadata.updateAuthority, setupAccessControlArgs.authority);
     assert.equal(metadata.name, setupAccessControlArgs.name);
     assert.equal(metadata.symbol, setupAccessControlArgs.symbol);
     assert.equal(metadata.uri, setupAccessControlArgs.uri);
+  });
+
+  it("updates token metadata", async () => {
+    // NOTE: Sol balance must be increase on mint address in order to store more metadata
+    // Calculate the amount of lamports needed to store the metadata as mint account len + updateFieldInstructions.len
+    await topUpWallet(connection, mintKeypair.publicKey, solToLamports(1));
+
+    // Instruction to update metadata, adding custom fields
+    const updateFieldInstructions = [
+      {
+        field: "version",
+        value: "1",
+      },
+      {
+        field: "email",
+        value: "tokensupport@example.com",
+      },
+      {
+        field: "discord",
+        value: "https://discord.com/xyz_token",
+      },
+    ];
+
+    const updateFieldInstructionsArray = updateFieldInstructions.map((field) =>
+      createUpdateFieldInstruction({
+        programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+        metadata: mintKeypair.publicKey, // Account address that holds the metadata
+        updateAuthority: superAdmin.publicKey, // Authority that can update the metadata
+        field: field.field, // key
+        value: field.value, // value
+      })
+    );
+
+    const transaction = new Transaction().add(...updateFieldInstructionsArray);
+    const transactionSignature = await sendAndConfirmTransaction(
+      connection,
+      transaction,
+      [superAdmin],
+      { commitment: confirmOptions }
+    );
+    console.log("Transaction Signature", transactionSignature);
+    
+    // Retrieve the metadata state
+    const metadata = await getTokenMetadata(
+      connection,
+      mintKeypair.publicKey, // Mint Account address
+    );
+    const additionalMetadataMap = new Map(metadata.additionalMetadata);
+    updateFieldInstructions.forEach(instruction => {
+      const { field, value } = instruction;
+      expect(additionalMetadataMap.has(field)).to.be.true;
+      expect(additionalMetadataMap.get(field)).to.equal(value);
+    });
   });
 
   it("creates associated token account for user wallet", async () => {

@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{
-    token_metadata_initialize, Mint, Token2022, TokenMetadataInitialize,
+    token_metadata_initialize, Mint, Token2022, TokenMetadataInitialize
 };
 use num_enum::IntoPrimitive;
 
@@ -47,7 +47,7 @@ pub struct InitializeAccessControl<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account()]
-    /// CHECK: can be any account
+    /// CHECK: can be any account which controls the mint metadata
     pub authority: UncheckedAccount<'info>,
 
     #[account(
@@ -105,7 +105,7 @@ impl<'info> InitializeAccessControl<'info> {
             mint: self.mint.to_account_info(),
             metadata: self.mint.to_account_info(), // metadata account is the mint, since data is stored in mint
             mint_authority: self.access_control.to_account_info(),
-            update_authority: self.access_control.to_account_info(),
+            update_authority: self.authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
 
