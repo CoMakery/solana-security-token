@@ -14,6 +14,7 @@ pub fn initialize_holder(ctx: Context<InitializeTransferRestrictionHolder>, id: 
   transfer_restriction_holder.id = id;
   transfer_restriction_holder.current_wallets_count = 0;
   transfer_restriction_data.current_holders_count = transfer_restriction_data.current_holders_count.checked_add(1).unwrap();
+  transfer_restriction_data.holder_ids = transfer_restriction_data.holder_ids.checked_add(1).unwrap();
 
   Ok(())
 }

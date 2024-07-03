@@ -7,7 +7,7 @@ pub fn initialize_holder_group(ctx: Context<InitializeHolderGroup>) -> Result<()
     if !ctx
         .accounts
         .authority_wallet_role
-        .has_role(Roles::TransferAdmin)
+        .has_any_role(Roles::TransferAdmin as u8 | Roles::WalletsAdmin as u8)
     {
         return Err(TransferRestrictionsError::Unauthorized.into());
     }
