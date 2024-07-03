@@ -97,4 +97,14 @@ pub mod transfer_restrictions {
     ) -> Result<()> {
         instructions::transfer_restrictions::set_allow_transfer_rule(ctx, locked_until)
     }
+
+    pub fn revoke_security_associated_account(
+        ctx: Context<RevokeSecurityAssociatedAccount>,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::revoke_security_associated_account(ctx)
+    }
+
+    pub fn revoke_holder(ctx: Context<RevokeHolder>) -> Result<()> {
+        instructions::transfer_restrictions::revoke_holder(ctx)
+    }
 }

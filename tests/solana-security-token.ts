@@ -482,6 +482,7 @@ describe("solana-security-token", () => {
   const [transferAdminRolePubkey] = accessControlHelper.walletRolePDA(
     transferAdmin.publicKey
   );
+
   it("assigns Transfer Admin role to user wallet", async () => {
     const newRoles = Roles.TransferAdmin;
     const txSignature = await accessControlHelper.initializeWalletRole(
@@ -554,8 +555,8 @@ describe("solana-security-token", () => {
         holderGroupPubkey,
         userWalletPubkey,
         userWalletAssociatedAccountPubkey,
-        authorityWalletRolePubkey,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Security Associated Account Transaction Signature",
@@ -628,8 +629,8 @@ describe("solana-security-token", () => {
           holderGroupPubkey,
           userWalletRecipientPubkey,
           userWalletRecipientAssociatedTokenAccountPubkey,
-          authorityWalletRolePubkey,
-          superAdmin
+          transferAdminRolePubkey,
+          transferAdmin
         );
       console.log(
         "Initialize Security Associated Account Transaction Signature",

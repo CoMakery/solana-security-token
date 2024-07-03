@@ -41,3 +41,9 @@ pub use set_holder_group_max::*;
 
 pub mod set_allow_transfer_rule;
 pub use set_allow_transfer_rule::*;
+
+pub mod revoke_security_associated_account;
+pub use revoke_security_associated_account::*;
+
+pub mod revoke_holder;
+pub use revoke_holder::*;
