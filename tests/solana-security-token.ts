@@ -1203,4 +1203,34 @@ describe("solana-security-token", () => {
     const transferRuleData = await transferRestrictionsHelper.transferRuleData(transferRulePubkey);
     assert.equal(transferRuleData.lockedUntil.toString(), lockedUntil.toString());
   });
+
+  it("revokes security associated account", async () => {
+    const [userWalletRecipientSecurityAssociatedTokenAccountPubkey] =
+      transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userWalletRecipientAssociatedTokenAccountPubkey
+      );
+
+    const revokeSecAssocAccountRecipientTx =
+      await transferRestrictionsHelper.revokeSecurityAssociatedAccount(
+        userWalletRecipientSecurityAssociatedTokenAccountPubkey,
+        userWalletRecipientPubkey,
+        userWalletRecipientAssociatedTokenAccountPubkey,
+        transferAdminRolePubkey,
+        transferAdmin
+      );
+    console.log(
+      "Revoke Security Associated Account Transaction Signature",
+      revokeSecAssocAccountRecipientTx
+    );
+
+    try {
+      await transferRestrictionsHelper.securityAssociatedAccountData(
+        userWalletRecipientSecurityAssociatedTokenAccountPubkey
+      );
+      assert.fail("Expected error not thrown");
+    } catch (error) {
+      const errorMessage = `Error: Account does not exist or has no data ${userWalletRecipientSecurityAssociatedTokenAccountPubkey.toBase58()}`;
+      assert.equal(error, errorMessage);
+    }
+  });
 });
