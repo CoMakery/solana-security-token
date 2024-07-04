@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 
 pub fn update_wallet_group(ctx: Context<UpdateWalletGroup>) -> Result<()> {
     let wallet_role = &ctx.accounts.authority_wallet_role;
-    if !(wallet_role.has_role(Roles::WalletsAdmin) || wallet_role.has_role(Roles::TransferAdmin)) {
+    if !wallet_role.has_any_role(Roles::WalletsAdmin as u8 | Roles::TransferAdmin as u8) {
         return Err(TransferRestrictionsError::Unauthorized.into());
     }
 

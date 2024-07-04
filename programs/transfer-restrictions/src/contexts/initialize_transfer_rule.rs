@@ -5,7 +5,7 @@ use crate::{
   TransferRestrictionGroup,
   TRANSFER_RESTRICTION_DATA_PREFIX,
 };
-use access_control::{self, AccessControl};
+use access_control::{self, AccessControl, WalletRole};
 
 pub const TRANSFER_RULE_PREFIX: &str = "tr"; // transfer_rule
 
@@ -47,6 +47,11 @@ pub struct InitializeTransferRule<'info> {
   )]
   pub transfer_restriction_group_to: Account<'info, TransferRestrictionGroup>,
   pub access_control_account: Account<'info, AccessControl>,
+  #[account(
+    constraint = authority_wallet_role.owner == payer.key(),
+    constraint = authority_wallet_role.access_control == transfer_restriction_data.access_control_account.key(),
+  )]
+  pub authority_wallet_role: Account<'info, WalletRole>,
   #[account(mut)]
   pub payer: Signer<'info>,
   pub system_program: Program<'info, System>,

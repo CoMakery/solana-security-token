@@ -359,11 +359,38 @@ describe("solana-security-token", () => {
     );
   });
 
+  const transferAdmin = Keypair.generate();
+  const [transferAdminRolePubkey] = accessControlHelper.walletRolePDA(
+    transferAdmin.publicKey
+  );
+
+  it("assigns Transfer Admin role to user wallet", async () => {
+    const newRoles = Roles.TransferAdmin;
+    const txSignature = await accessControlHelper.initializeWalletRole(
+      transferAdmin.publicKey,
+      newRoles,
+      superAdmin
+    );
+    console.log("Assign Role Transaction Signature", txSignature);
+
+    const walletRoleData = await accessControlHelper.walletRoleData(
+      transferAdminRolePubkey
+    );
+    assert.deepEqual(walletRoleData.role, newRoles);
+
+    await topUpWallet(
+      provider.connection,
+      transferAdmin.publicKey,
+      solToLamports(1)
+    );
+  });
+
   it("creates transfer restriction group 1", async () => {
     const initTransferGroupTx =
       await transferRestrictionsHelper.initializeTransferRestrictionGroup(
         transferGroup1,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Transfer Restriction Group Transaction Signature",
@@ -399,7 +426,8 @@ describe("solana-security-token", () => {
         lockedUntil,
         transferRestrictionGroup1Pubkey,
         transferRestrictionGroup1Pubkey,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Transfer Rule Transaction Signature",
@@ -431,7 +459,8 @@ describe("solana-security-token", () => {
     const initSenderHolderTx =
       await transferRestrictionsHelper.initializeTransferRestrictionHolder(
         senderHolderId,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Sender Holder Transaction Signature",
@@ -455,7 +484,8 @@ describe("solana-security-token", () => {
     const initRecipientHolderTx =
       await transferRestrictionsHelper.initializeTransferRestrictionHolder(
         recipientHolderId,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Recipient Holder Transaction Signature",
@@ -475,32 +505,6 @@ describe("solana-security-token", () => {
     assert.equal(
       holderRecipientData.currentWalletsCount.toString(),
       Number(0).toString()
-    );
-  });
-
-  const transferAdmin = Keypair.generate();
-  const [transferAdminRolePubkey] = accessControlHelper.walletRolePDA(
-    transferAdmin.publicKey
-  );
-
-  it("assigns Transfer Admin role to user wallet", async () => {
-    const newRoles = Roles.TransferAdmin;
-    const txSignature = await accessControlHelper.initializeWalletRole(
-      transferAdmin.publicKey,
-      newRoles,
-      superAdmin
-    );
-    console.log("Assign Role Transaction Signature", txSignature);
-
-    const walletRoleData = await accessControlHelper.walletRoleData(
-      transferAdminRolePubkey
-    );
-    assert.deepEqual(walletRoleData.role, newRoles);
-
-    await topUpWallet(
-      provider.connection,
-      transferAdmin.publicKey,
-      solToLamports(1)
     );
   });
 
@@ -943,6 +947,7 @@ describe("solana-security-token", () => {
   it("creates transfer restriction group 2", async () => {
     const initTransferGroupTx = await transferRestrictionsHelper.initializeTransferRestrictionGroup(
       transferGroup2Id,
+      authorityWalletRolePubkey,
       superAdmin
     );
     console.log(
@@ -961,7 +966,6 @@ describe("solana-security-token", () => {
       transferRestrictionDataPubkey
     );
   });
-
 
   it("initialize holder group 2", async () => {
     const [userWalletNewHolderGroupPubkey] =
@@ -1059,6 +1063,7 @@ describe("solana-security-token", () => {
       lockedUntil,
       transferRestrictionGroup2Pubkey,
       transferRestrictionGroup1Pubkey,
+      authorityWalletRolePubkey,
       superAdmin
     );
     console.log(

@@ -571,6 +571,9 @@ export type TransferRestrictions = {
           "name": "accessControlAccount"
         },
         {
+          "name": "authorityWalletRole"
+        },
+        {
           "name": "payer",
           "writable": true,
           "signer": true
@@ -647,6 +650,9 @@ export type TransferRestrictions = {
         },
         {
           "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
         },
         {
           "name": "payer",
@@ -829,6 +835,9 @@ export type TransferRestrictions = {
         },
         {
           "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
         },
         {
           "name": "payer",
