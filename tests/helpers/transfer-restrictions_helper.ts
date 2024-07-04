@@ -417,4 +417,60 @@ export class TransferRestrictionsHelper {
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });
   }
+
+  async revokeSecurityAssociatedAccount(
+    userWalletSecAssociatedAccountPubkey: PublicKey,
+    userWalletPubkey: PublicKey,
+    userWalletAssociatedAccountPubkey: PublicKey,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    const userWalletSecAssocAccountData = await this.securityAssociatedAccountData(userWalletSecAssociatedAccountPubkey);
+    const groupId = userWalletSecAssocAccountData.group;
+    const holderPubkey = userWalletSecAssocAccountData.holder;
+    const [groupPubkey] = this.groupPDA(groupId);
+    const [holderGroupPubkey] = this.holderGroupPDA(holderPubkey, groupId);
+
+    return this.program.methods
+      .revokeSecurityAssociatedAccount()
+      .accountsStrict({
+        securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
+        group: groupPubkey,
+        holder: holderPubkey,
+        holderGroup: holderGroupPubkey,
+        securityToken: this.mintPubkey,
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        userWallet: userWalletPubkey,
+        associatedTokenAccount: userWalletAssociatedAccountPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: payer.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+  }
+
+  async revokeHolder(
+    holderPubkey: PublicKey,
+    groupId: BN,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    const [holderGroupPubkey] = this.holderGroupPDA(holderPubkey, groupId);
+    const [groupPubkey] = this.groupPDA(groupId);
+
+    return this.program.methods
+      .revokeHolder()
+      .accountsStrict({
+        holder: holderPubkey,
+        holderGroup: holderGroupPubkey,
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        group: groupPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: payer.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+  }
 }

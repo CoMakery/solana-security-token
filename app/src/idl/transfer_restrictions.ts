@@ -968,6 +968,7 @@ export type TransferRestrictions = {
         },
         {
           "name": "transferRestrictionData",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1060,7 +1061,8 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "group"
+          "name": "group",
+          "writable": true
         },
         {
           "name": "holder",

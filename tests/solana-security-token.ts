@@ -1205,6 +1205,10 @@ describe("solana-security-token", () => {
   });
 
   it("revokes security associated account", async () => {
+    const [groupPubkey] =
+      transferRestrictionsHelper.groupPDA(transferGroup1);
+    let groupData = await transferRestrictionsHelper.groupData(groupPubkey);
+    const groupCurrentHoldersCount = groupData.currentHoldersCount.toNumber();
     const [userWalletRecipientSecurityAssociatedTokenAccountPubkey] =
       transferRestrictionsHelper.securityAssociatedAccountPDA(
         userWalletRecipientAssociatedTokenAccountPubkey
@@ -1232,5 +1236,35 @@ describe("solana-security-token", () => {
       const errorMessage = `Error: Account does not exist or has no data ${userWalletRecipientSecurityAssociatedTokenAccountPubkey.toBase58()}`;
       assert.equal(error, errorMessage);
     }
+    groupData = await transferRestrictionsHelper.groupData(groupPubkey);
+
+    // revoking last wallet automatically leaves holder from the group
+    assert.equal(groupData.currentHoldersCount.toNumber(), groupCurrentHoldersCount - 1);
+  });
+
+  it("revokes holder and holder group", async () => {
+    let transferRestrictionData = await transferRestrictionsHelper.transferRestrictionData();
+    const transferRestrictionHoldersCount = transferRestrictionData.currentHoldersCount.toNumber();
+
+    const revokeHolderGroupTx = await transferRestrictionsHelper.revokeHolder(
+      holderRecipientPubkey,
+      transferGroup1,
+      transferAdminRolePubkey,
+      transferAdmin
+    );
+    console.log("Revoke Holder Group Transaction Signature", revokeHolderGroupTx);
+
+    const [userWalletCurrentHolderGroupPubkey] =
+      transferRestrictionsHelper.holderGroupPDA(holderRecipientPubkey, transferGroup1);
+    try {
+      await transferRestrictionsHelper.holderGroupData(userWalletCurrentHolderGroupPubkey);
+      assert.fail("Expected error not thrown");
+    } catch (error) {
+      const errorMessage = `Error: Account does not exist or has no data ${userWalletCurrentHolderGroupPubkey.toBase58()}`;
+      assert.equal(error, errorMessage);
+    }
+
+    transferRestrictionData = await transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(transferRestrictionData.currentHoldersCount.toNumber(), transferRestrictionHoldersCount - 1);
   });
 });
