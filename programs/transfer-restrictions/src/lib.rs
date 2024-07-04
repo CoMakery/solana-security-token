@@ -107,4 +107,8 @@ pub mod transfer_restrictions {
     pub fn revoke_holder(ctx: Context<RevokeHolder>) -> Result<()> {
         instructions::transfer_restrictions::revoke_holder(ctx)
     }
+
+    pub fn deactivate_holder(ctx: Context<DeactivateHolder>) -> Result<()> {
+        instructions::transfer_restrictions::deactivate_holder(ctx)
+    }
 }

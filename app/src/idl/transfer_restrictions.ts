@@ -14,6 +14,83 @@ export type TransferRestrictions = {
   },
   "instructions": [
     {
+      "name": "deactivateHolder",
+      "discriminator": [
+        111,
+        220,
+        70,
+        170,
+        238,
+        146,
+        57,
+        249
+      ],
+      "accounts": [
+        {
+          "name": "holder",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "holder.id",
+                "account": "transferRestrictionHolder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "access_control_account.mint",
+                "account": "accessControl"
+              }
+            ]
+          }
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "executeTransaction",
       "docs": [
         "execute transfer hook"
