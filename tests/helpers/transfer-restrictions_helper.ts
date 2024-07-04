@@ -192,6 +192,7 @@ export class TransferRestrictionsHelper {
 
   async initializeTransferRestrictionGroup(
     groupId: BN,
+    authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
     const [transferRestrictionGroup1Pubkey] = this.groupPDA(groupId);
@@ -203,6 +204,7 @@ export class TransferRestrictionsHelper {
         transferRestrictionData: this.transferRestrictionDataPubkey,
         payer: payer.publicKey,
         accessControlAccount: this.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
@@ -213,6 +215,7 @@ export class TransferRestrictionsHelper {
     lockedUntil: BN,
     transferRuleFromPubkey: PublicKey,
     transferRuleToPubkey: PublicKey,
+    authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
     const [transferRulePubkey] = this.transferRulePDA(
@@ -228,6 +231,7 @@ export class TransferRestrictionsHelper {
         transferRestrictionGroupFrom: transferRuleFromPubkey,
         transferRestrictionGroupTo: transferRuleToPubkey,
         accessControlAccount: this.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
         payer: payer.publicKey,
         systemProgram: SystemProgram.programId,
       })
@@ -237,6 +241,7 @@ export class TransferRestrictionsHelper {
 
   async initializeTransferRestrictionHolder(
     holderId: BN,
+    authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
     const [holderPubkey] = this.holderPDA(holderId);
@@ -248,6 +253,7 @@ export class TransferRestrictionsHelper {
         transferRestrictionData: this.transferRestrictionDataPubkey,
         payer: payer.publicKey,
         accessControlAccount: this.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
