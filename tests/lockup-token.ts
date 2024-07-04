@@ -366,6 +366,42 @@ describe("token lockup", () => {
       testEnvironment.reserveAdmin
     );
 
+    const reserveAdminHolderPubkey = testEnvironment.transferRestrictionsHelper.holderPDA(
+      reserveAdminHolderId
+    )[0];
+    const reserveAdminGroupPubkey = testEnvironment.transferRestrictionsHelper.groupPDA(
+      reserveAdminGroupId
+    )[0];
+    const reserveAdminHolderGroupPubkey = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+      reserveAdminHolderPubkey,
+      reserveAdminGroupId
+    )[0];
+    await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+      reserveAdminHolderGroupPubkey,
+      reserveAdminHolderPubkey,
+      reserveAdminGroupPubkey,
+      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
+      testEnvironment.transferAdmin
+    );
+
+    const recipientHolderPubkey = testEnvironment.transferRestrictionsHelper.holderPDA(
+      recipientHolderId
+    )[0];
+    const recipientGroupIdPubkey = testEnvironment.transferRestrictionsHelper.groupPDA(
+      recipientGroupId
+    )[0];
+    const recipientHolderGroupPubkey = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+      recipientHolderPubkey,
+      recipientGroupId
+    )[0];
+    await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+      recipientHolderGroupPubkey,
+      recipientHolderPubkey,
+      recipientGroupIdPubkey,
+      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
+      testEnvironment.transferAdmin
+    );
+
     // Initialize Security Associated Accounts
     await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
       testEnvironment.transferRestrictionsHelper.groupPDA(
@@ -374,6 +410,7 @@ describe("token lockup", () => {
       testEnvironment.transferRestrictionsHelper.holderPDA(
         reserveAdminHolderId
       )[0],
+      reserveAdminHolderGroupPubkey,
       testEnvironment.reserveAdmin.publicKey,
       testEnvironment.mintHelper.getAssocciatedTokenAddress(
         testEnvironment.reserveAdmin.publicKey
@@ -388,6 +425,7 @@ describe("token lockup", () => {
       testEnvironment.transferRestrictionsHelper.holderPDA(
         recipientHolderId
       )[0],
+      recipientHolderGroupPubkey,
       escrowOwnerPubkey,
       escrowAccount,
       testEnvironment.accessControlHelper.walletRolePDA(
@@ -544,9 +582,29 @@ describe("token lockup", () => {
       investorGroupId,
       testEnvironment.reserveAdmin
     );
+    const investorHolderPubkey =
+      testEnvironment.transferRestrictionsHelper.holderPDA(investorHolderId)[0];
+    const investorGroupPubkey =
+      testEnvironment.transferRestrictionsHelper.groupPDA(investorGroupId)[0];
+    const investorHolderGroupPubkey =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        investorHolderPubkey,
+        investorGroupId
+      )[0];
+    await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+      investorHolderGroupPubkey,
+      investorHolderPubkey,
+      investorGroupPubkey,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
+      testEnvironment.transferAdmin
+    );
+
     await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
       testEnvironment.transferRestrictionsHelper.groupPDA(investorGroupId)[0],
       testEnvironment.transferRestrictionsHelper.holderPDA(investorHolderId)[0],
+      investorHolderGroupPubkey,
       investor.publicKey,
       investorTokenAccountPubkey,
       testEnvironment.accessControlHelper.walletRolePDA(

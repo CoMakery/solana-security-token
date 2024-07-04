@@ -24,5 +24,8 @@ pub use execute_transfer_hook::*;
 pub mod initialize_extra_meta_list;
 pub use initialize_extra_meta_list::*;
 
+pub mod initialize_holder_group;
+pub use initialize_holder_group::*;
+
 pub mod pause;
 pub use pause::*;

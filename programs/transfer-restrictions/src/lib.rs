@@ -68,4 +68,8 @@ pub mod transfer_restrictions {
     pub fn pause(ctx: Context<Pause>, paused: bool) -> Result<()> {
         instructions::transfer_restrictions::pause(ctx, paused)
     }
+
+    pub fn initialize_holder_group(ctx: Context<InitializeHolderGroup>) -> Result<()> {
+        instructions::transfer_restrictions::initialize_holder_group(ctx)
+    }
 }
