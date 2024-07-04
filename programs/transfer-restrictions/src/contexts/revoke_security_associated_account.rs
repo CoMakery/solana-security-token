@@ -20,7 +20,7 @@ pub struct RevokeSecurityAssociatedAccount<'info> {
       bump,
     )]
     pub security_associated_account: Account<'info, SecurityAssociatedAccount>,
-    #[account(
+    #[account(mut,
       constraint = group.transfer_restriction_data == transfer_restriction_data.key(),
     )]
     pub group: Account<'info, TransferRestrictionGroup>,

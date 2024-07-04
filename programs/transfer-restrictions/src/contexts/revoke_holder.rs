@@ -31,7 +31,7 @@ pub struct RevokeHolder<'info> {
     )]
     pub holder_group: Account<'info, HolderGroup>,
 
-    #[account(
+    #[account(mut,
       seeds = [TRANSFER_RESTRICTION_DATA_PREFIX.as_bytes(), &transfer_restriction_data.security_token_mint.key().to_bytes()],
       bump,
     )]
