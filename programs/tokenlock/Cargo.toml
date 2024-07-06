@@ -21,6 +21,9 @@ anchor-lang = "0.30.1"
 anchor-spl = "0.30.1"
 hex = "0.4.3"
 solana-program = "1.18.15"
+spl-transfer-hook-interface = { version = "0.6.3" }
+spl-tlv-account-resolution ={ version = "0.6.3" }
+spl-type-length-value = { version = "0.4.3" }
 sha2 = "0.10.2"
 access-control = { path = "../access-control", features = ["cpi"] }
 

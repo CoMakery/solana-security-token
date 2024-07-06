@@ -9,7 +9,8 @@ use spl_tlv_account_resolution::{
 
 use crate::{
     errors::TransferRestrictionsError, SECURITY_ASSOCIATED_ACCOUNT_PREFIX,
-    TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RESTRICTION_GROUP_PREFIX, TRANSFER_RULE_PREFIX,
+    TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RESTRICTION_GROUP_PREFIX,
+    TRANSFER_RESTRICTION_HOLDER_PREFIX, TRANSFER_RULE_PREFIX,
 };
 
 use crate::{AccountInfo, Rent, SolanaSysvar};
@@ -93,6 +94,38 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
                 },
                 Seed::AccountKey { index: 8 },
                 Seed::AccountKey { index: 9 },
+            ],
+            false,
+            false,
+        )?,
+        // [index 11, 6] transfer restriction holder from account
+        ExtraAccountMeta::new_with_seeds(
+            &[
+                Seed::Literal {
+                    bytes: TRANSFER_RESTRICTION_HOLDER_PREFIX.as_bytes().to_vec(),
+                },
+                Seed::AccountKey { index: 5 },
+                Seed::AccountData {
+                    account_index: 6,
+                    data_index: 16,
+                    length: 8,
+                },
+            ],
+            false,
+            false,
+        )?,
+        // [index 12, 7] transfer restriction holder to account
+        ExtraAccountMeta::new_with_seeds(
+            &[
+                Seed::Literal {
+                    bytes: TRANSFER_RESTRICTION_HOLDER_PREFIX.as_bytes().to_vec(),
+                },
+                Seed::AccountKey { index: 5 },
+                Seed::AccountData {
+                    account_index: 7,
+                    data_index: 16,
+                    length: 8,
+                },
             ],
             false,
             false,

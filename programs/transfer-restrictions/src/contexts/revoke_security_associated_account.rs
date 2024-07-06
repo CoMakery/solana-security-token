@@ -30,7 +30,8 @@ pub struct RevokeSecurityAssociatedAccount<'info> {
     pub holder: Account<'info, TransferRestrictionHolder>,
     #[account(mut,
       constraint = holder_group.group == group.id,
-      constraint = holder_group.holder == holder.key(),
+      constraint = holder_group.holder == holder.id,
+      constraint = holder_group.transfer_restriction_data == transfer_restriction_data.key(),
     )]
     pub holder_group: Account<'info, HolderGroup>,
     #[account(

@@ -22,11 +22,12 @@ pub struct RevokeHolder<'info> {
         close = payer,
         seeds = [
             TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX.as_bytes(),
-            &holder.key().to_bytes(),
+            &transfer_restriction_data.key().to_bytes(),
+            &holder.id.to_le_bytes(), 
             &group.id.to_le_bytes(),
         ],
         bump,
-        constraint = holder_group.holder == holder.key(),
+        constraint = holder_group.holder == holder.id,
         constraint = holder_group.group == group.id,
     )]
     pub holder_group: Account<'info, HolderGroup>,

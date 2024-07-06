@@ -15,7 +15,8 @@ pub fn initialize_holder_group(ctx: Context<InitializeHolderGroup>) -> Result<()
     let holder_group = &mut ctx.accounts.holder_group;
 
     holder_group.group = ctx.accounts.group.id;
-    holder_group.holder = ctx.accounts.holder.key();
+    holder_group.holder = ctx.accounts.holder.id;
+    holder_group.transfer_restriction_data = ctx.accounts.transfer_restriction_data.key();
     holder_group.current_wallets_count = 0;
 
     let group = &mut ctx.accounts.group;

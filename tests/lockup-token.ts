@@ -380,7 +380,7 @@ describe("token lockup", () => {
       reserveAdminGroupId
     )[0];
     const reserveAdminHolderGroupPubkey = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      reserveAdminHolderPubkey,
+      reserveAdminHolderId,
       reserveAdminGroupId
     )[0];
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
@@ -398,7 +398,7 @@ describe("token lockup", () => {
       recipientGroupId
     )[0];
     const recipientHolderGroupPubkey = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      recipientHolderPubkey,
+      recipientHolderId,
       recipientGroupId
     )[0];
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
@@ -469,9 +469,14 @@ describe("token lockup", () => {
       testEnvironment.confirmOptions
     );
 
+    const modifyComputeUnitsInstruction =
+      ComputeBudgetProgram.setComputeUnitLimit({
+        units: 400000,
+      });
+
     const fundReleaseScheduleWithHookTx = await sendAndConfirmTransaction(
       testEnvironment.connection,
-      new Transaction().add(fundReleaseScheduleInstruction),
+      new Transaction().add(modifyComputeUnitsInstruction, fundReleaseScheduleInstruction),
       [testEnvironment.reserveAdmin], // userWallet
       { commitment: testEnvironment.confirmOptions }
     );
@@ -602,7 +607,7 @@ describe("token lockup", () => {
       testEnvironment.transferRestrictionsHelper.groupPDA(investorGroupId)[0];
     const investorHolderGroupPubkey =
       testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-        investorHolderPubkey,
+        investorHolderId,
         investorGroupId
       )[0];
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
@@ -652,9 +657,14 @@ describe("token lockup", () => {
       testEnvironment.confirmOptions
     );
 
+    const modifyComputeUnitsInstruction =
+    ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400000,
+    });
+
     const transferTxSignature = await sendAndConfirmTransaction(
       testEnvironment.connection,
-      new Transaction().add(transferInstruction),
+      new Transaction().add(modifyComputeUnitsInstruction, transferInstruction),
       [investor], // userWallet
       { commitment: testEnvironment.confirmOptions }
     );
@@ -738,9 +748,13 @@ describe("token lockup", () => {
       testEnvironment.confirmOptions
     );
 
+    const modifyComputeUnitsInstruction =
+    ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400000,
+    });
     const transferTxSignature = await sendAndConfirmTransaction(
       testEnvironment.connection,
-      new Transaction().add(transferTimelockInstruction),
+      new Transaction().add(modifyComputeUnitsInstruction, transferTimelockInstruction),
       [investor],
       { commitment: testEnvironment.confirmOptions }
     );
@@ -849,15 +863,21 @@ describe("token lockup", () => {
         units: 400000,
       });
 
-    const transferTxSignature = await sendAndConfirmTransaction(
-      testEnvironment.connection,
-      new Transaction().add(
-        ...[modifyComputeUnitsInstruction, cancelTimelockInstruction]
-      ),
-      [testEnvironment.reserveAdmin],
-      { commitment: testEnvironment.confirmOptions }
-    );
-    console.log("Cancel Timelock Transaction Signature", transferTxSignature);
+    try {
+      const transferTxSignature = await sendAndConfirmTransaction(
+        testEnvironment.connection,
+        new Transaction().add(
+          ...[modifyComputeUnitsInstruction, cancelTimelockInstruction]
+        ),
+        [testEnvironment.reserveAdmin],
+        { commitment: testEnvironment.confirmOptions }
+      );
+      console.log("Cancel Timelock Transaction Signature", transferTxSignature);
+    } catch (error) {
+      console.log("Error", error);
+      throw error;
+    }
+
 
     const timelockDataAfterTransfer =
       await tokenlockProgram.account.timelockData.fetch(timelockAccount);

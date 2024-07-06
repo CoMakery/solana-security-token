@@ -22,6 +22,12 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         return Err(TransferRestrictionsError::AllTransfersPaused.into());
     }
 
+    if !ctx.accounts.transfer_restriction_holder_from.active ||
+        !ctx.accounts.transfer_restriction_holder_to.active
+    {
+        return Err(TransferRestrictionsError::HolderIsDeactivated.into());
+    }
+
     let transfer_rule = &ctx.accounts.transfer_rule;
 
     // TODO: add transfer restrictions checks here
