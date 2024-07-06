@@ -12,8 +12,9 @@ pub const TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX: &str = "trhg";
 #[derive(Default, InitSpace)]
 pub struct HolderGroup {
     pub group: u64,
-    pub holder: Pubkey,
+    pub holder: u64,
     pub current_wallets_count: u64,
+    pub transfer_restriction_data: Pubkey,
 }
 
 #[derive(Accounts)]
@@ -21,7 +22,8 @@ pub struct InitializeHolderGroup<'info> {
     #[account(init, payer = payer, space = DISCRIMINATOR_LEN + HolderGroup::INIT_SPACE,
       seeds = [
         TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX.as_bytes(),
-        &holder.key().to_bytes(),
+        &transfer_restriction_data.key().to_bytes(),
+        &holder.id.to_le_bytes(),
         &group.id.to_le_bytes(),
       ],
       bump,

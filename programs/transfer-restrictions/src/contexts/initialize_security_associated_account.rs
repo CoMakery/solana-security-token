@@ -13,7 +13,8 @@ pub const SECURITY_ASSOCIATED_ACCOUNT_PREFIX: &str = "saa"; // security associat
 #[derive(Default, InitSpace)]
 pub struct SecurityAssociatedAccount {
     pub group: u64,
-    pub holder: Pubkey,
+    pub holder: u64,
+    pub transfer_restriction_data: Pubkey,
 }
 
 #[derive(Accounts)]
@@ -37,7 +38,8 @@ pub struct InitializeSecurityAssociatedAccount<'info> {
     pub holder: Account<'info, TransferRestrictionHolder>,
     #[account(mut,
       constraint = holder_group.group == group.id,
-      constraint = holder_group.holder == holder.key(),
+      constraint = holder_group.holder == holder.id,
+      constraint = holder_group.transfer_restriction_data == transfer_restriction_data.key(),
     )]
     pub holder_group: Account<'info, HolderGroup>,
     #[account(

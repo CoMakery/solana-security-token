@@ -54,7 +54,8 @@ pub struct UpdateWalletGroup<'info> {
     #[account(mut,
       seeds = [
         TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX.as_bytes(),
-        &security_associated_account.holder.to_bytes(),
+        &transfer_restriction_data.key().to_bytes(),
+        &security_associated_account.holder.to_le_bytes(),
         &security_associated_account.group.to_le_bytes(),
       ],
       bump,
@@ -66,7 +67,8 @@ pub struct UpdateWalletGroup<'info> {
     #[account(mut,
       seeds = [
         TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX.as_bytes(),
-        &security_associated_account.holder.to_bytes(),
+        &transfer_restriction_data.key().to_bytes(),
+        &security_associated_account.holder.to_le_bytes(),
         &transfer_restriction_group_new.id.to_le_bytes(),
       ],
       bump,

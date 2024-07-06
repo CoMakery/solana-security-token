@@ -84,11 +84,12 @@ export class TransferRestrictionsHelper {
     );
   }
 
-  holderGroupPDA(holderPubkey: PublicKey, groupId: BN): [PublicKey, number] {
+  holderGroupPDA(holderId: BN, groupId: BN): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from(TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX),
-        holderPubkey.toBuffer(),
+        this.transferRestrictionDataPubkey.toBuffer(),
+        holderId.toArrayLike(Buffer, "le", 8),
         groupId.toArrayLike(Buffer, "le", 8),
       ],
       this.program.programId
@@ -433,9 +434,10 @@ export class TransferRestrictionsHelper {
   ): Promise<string> {
     const userWalletSecAssocAccountData = await this.securityAssociatedAccountData(userWalletSecAssociatedAccountPubkey);
     const groupId = userWalletSecAssocAccountData.group;
-    const holderPubkey = userWalletSecAssocAccountData.holder;
+    const holderId = userWalletSecAssocAccountData.holder;
     const [groupPubkey] = this.groupPDA(groupId);
-    const [holderGroupPubkey] = this.holderGroupPDA(holderPubkey, groupId);
+    const [holderPubkey] = this.holderPDA(holderId);
+    const [holderGroupPubkey] = this.holderGroupPDA(holderId, groupId);
 
     return this.program.methods
       .revokeSecurityAssociatedAccount()
@@ -458,11 +460,12 @@ export class TransferRestrictionsHelper {
 
   async revokeHolder(
     holderPubkey: PublicKey,
+    holderId: BN,
     groupId: BN,
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
-    const [holderGroupPubkey] = this.holderGroupPDA(holderPubkey, groupId);
+    const [holderGroupPubkey] = this.holderGroupPDA(holderId, groupId);
     const [groupPubkey] = this.groupPDA(groupId);
 
     return this.program.methods

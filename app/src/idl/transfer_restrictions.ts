@@ -231,6 +231,54 @@ export type TransferRestrictions = {
               }
             ]
           }
+        },
+        {
+          "name": "transferRestrictionHolderFrom",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "security_associated_account_from.holder",
+                "account": "securityAssociatedAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "transferRestrictionHolderTo",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "security_associated_account_to.holder",
+                "account": "securityAssociatedAccount"
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -339,7 +387,12 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "holder"
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "holder.id",
+                "account": "transferRestrictionHolder"
               },
               {
                 "kind": "account",
@@ -1042,7 +1095,12 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "holder"
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "holder.id",
+                "account": "transferRestrictionHolder"
               },
               {
                 "kind": "account",
@@ -1678,6 +1736,10 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
                 "path": "security_associated_account.holder",
                 "account": "securityAssociatedAccount"
               },
@@ -1702,6 +1764,10 @@ export type TransferRestrictions = {
                   104,
                   103
                 ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
               },
               {
                 "kind": "account",
@@ -1970,6 +2036,11 @@ export type TransferRestrictions = {
       "code": 6007,
       "name": "currentWalletsCountMustBeZero",
       "msg": "Current wallets count must be zero"
+    },
+    {
+      "code": 6008,
+      "name": "holderIsDeactivated",
+      "msg": "Holder is deactivated"
     }
   ],
   "types": [
@@ -2004,11 +2075,15 @@ export type TransferRestrictions = {
           },
           {
             "name": "holder",
-            "type": "pubkey"
+            "type": "u64"
           },
           {
             "name": "currentWalletsCount",
             "type": "u64"
+          },
+          {
+            "name": "transferRestrictionData",
+            "type": "pubkey"
           }
         ]
       }
@@ -2024,6 +2099,10 @@ export type TransferRestrictions = {
           },
           {
             "name": "holder",
+            "type": "u64"
+          },
+          {
+            "name": "transferRestrictionData",
             "type": "pubkey"
           }
         ]
