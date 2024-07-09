@@ -479,4 +479,25 @@ export class TransferRestrictionsHelper {
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });
   }
+
+  async setLockupEscrowAccount(
+    lockupEscrowAccountPubkey: PublicKey,
+    tokenlockAccountPubkey: PublicKey,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    return this.program.methods
+      .setLockupEscrowAccount()
+      .accountsStrict({
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        mint: this.mintPubkey,
+        accessControlAccount: this.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        escrowAccount: lockupEscrowAccountPubkey,
+        tokenlockAccount: tokenlockAccountPubkey,
+        payer: payer.publicKey,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+  }
 }

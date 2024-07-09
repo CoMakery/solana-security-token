@@ -15,6 +15,7 @@ pub struct TransferRestrictionData {
     pub max_holders: u64,
     pub paused: bool,
     pub min_wallet_balance: u64,
+    pub lockup_escrow_account: Option<Pubkey>,
 }
 
 impl TransferRestrictionData {

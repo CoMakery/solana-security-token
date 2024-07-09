@@ -6004,6 +6004,7 @@ dependencies = [
  "num_enum 0.7.2",
  "spl-tlv-account-resolution 0.6.3",
  "spl-transfer-hook-interface 0.6.3",
+ "tokenlock",
 ]
 
 [[package]]

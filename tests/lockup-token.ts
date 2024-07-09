@@ -217,6 +217,28 @@ describe("token lockup", () => {
     );
   });
 
+  it("sets escrow account into transfer restriction data", async () => {
+    let transferRestrictionData =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(transferRestrictionData.lockupEscrowAccount, null);
+
+    const [contractAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(
+      testEnvironment.contractAdmin.publicKey
+    );
+
+    const txSignature = await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+      escrowAccount,
+      tokenlockDataPubkey,
+      contractAdminWalletRole,
+      testEnvironment.contractAdmin
+    );
+    console.log("Set escrow account into transfer restriction data tx:", txSignature);
+    
+    transferRestrictionData =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    assert.deepEqual(transferRestrictionData.lockupEscrowAccount, escrowAccount);
+  });
+
   const uuid = uuidBytes();
   let signerHash: number[];
   const releaseCount = 10;

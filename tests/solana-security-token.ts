@@ -357,6 +357,7 @@ describe("solana-security-token", () => {
       transferRestrictionData.maxHolders.toString(),
       maxHolders.toString()
     );
+    assert.equal(transferRestrictionData.lockupEscrowAccount, null);
   });
 
   const transferAdmin = Keypair.generate();

@@ -21,6 +21,7 @@ pub fn initialize_data(
     transfer_restriction_data.max_holders = max_holders;
     transfer_restriction_data.min_wallet_balance = min_wallet_balance;
     transfer_restriction_data.paused = false;
+    transfer_restriction_data.lockup_escrow_account = None;
 
     let zero_transfer_restriction_group = &mut ctx.accounts.zero_transfer_restriction_group;
     zero_transfer_restriction_group.id = 0;

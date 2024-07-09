@@ -1426,6 +1426,62 @@ export type TransferRestrictions = {
       ]
     },
     {
+      "name": "setLockupEscrowAccount",
+      "discriminator": [
+        134,
+        172,
+        249,
+        223,
+        25,
+        118,
+        55,
+        93
+      ],
+      "accounts": [
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "escrowAccount"
+        },
+        {
+          "name": "tokenlockAccount"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "setMinWalletBalance",
       "discriminator": [
         219,
@@ -1893,6 +1949,11 @@ export type TransferRestrictions = {
       "code": 6007,
       "name": "currentWalletsCountMustBeZero",
       "msg": "Current wallets count must be zero"
+    },
+    {
+      "code": 6008,
+      "name": "escrowAccountsMismatch",
+      "msg": "Escrow accounts mismatch"
     }
   ],
   "types": [
@@ -1984,6 +2045,12 @@ export type TransferRestrictions = {
           {
             "name": "minWalletBalance",
             "type": "u64"
+          },
+          {
+            "name": "lockupEscrowAccount",
+            "type": {
+              "option": "pubkey"
+            }
           }
         ]
       }
