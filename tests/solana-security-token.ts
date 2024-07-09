@@ -414,8 +414,8 @@ describe("solana-security-token", () => {
 
   it("creates transfer rule 1 -> 1", async () => {
     const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
-      transferRestrictionGroup1Pubkey,
-      transferRestrictionGroup1Pubkey
+      transferGroup1,
+      transferGroup1
     );
     console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
 
@@ -425,8 +425,8 @@ describe("solana-security-token", () => {
     const initTransferRuleTx =
       await transferRestrictionsHelper.initializeTransferRule(
         lockedUntil,
-        transferRestrictionGroup1Pubkey,
-        transferRestrictionGroup1Pubkey,
+        transferGroup1,
+        transferGroup1,
         transferAdminRolePubkey,
         transferAdmin
       );
@@ -888,6 +888,41 @@ describe("solana-security-token", () => {
     assert.isTrue(transferRestrictionsData.paused);
   });
 
+  it("enforces transfer restrictions", async () => {
+    const [userWalletSecurityAssociatedAccountPubkey] =
+      transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userWalletAssociatedAccountPubkey
+      );
+    const [userWalletRecipientSecurityAssociatedTokenAccountPubkey] =
+      transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userWalletRecipientAssociatedTokenAccountPubkey
+      );
+    const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
+      transferGroup1,
+      transferGroup1
+    );
+    try {
+      await transferRestrictionsProgram.methods
+        .enforceTransferRestrictions()
+        .accountsStrict({
+          sourceAccount: userWalletAssociatedAccountPubkey,
+          destinationAccount: userWalletRecipientAssociatedTokenAccountPubkey,
+          mint: mintKeypair.publicKey,
+          transferRestrictionData: transferRestrictionDataPubkey,
+          securityAssociatedAccountFrom: userWalletSecurityAssociatedAccountPubkey,
+          securityAssociatedAccountTo: userWalletRecipientSecurityAssociatedTokenAccountPubkey,
+          transferRule: transferRulePubkey,
+        })
+        .signers([])
+        .rpc({ commitment: confirmOptions });
+        expect.fail('Expected an error, but none was thrown.');
+      } catch ({ error }) {
+        assert.equal(error.errorCode.number, 6004);
+        assert.equal(error.errorMessage, "All transfers are paused");
+        assert.equal(error.errorCode.code, "AllTransfersPaused");
+      }
+  });
+
   it("failed to transfer securities when paused", async () => {
     const transferAmount = BigInt(1000);
     try {
@@ -1052,8 +1087,8 @@ describe("solana-security-token", () => {
 
   it("creates transfer rule 2 -> 1", async () => {
     const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
-      transferRestrictionGroup2Pubkey,
-      transferRestrictionGroup1Pubkey
+      transferGroup2Id,
+      transferGroup1
     );
     console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
 
@@ -1062,8 +1097,8 @@ describe("solana-security-token", () => {
 
     const initTransferRuleTx = await transferRestrictionsHelper.initializeTransferRule(
       lockedUntil,
-      transferRestrictionGroup2Pubkey,
-      transferRestrictionGroup1Pubkey,
+      transferGroup2Id,
+      transferGroup1,
       authorityWalletRolePubkey,
       superAdmin
     );
@@ -1190,8 +1225,8 @@ describe("solana-security-token", () => {
 
   it("sets transfer rule locked until by transfer admin", async () => {
     const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
-      transferRestrictionGroup2Pubkey,
-      transferRestrictionGroup1Pubkey
+      transferGroup2Id,
+      transferGroup1
     );
     const tsNow = await getNowTs(connection);
     const lockedUntil = new anchor.BN(tsNow + 1000);
