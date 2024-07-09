@@ -1272,19 +1272,4 @@ describe("solana-security-token", () => {
     transferRestrictionData = await transferRestrictionsHelper.transferRestrictionData();
     assert.equal(transferRestrictionData.currentHoldersCount.toNumber(), transferRestrictionHoldersCount - 1);
   });
-
-  it("deactivates holder", async () => {
-    let holderData = await transferRestrictionsHelper.holderData(holderSenderPubkey);
-    assert.equal(holderData.active, true);
-
-    const deactivateHolderTx = await transferRestrictionsHelper.deactivateHolder(
-      holderSenderPubkey,
-      transferAdminRolePubkey,
-      transferAdmin
-    );
-    console.log("Deactivate Holder Transaction Signature", deactivateHolderTx);
-
-    holderData = await transferRestrictionsHelper.holderData(holderSenderPubkey);
-    assert.equal(holderData.active, false);
-  });
 });

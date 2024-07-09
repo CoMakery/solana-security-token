@@ -479,23 +479,4 @@ export class TransferRestrictionsHelper {
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });
   }
-
-  async deactivateHolder(
-    holderPubkey: PublicKey,
-    authorityWalletRolePubkey: PublicKey,
-    payer: Keypair
-  ): Promise<string> {
-    return this.program.methods
-      .deactivateHolder()
-      .accountsStrict({
-        holder: holderPubkey,
-        transferRestrictionData: this.transferRestrictionDataPubkey,
-        accessControlAccount: this.accessControlPubkey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        payer: payer.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
-  }
 }
