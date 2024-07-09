@@ -148,32 +148,7 @@ export type TransferRestrictions = {
           "name": "securityAssociatedAccountTo"
         },
         {
-          "name": "transferRule",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "transferRestrictionData"
-              },
-              {
-                "kind": "account",
-                "path": "security_associated_account_from.group",
-                "account": "securityAssociatedAccount"
-              },
-              {
-                "kind": "account",
-                "path": "security_associated_account_to.group",
-                "account": "securityAssociatedAccount"
-              }
-            ]
-          }
+          "name": "transferRule"
         }
       ],
       "args": [
