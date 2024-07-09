@@ -11,8 +11,9 @@ pub struct SetAllowTransferRule<'info> {
     #[account(mut,
         seeds = [
             TRANSFER_RULE_PREFIX.as_bytes(),
-            &transfer_restriction_group_from.key().to_bytes(),
-            &transfer_restriction_group_to.key().to_bytes(),
+            &transfer_restriction_data.key().to_bytes(),
+            &transfer_restriction_group_from.id.to_le_bytes(),
+            &transfer_restriction_group_to.id.to_le_bytes(),
         ],
         bump,
         constraint = transfer_rule.transfer_restriction_data == transfer_restriction_data.key(),

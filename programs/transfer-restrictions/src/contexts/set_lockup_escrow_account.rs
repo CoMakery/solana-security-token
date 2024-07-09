@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use access_control::{self, AccessControl, WalletRole};
 use anchor_lang::prelude::*;
 use anchor_spl::{
@@ -7,6 +8,7 @@ use anchor_spl::{
 
 use crate::{TransferRestrictionData, TRANSFER_RESTRICTION_DATA_PREFIX};
 
+const TOKENLOCK_ID: &str = "7CN3iHcRimZRa97M38cyMQAF68ecQYDqHfCUgBeSARG2";
 #[derive(Accounts)]
 pub struct SetLockupEscrowAccount<'info> {
     #[account(mut,
@@ -42,7 +44,7 @@ pub struct SetLockupEscrowAccount<'info> {
     pub escrow_account: Box<InterfaceAccount<'info, TokenAccount>>,
     /// CHECK: implemented own serialization in order to save compute units
     #[account(
-        constraint = *tokenlock_account.owner == tokenlock::ID,
+        constraint = *tokenlock_account.owner == Pubkey::from_str(TOKENLOCK_ID).unwrap(),
     )]
     pub tokenlock_account: AccountInfo<'info>,
     #[account(mut)]
