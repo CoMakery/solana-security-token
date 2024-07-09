@@ -353,6 +353,9 @@ export type Tokenlock = {
           "name": "mintAddress"
         },
         {
+          "name": "transferRestrictionsData"
+        },
+        {
           "name": "authorityWalletRole"
         },
         {
@@ -524,6 +527,19 @@ export type Tokenlock = {
         58,
         210,
         120
+      ]
+    },
+    {
+      "name": "transferRestrictionData",
+      "discriminator": [
+        166,
+        184,
+        205,
+        98,
+        165,
+        224,
+        174,
+        148
       ]
     },
     {
@@ -793,6 +809,10 @@ export type Tokenlock = {
             "type": "u64"
           },
           {
+            "name": "funder",
+            "type": "pubkey"
+          },
+          {
             "name": "cancelableByCount",
             "type": "u8"
           },
@@ -867,6 +887,10 @@ export type Tokenlock = {
             "type": "pubkey"
           },
           {
+            "name": "transferRestrictionsData",
+            "type": "pubkey"
+          },
+          {
             "name": "bumpSeed",
             "type": "u8"
           },
@@ -886,6 +910,48 @@ export type Tokenlock = {
                   "name": "releaseSchedule"
                 }
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "transferRestrictionData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "securityTokenMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "accessControlAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "currentHoldersCount",
+            "type": "u64"
+          },
+          {
+            "name": "holderIds",
+            "type": "u64"
+          },
+          {
+            "name": "maxHolders",
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "minWalletBalance",
+            "type": "u64"
+          },
+          {
+            "name": "lockupEscrowAccount",
+            "type": {
+              "option": "pubkey"
             }
           }
         ]

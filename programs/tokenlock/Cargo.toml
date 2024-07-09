@@ -23,6 +23,7 @@ hex = "0.4.3"
 solana-program = "1.18.15"
 sha2 = "0.10.2"
 access-control = { path = "../access-control", features = ["cpi"] }
+transfer-restrictions = { path = "../transfer-restrictions", features = ["cpi"] }
 
 [dev-dependencies]
 spl-token-2022 = {version = "3.0.0", features = ["no-entrypoint"]}

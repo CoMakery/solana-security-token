@@ -149,6 +149,7 @@ pub fn fund_release_schedule<'info>(
         commencement_timestamp: commencement_ts,
         tokens_transferred: 0,
         total_amount: amount,
+        funder: ctx.accounts.from.key(),
         cancelable_by_count: cancelable_by.len() as u8,
         cancelable_by: [0; 10],
         signer_hash: hash,
