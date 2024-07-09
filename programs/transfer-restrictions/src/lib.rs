@@ -111,4 +111,8 @@ pub mod transfer_restrictions {
     pub fn set_lockup_escrow_account(ctx: Context<SetLockupEscrowAccount>) -> Result<()> {
         instructions::transfer_restrictions::set_lockup_escrow_account(ctx)
     }
+
+    pub fn enforce_transfer_restrictions(ctx: Context<EnforceTransferRestrictions>) -> Result<()> {
+        instructions::transfer_restrictions::enforce_transfer_restrictions(ctx)
+    }
 }

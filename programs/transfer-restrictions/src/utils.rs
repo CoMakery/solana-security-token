@@ -9,7 +9,7 @@ use spl_tlv_account_resolution::{
 
 use crate::{
     errors::TransferRestrictionsError, SECURITY_ASSOCIATED_ACCOUNT_PREFIX,
-    TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RESTRICTION_GROUP_PREFIX, TRANSFER_RULE_PREFIX,
+    TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RULE_PREFIX,
 };
 
 use crate::{AccountInfo, Rent, SolanaSysvar};
