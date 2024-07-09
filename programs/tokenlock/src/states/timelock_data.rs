@@ -11,6 +11,7 @@ pub struct Timelock {
     pub commencement_timestamp: u64,
     pub tokens_transferred: u64,
     pub total_amount: u64,
+    pub funder: Pubkey,
     pub cancelable_by_count: u8,
     pub cancelable_by: [u8; 10],
     pub signer_hash: [u8; 20],
@@ -18,7 +19,7 @@ pub struct Timelock {
 impl Timelock {
     pub const MAX_CANCELABLES_COUNT: usize = 256;
     pub const CANCELABLE_BY_COUNT_MAX: u8 = 10;
-    pub const DEFAULT_SIZE: usize = 2 + 8 + 8 + 8 + 1 + 10 + 20;
+    pub const DEFAULT_SIZE: usize = 2 + 8 + 8 + 8 + 32 + 1 + 10 + 20;
 
     pub fn has_cancelable_by(&self, cancelable_by_index: u8) -> bool {
         for i in 0..self.cancelable_by_count {
