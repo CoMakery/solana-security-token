@@ -1,10 +1,11 @@
 use anchor_lang::{prelude::*, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 use solana_program::program_memory::sol_memcmp;
+use transfer_restrictions::program::TransferRestrictions;
 
 use crate::{
-    transfer_spl_from_escrow, utils, TimelockData, TokenLockData, TokenLockDataWrapper,
-    TokenlockErrors,
+    enforce_transfer_restrictions_cpi, transfer_spl_from_escrow, utils, TimelockData,
+    TokenLockData, TokenLockDataWrapper, TokenlockErrors,
 };
 
 #[derive(Accounts)]
@@ -39,6 +40,16 @@ pub struct TransferFrom<'info> {
     pub mint_address: Box<InterfaceAccount<'info, Mint>>,
 
     pub token_program: Program<'info, Token2022>,
+
+    pub transfer_restrictions_program: Program<'info, TransferRestrictions>,
+    /// CHECK: extra account for the authority associated account
+    pub authority_account: AccountInfo<'info>,
+    /// CHECK: extra account for the authority
+    pub security_associated_account_from: UncheckedAccount<'info>,
+    /// CHECK: extra account for the recipient
+    pub security_associated_account_to: UncheckedAccount<'info>,
+    /// CHECK: extra account for the transfer rule
+    pub transfer_rule: UncheckedAccount<'info>,
 }
 
 pub fn transfer<'info>(
@@ -112,6 +123,37 @@ pub fn transfer<'info>(
 
     if remaining_transfer != 0 {
         return Err(TokenlockErrors::BadTransfer.into());
+    }
+
+    let to = &ctx.accounts.to;
+    if ctx.accounts.authority.key() != to.owner {
+        if ctx.remaining_accounts.len() == 0
+            || ctx.remaining_accounts[0].key()
+                != TokenLockDataWrapper::transfer_restriction_data(&tokenlock_account_data)
+        {
+            return Err(TokenlockErrors::InvalidTransferRestrictionData.into());
+        }
+        // let authority_account: InterfaceAccount<'info, TokenAccount> =
+        //     InterfaceAccount::try_from(&ctx.accounts.authority_account)?;
+        // if authority_account.owner != ctx.accounts.authority.key() {
+        //     return Err(TokenlockErrors::InvalidAccountOwner.into());
+        // }
+        // TokenAccount::try_deserialize(buf)
+
+        enforce_transfer_restrictions_cpi(
+            ctx.accounts.authority_account.clone(),
+            ctx.accounts.mint_address.to_account_info(),
+            to.to_account_info(),
+            ctx.remaining_accounts[0].clone(),
+            ctx.accounts
+                .security_associated_account_from
+                .to_account_info(),
+            ctx.accounts
+                .security_associated_account_to
+                .to_account_info(),
+            ctx.accounts.transfer_rule.to_account_info(),
+            ctx.accounts.transfer_restrictions_program.to_account_info(),
+        )?;
     }
 
     transfer_spl_from_escrow(

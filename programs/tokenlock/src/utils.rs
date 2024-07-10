@@ -1,31 +1,38 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{
-    token_2022::spl_token_2022::onchain::invoke_transfer_checked,
-    token::Transfer,
-};
+use anchor_spl::token_2022::spl_token_2022::onchain::invoke_transfer_checked;
 use sha2::{Digest, Sha256};
 extern crate hex;
 use anchor_lang::solana_program::program_memory::sol_memcpy;
 #[cfg(not(target_os = "solana"))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use transfer_restrictions::cpi::accounts::EnforceTransferRestrictions;
+
 pub const TOKENLOCK_PDA_SEED: &[u8] = b"tokenlock";
 
-pub fn transfer_spl<'info>(
-    from: &AccountInfo<'info>,
-    to: &AccountInfo<'info>,
-    authority: &AccountInfo<'info>,
-    token_program: &AccountInfo<'info>,
-    amount: u64,
+pub fn enforce_transfer_restrictions_cpi<'info>(
+    authority_account_info: AccountInfo<'info>,
+    mint_address_info: AccountInfo<'info>,
+    to_info: AccountInfo<'info>,
+    transfer_restrictions_data: AccountInfo<'info>,
+    security_associated_account_from_info: AccountInfo<'info>,
+    security_associated_account_to_info: AccountInfo<'info>,
+    transfer_rule_info: AccountInfo<'info>,
+    transfer_restrictions_program_info: AccountInfo<'info>,
 ) -> Result<()> {
-    let cpi_accounts = Transfer {
-        from: from.clone(),
-        to: to.clone(),
-        authority: authority.clone(),
+    let cpi_accounts = EnforceTransferRestrictions {
+        source_account: authority_account_info,
+        mint: mint_address_info,
+        destination_account: to_info,
+        transfer_restriction_data: transfer_restrictions_data,
+        security_associated_account_from: security_associated_account_from_info,
+        security_associated_account_to: security_associated_account_to_info,
+        transfer_rule: transfer_rule_info,
     };
-    let cpi_ctx = CpiContext::new(token_program.clone(), cpi_accounts);
-
-    anchor_spl::token::transfer(cpi_ctx, amount)?;
+    transfer_restrictions::cpi::enforce_transfer_restrictions(CpiContext::new(
+        transfer_restrictions_program_info,
+        cpi_accounts,
+    ))?;
 
     Ok(())
 }
@@ -60,7 +67,6 @@ pub fn transfer_spl_from_escrow<'info>(
         decimals,
         &[&seeds[..]],
     )?;
-
 
     Ok(())
 }

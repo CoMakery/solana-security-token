@@ -109,4 +109,10 @@ pub enum TokenlockErrors {
 
     #[msg("Invalid transfer restriction data")]
     InvalidTransferRestrictionData,
+
+    #[msg("Invalid account owner")]
+    InvalidAccountOwner,
+
+    #[msg("Invalid funder account")]
+    InvalidFunderAccount,
 }

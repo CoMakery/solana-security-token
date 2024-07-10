@@ -66,6 +66,22 @@ export type Tokenlock = {
         {
           "name": "tokenProgram",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "transferRestrictionsProgram",
+          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "funderAccount"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule"
         }
       ],
       "args": [
@@ -424,6 +440,22 @@ export type Tokenlock = {
         {
           "name": "tokenProgram",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "transferRestrictionsProgram",
+          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "authorityAccount"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule"
         }
       ],
       "args": [
@@ -752,6 +784,16 @@ export type Tokenlock = {
       "code": 6035,
       "name": "invalidTransferRestrictionData",
       "msg": "Invalid transfer restriction data"
+    },
+    {
+      "code": 6036,
+      "name": "invalidAccountOwner",
+      "msg": "Invalid account owner"
+    },
+    {
+      "code": 6037,
+      "name": "invalidFunderAccount",
+      "msg": "Invalid funder account"
     }
   ],
   "types": [
