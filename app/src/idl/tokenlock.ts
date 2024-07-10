@@ -475,6 +475,22 @@ export type Tokenlock = {
         {
           "name": "tokenProgram",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "transferRestrictionsProgram",
+          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "authorityAccount"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule"
         }
       ],
       "args": [
@@ -731,6 +747,11 @@ export type Tokenlock = {
       "code": 6034,
       "name": "invalidAccessControlAccount",
       "msg": "Invalid access control account"
+    },
+    {
+      "code": 6035,
+      "name": "invalidTransferRestrictionData",
+      "msg": "Invalid transfer restriction data"
     }
   ],
   "types": [
