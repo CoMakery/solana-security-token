@@ -133,12 +133,13 @@ pub fn transfer<'info>(
         {
             return Err(TokenlockErrors::InvalidTransferRestrictionData.into());
         }
-        // let authority_account: InterfaceAccount<'info, TokenAccount> =
-        //     InterfaceAccount::try_from(&ctx.accounts.authority_account)?;
-        // if authority_account.owner != ctx.accounts.authority.key() {
-        //     return Err(TokenlockErrors::InvalidAccountOwner.into());
-        // }
-        // TokenAccount::try_deserialize(buf)
+
+        let authority_account_info = ctx.accounts.authority_account.clone();
+        let mut account_data: &[u8] = &authority_account_info.try_borrow_data()?;
+        let authority_account_data = TokenAccount::try_deserialize(&mut account_data)?;
+        if authority_account_data.owner != ctx.accounts.authority.key() {
+            return Err(TokenlockErrors::InvalidAccountOwner.into());
+        }
 
         enforce_transfer_restrictions_cpi(
             ctx.accounts.authority_account.clone(),
