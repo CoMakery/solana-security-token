@@ -103,14 +103,15 @@ export class TransferRestrictionsHelper {
   }
 
   transferRulePDA(
-    groupFromPubkey: PublicKey,
-    groupToPubkey: PublicKey
+    groupFromId: BN,
+    groupToId: BN
   ): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from(TRANSFER_RULE_PREFIX),
-        groupFromPubkey.toBuffer(),
-        groupToPubkey.toBuffer(),
+        this.transferRestrictionDataPubkey.toBuffer(),
+        groupFromId.toArrayLike(Buffer, "le", 8),
+        groupToId.toArrayLike(Buffer, "le", 8),
       ],
       this.program.programId
     );
@@ -213,23 +214,25 @@ export class TransferRestrictionsHelper {
 
   async initializeTransferRule(
     lockedUntil: BN,
-    transferRuleFromPubkey: PublicKey,
-    transferRuleToPubkey: PublicKey,
+    transferGroupFromId: BN,
+    transferGroupToId: BN,
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
     const [transferRulePubkey] = this.transferRulePDA(
-      transferRuleFromPubkey,
-      transferRuleToPubkey
+      transferGroupFromId,
+      transferGroupToId
     );
+    const [transferGroupFromPubkey] = this.groupPDA(transferGroupFromId);
+    const [transferGroupToPubkey] = this.groupPDA(transferGroupToId);
 
     return this.program.methods
       .initializeTransferRule(lockedUntil)
       .accountsStrict({
         transferRule: transferRulePubkey,
         transferRestrictionData: this.transferRestrictionDataPubkey,
-        transferRestrictionGroupFrom: transferRuleFromPubkey,
-        transferRestrictionGroupTo: transferRuleToPubkey,
+        transferRestrictionGroupFrom: transferGroupFromPubkey,
+        transferRestrictionGroupTo: transferGroupToPubkey,
         accessControlAccount: this.accessControlPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
         payer: payer.publicKey,

@@ -413,8 +413,8 @@ describe("solana-security-token", () => {
 
   it("creates transfer rule 1 -> 1", async () => {
     const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
-      transferRestrictionGroup1Pubkey,
-      transferRestrictionGroup1Pubkey
+      transferGroup1,
+      transferGroup1,
     );
     console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
 
@@ -424,8 +424,8 @@ describe("solana-security-token", () => {
     const initTransferRuleTx =
       await transferRestrictionsHelper.initializeTransferRule(
         lockedUntil,
-        transferRestrictionGroup1Pubkey,
-        transferRestrictionGroup1Pubkey,
+        transferGroup1,
+        transferGroup1,
         transferAdminRolePubkey,
         transferAdmin
       );
@@ -1051,8 +1051,8 @@ describe("solana-security-token", () => {
 
   it("creates transfer rule 2 -> 1", async () => {
     const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
-      transferRestrictionGroup2Pubkey,
-      transferRestrictionGroup1Pubkey
+      transferGroup2Id,
+      transferGroup1,
     );
     console.log("Transfer Rule Pubkey", transferRulePubkey.toBase58());
 
@@ -1061,8 +1061,8 @@ describe("solana-security-token", () => {
 
     const initTransferRuleTx = await transferRestrictionsHelper.initializeTransferRule(
       lockedUntil,
-      transferRestrictionGroup2Pubkey,
-      transferRestrictionGroup1Pubkey,
+      transferGroup2Id,
+      transferGroup1,
       authorityWalletRolePubkey,
       superAdmin
     );
@@ -1189,8 +1189,8 @@ describe("solana-security-token", () => {
 
   it("sets transfer rule locked until by transfer admin", async () => {
     const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
-      transferRestrictionGroup2Pubkey,
-      transferRestrictionGroup1Pubkey
+      transferGroup2Id,
+      transferGroup1,
     );
     const tsNow = await getNowTs(connection);
     const lockedUntil = new anchor.BN(tsNow + 1000);

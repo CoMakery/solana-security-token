@@ -445,10 +445,8 @@ describe("token lockup", () => {
     const lockedUntil = new anchor.BN(tsNow);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
       lockedUntil,
-      testEnvironment.transferRestrictionsHelper.groupPDA(
-        reserveAdminGroupId
-      )[0],
-      testEnvironment.transferRestrictionsHelper.groupPDA(recipientGroupId)[0],
+      reserveAdminGroupId,
+      recipientGroupId,
       transferAdminWalletRole,
       testEnvironment.transferAdmin
     );
@@ -630,8 +628,8 @@ describe("token lockup", () => {
     const initializeTransferRuleTxSignature =
       await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
         lockedUntil,
-        testEnvironment.transferRestrictionsHelper.groupPDA(escrowGroupId)[0],
-        testEnvironment.transferRestrictionsHelper.groupPDA(investorGroupId)[0],
+        escrowGroupId,
+        investorGroupId,
         transferAdminWalletRole,
         testEnvironment.transferAdmin
       );
@@ -808,8 +806,8 @@ describe("token lockup", () => {
     const reclaimerGroupId = new anchor.BN(1);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
       lockedUntil,
-      testEnvironment.transferRestrictionsHelper.groupPDA(escrowGroupdId)[0],
-      testEnvironment.transferRestrictionsHelper.groupPDA(reclaimerGroupId)[0],
+      escrowGroupdId,
+      reclaimerGroupId,
       testEnvironment.accessControlHelper.walletRolePDA(
         testEnvironment.transferAdmin.publicKey
       )[0],

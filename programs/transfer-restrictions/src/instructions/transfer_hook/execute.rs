@@ -4,7 +4,7 @@ use anchor_spl::{
     token_interface::get_mint_extension_data,
 };
 
-use crate::{errors::TransferRestrictionsError, ExecuteTransferHook};
+use crate::{errors::TransferRestrictionsError, validate_min_wallet_balance, ExecuteTransferHook};
 
 pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
     let mint_data: &AccountInfo = &ctx.accounts.mint.to_account_info();
@@ -29,7 +29,10 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         return Err(TransferRestrictionsError::TransferRuleLocked.into());
     }
 
-    ctx.accounts.validate_min_wallet_balance()?;
+    validate_min_wallet_balance(
+        transfer_restriction_data.min_wallet_balance,
+        ctx.accounts.source_account.amount,
+    )?;
 
     Ok(())
 }
