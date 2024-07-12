@@ -21,5 +21,11 @@ pub fn initialize_data(
     transfer_restriction_data.min_wallet_balance = min_wallet_balance;
     transfer_restriction_data.paused = false;
 
+    let zero_transfer_restriction_group = &mut ctx.accounts.zero_transfer_restriction_group;
+    zero_transfer_restriction_group.id = 0;
+    zero_transfer_restriction_group.current_holders_count = 0;
+    zero_transfer_restriction_group.max_holders = max_holders;
+    zero_transfer_restriction_group.transfer_restriction_data = transfer_restriction_data.key();
+
     Ok(())
 }

@@ -4,7 +4,7 @@ use anchor_spl::token_interface::{
 };
 use num_enum::IntoPrimitive;
 
-use crate::contexts::common::DISCRIMINATOR_LEN;
+use crate::{contexts::common::DISCRIMINATOR_LEN, WalletRole, WALLET_ROLE_PREFIX};
 
 pub const ACCESS_CONTROL_SEED: &[u8] = b"ac"; // access_control
 
@@ -78,6 +78,15 @@ pub struct InitializeAccessControl<'info> {
       bump,
     )]
     pub access_control: Box<Account<'info, AccessControl>>,
+    #[account(init, payer = payer, space = DISCRIMINATOR_LEN + WalletRole::INIT_SPACE,
+      seeds = [
+        WALLET_ROLE_PREFIX,
+        &mint.key().to_bytes(),
+        &payer.key().to_bytes(),
+      ],
+      bump,
+    )]
+    pub wallet_role: Account<'info, WalletRole>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
