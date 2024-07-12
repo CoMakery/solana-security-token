@@ -28,6 +28,7 @@ import {
   BIPS_PRECISION,
   calcSignerHash,
   getTimelockAccount,
+  initializeTokenlock,
   lockedBalanceOf,
   unlockedBalanceOf,
   uuidBytes,
@@ -44,7 +45,7 @@ describe("token lockup", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
-    minWalletBalance: 0
+    minWalletBalance: 0,
   };
   const testEnvironment = new TestEnvironment(testEnvironmentParams);
   const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;
@@ -168,27 +169,19 @@ describe("token lockup", () => {
 
     const maxReleaseDelay = new anchor.BN(346896000);
     const minTimelockAmount = new anchor.BN(100);
-    const initializeTokenlockSignature =
-      await tokenlockProgram.rpc.initializeTokenlock(
-        maxReleaseDelay,
-        minTimelockAmount,
-        {
-          accounts: {
-            tokenlockAccount: tokenlockDataPubkey,
-            escrowAccount,
-            mintAddress: testEnvironment.mintKeypair.publicKey,
-            authorityWalletRole:
-              testEnvironment.accessControlHelper.walletRolePDA(
-                testEnvironment.contractAdmin.publicKey
-              )[0],
-            accessControl:
-              testEnvironment.accessControlHelper.accessControlPubkey,
-            authority: testEnvironment.contractAdmin.publicKey,
-            tokenProgram: TOKEN_2022_PROGRAM_ID,
-          },
-          signers: [testEnvironment.contractAdmin],
-        }
-      );
+    const initializeTokenlockSignature = await initializeTokenlock(
+      tokenlockProgram,
+      maxReleaseDelay,
+      minTimelockAmount,
+      tokenlockDataPubkey,
+      escrowAccount,
+      testEnvironment.mintKeypair.publicKey,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.contractAdmin.publicKey
+      )[0],
+      testEnvironment.accessControlHelper.accessControlPubkey,
+      testEnvironment.contractAdmin
+    );
     console.log(
       "Initialize Tokenlock Transaction Signature",
       initializeTokenlockSignature
@@ -329,22 +322,85 @@ describe("token lockup", () => {
             tokenlockAccount: tokenlockDataPubkey,
             timelockAccount: timelockAccount,
             escrowAccount: escrowAccount,
+            escrowAccountOwner: escrowOwnerPubkey,
             authorityWalletRole: authorityWalletRole,
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
             mintAddress: testEnvironment.mintKeypair.publicKey,
-            from: funderAssociatedTokenAccount,
             to: investor.publicKey,
             authority: testEnvironment.reserveAdmin.publicKey,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
+            accessControlProgram:
+              testEnvironment.accessControlHelper.program.programId,
           },
           signers: [testEnvironment.reserveAdmin],
         }
       );
 
-    const [transferAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(
-      testEnvironment.transferAdmin.publicKey
+    const fundReleaseScheduleWithHookTx = await sendAndConfirmTransaction(
+      testEnvironment.connection,
+      new Transaction().add(fundReleaseScheduleInstruction),
+      [testEnvironment.reserveAdmin],
+      { commitment: testEnvironment.confirmOptions }
     );
+    console.log(
+      "FundReleaseSchedule Transaction Signature",
+      fundReleaseScheduleWithHookTx
+    );
+
+    const timelockData = await tokenlockProgram.account.timelockData.fetch(
+      timelockAccount
+    );
+    assert.deepEqual(timelockData.tokenlockAccount, tokenlockDataPubkey);
+    assert.deepEqual(timelockData.targetAccount, investor.publicKey);
+    assert.deepEqual(timelockData.cancelables, cancelableBy);
+    assert.equal(timelockData.timelocks.length, 1);
+    assert.equal(
+      timelockData.timelocks[0].totalAmount.toNumber(),
+      fundedAmount
+    );
+    assert.equal(
+      timelockData.timelocks[0].commencementTimestamp.toNumber(),
+      commencementTimestamp
+    );
+    assert.equal(timelockData.timelocks[0].tokensTransferred.toNumber(), 0);
+    assert.equal(timelockData.timelocks[0].scheduleId, 0);
+    assert.equal(timelockData.timelocks[0].cancelableByCount, 1);
+
+    assert.deepEqual(
+      timelockData.timelocks[0].signerHash,
+      calcSignerHash(testEnvironment.reserveAdmin.publicKey, uuid)
+    );
+    const escrowAccountData = await testEnvironment.mintHelper.getAccount(
+      escrowAccount
+    );
+    assert.equal(escrowAccountData.amount.toString(), fundedAmount.toString());
+    const tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(
+      tokenlockDataPubkey
+    );
+    const tsNow = await getNowTs(testEnvironment.connection);
+    const unlockedBalance = unlockedBalanceOf(
+      tokenlockData,
+      timelockData,
+      tsNow
+    );
+    const lockedBalance = lockedBalanceOf(tokenlockData, timelockData, tsNow);
+    assert.equal(
+      unlockedBalance,
+      (fundedAmount * initialReleasePortionInBips) / BIPS_PRECISION
+    );
+    assert.equal(
+      lockedBalance,
+      fundedAmount -
+      (fundedAmount * initialReleasePortionInBips) / BIPS_PRECISION
+    );
+  });
+
+  it("creates transfer restriction accounts and rule", async () => {
+    const [transferAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      );
     // Initialize holders
     const reserveAdminHolderId = new anchor.BN(1);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
@@ -373,16 +429,19 @@ describe("token lockup", () => {
       testEnvironment.transferAdmin
     );
 
-    const reserveAdminHolderPubkey = testEnvironment.transferRestrictionsHelper.holderPDA(
-      reserveAdminHolderId
-    )[0];
-    const reserveAdminGroupPubkey = testEnvironment.transferRestrictionsHelper.groupPDA(
-      reserveAdminGroupId
-    )[0];
-    const reserveAdminHolderGroupPubkey = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      reserveAdminHolderPubkey,
-      reserveAdminGroupId
-    )[0];
+    const reserveAdminHolderPubkey =
+      testEnvironment.transferRestrictionsHelper.holderPDA(
+        reserveAdminHolderId
+      )[0];
+    const reserveAdminGroupPubkey =
+      testEnvironment.transferRestrictionsHelper.groupPDA(
+        reserveAdminGroupId
+      )[0];
+    const reserveAdminHolderGroupPubkey =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        reserveAdminHolderPubkey,
+        reserveAdminGroupId
+      )[0];
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
       reserveAdminHolderGroupPubkey,
       reserveAdminHolderPubkey,
@@ -391,16 +450,17 @@ describe("token lockup", () => {
       testEnvironment.transferAdmin
     );
 
-    const recipientHolderPubkey = testEnvironment.transferRestrictionsHelper.holderPDA(
-      recipientHolderId
-    )[0];
-    const recipientGroupIdPubkey = testEnvironment.transferRestrictionsHelper.groupPDA(
-      recipientGroupId
-    )[0];
-    const recipientHolderGroupPubkey = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      recipientHolderPubkey,
-      recipientGroupId
-    )[0];
+    const recipientHolderPubkey =
+      testEnvironment.transferRestrictionsHelper.holderPDA(
+        recipientHolderId
+      )[0];
+    const recipientGroupIdPubkey =
+      testEnvironment.transferRestrictionsHelper.groupPDA(recipientGroupId)[0];
+    const recipientHolderGroupPubkey =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        recipientHolderPubkey,
+        recipientGroupId
+      )[0];
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
       recipientHolderGroupPubkey,
       recipientHolderPubkey,
@@ -449,79 +509,6 @@ describe("token lockup", () => {
       recipientGroupId,
       transferAdminWalletRole,
       testEnvironment.transferAdmin
-    );
-
-    const mintInfo = await testEnvironment.mintHelper.getMint();
-    const transferHook = getTransferHook(mintInfo);
-    assert.ok(transferHook);
-
-    await addExtraAccountMetasForExecute(
-      testEnvironment.connection,
-      fundReleaseScheduleInstruction,
-      transferHook.programId,
-      funderAssociatedTokenAccount,
-      testEnvironment.mintKeypair.publicKey,
-      escrowAccount,
-      testEnvironment.reserveAdmin.publicKey,
-      fundedAmount,
-      testEnvironment.confirmOptions
-    );
-
-    const fundReleaseScheduleWithHookTx = await sendAndConfirmTransaction(
-      testEnvironment.connection,
-      new Transaction().add(fundReleaseScheduleInstruction),
-      [testEnvironment.reserveAdmin], // userWallet
-      { commitment: testEnvironment.confirmOptions }
-    );
-    console.log(
-      "FundReleaseSchedule With Hook Transaction Signature",
-      fundReleaseScheduleWithHookTx
-    );
-
-    const timelockData = await tokenlockProgram.account.timelockData.fetch(
-      timelockAccount
-    );
-    assert.deepEqual(timelockData.tokenlockAccount, tokenlockDataPubkey);
-    assert.deepEqual(timelockData.targetAccount, investor.publicKey);
-    assert.deepEqual(timelockData.cancelables, cancelableBy);
-    assert.equal(timelockData.timelocks.length, 1);
-    assert.equal(
-      timelockData.timelocks[0].totalAmount.toNumber(),
-      fundedAmount
-    );
-    assert.equal(
-      timelockData.timelocks[0].commencementTimestamp.toNumber(),
-      commencementTimestamp
-    );
-    assert.equal(timelockData.timelocks[0].tokensTransferred.toNumber(), 0);
-    assert.equal(timelockData.timelocks[0].scheduleId, 0);
-    assert.equal(timelockData.timelocks[0].cancelableByCount, 1);
-
-    assert.deepEqual(
-      timelockData.timelocks[0].signerHash,
-      calcSignerHash(testEnvironment.reserveAdmin.publicKey, uuid)
-    );
-    const escrowAccountData = await testEnvironment.mintHelper.getAccount(
-      escrowAccount
-    );
-    assert.equal(escrowAccountData.amount.toString(), fundedAmount.toString());
-    const tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(
-      tokenlockDataPubkey
-    );
-    const unlockedBalance = unlockedBalanceOf(
-      tokenlockData,
-      timelockData,
-      tsNow
-    );
-    const lockedBalance = lockedBalanceOf(tokenlockData, timelockData, tsNow);
-    assert.equal(
-      unlockedBalance,
-      (fundedAmount * initialReleasePortionInBips) / BIPS_PRECISION
-    );
-    assert.equal(
-      lockedBalance,
-      fundedAmount -
-      (fundedAmount * initialReleasePortionInBips) / BIPS_PRECISION
     );
   });
 

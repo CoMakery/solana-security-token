@@ -82,7 +82,9 @@ export class AccessControlHelper {
   initializeAccessControlInstruction(
     setupAccessControlArgs: SetupAccessControlArgs
   ): any {
-    const walletRolePubkey = this.walletRolePDA(setupAccessControlArgs.payer)[0];
+    const walletRolePubkey = this.walletRolePDA(
+      setupAccessControlArgs.payer
+    )[0];
 
     return this.program.instruction.initializeAccessControl(
       {
