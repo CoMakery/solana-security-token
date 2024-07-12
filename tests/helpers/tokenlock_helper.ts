@@ -1,6 +1,18 @@
 import { v4 as uuidv4 } from "uuid";
 import { sha256 } from "js-sha256";
-import { PublicKey } from "@solana/web3.js";
+import {
+  PublicKey,
+  Keypair,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+  ComputeBudgetProgram,
+  sendAndConfirmTransaction,
+  Transaction,
+  Connection,
+} from "@solana/web3.js";
+import { BN, Program } from "@coral-xyz/anchor";
+import { Tokenlock } from "../../target/types/tokenlock";
+import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
 export function uuidBytes(): number[] {
   const uuid = uuidv4().replace(/-/g, "");
@@ -23,6 +35,20 @@ export function compareSignerHash(hash1, hash2) {
     if (hash1[i] !== hash2[i]) return false;
   }
   return true;
+}
+
+function parseErrorNumber(errors, logs) {
+  const key = "custom program error: ";
+  for (let i = 0; i < logs.length; i++) {
+    if (logs[i].indexOf(key) >= 0) {
+      const idxStart = logs[i].indexOf(key);
+      const numStr = logs[i].substring(idxStart + key.length);
+      const errorNum = Number(numStr);
+      const idx = errorNum % 100;
+      return errors[idx].msg;
+    }
+  }
+  return undefined;
 }
 
 export function getTimelockAccount(
@@ -272,4 +298,231 @@ function calculateUnlockedForReleaseSchedule(
   }
 
   return unlocked;
+}
+
+export async function initializeTokenlock(
+  program: Program<Tokenlock>,
+  maxReleaseDelay: BN,
+  minTimelockAmount: BN,
+  tokenlockAccount: PublicKey,
+  escrow: PublicKey,
+  mintPubkey: PublicKey,
+  authorityWalletRolePubkey: PublicKey,
+  accessControlPubkey: PublicKey,
+  signer: Keypair
+): Promise<string> {
+  return program.rpc.initializeTokenlock(maxReleaseDelay, minTimelockAmount, {
+    accounts: {
+      tokenlockAccount,
+      escrowAccount: escrow,
+      mintAddress: mintPubkey,
+      authorityWalletRole: authorityWalletRolePubkey,
+      accessControl: accessControlPubkey,
+      authority: signer.publicKey,
+      tokenProgram: TOKEN_2022_PROGRAM_ID,
+    },
+    signers: [signer],
+  });
+}
+
+export async function createReleaseSchedule(
+  program: Program<Tokenlock>,
+  tokenlockDataPubkey: PublicKey,
+  releaseCount: number,
+  delayUntilFirstReleaseInSeconds: BN,
+  initialReleasePortionInBips: number,
+  periodBetweenReleasesInSeconds: BN,
+  accessControlPubkey: PublicKey,
+  authorityWalletRolePubkey: PublicKey,
+  signer: Keypair
+): Promise<string | number> {
+  const uuid = uuidBytes();
+  const signerHash = calcSignerHash(signer.publicKey, uuid);
+  let result;
+
+  try {
+    await program.rpc.createReleaseSchedule(
+      uuid,
+      releaseCount,
+      delayUntilFirstReleaseInSeconds,
+      initialReleasePortionInBips,
+      periodBetweenReleasesInSeconds,
+      {
+        accounts: {
+          tokenlockAccount: tokenlockDataPubkey,
+          authority: signer.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          accessControl: accessControlPubkey,
+        },
+        signers: [signer],
+      }
+    );
+    const account = await program.account.tokenLockData.fetch(
+      tokenlockDataPubkey
+    );
+    // check contents
+    for (let i = account.releaseSchedules.length - 1; i >= 0; i--) {
+      if (
+        compareSignerHash(account.releaseSchedules[i].signerHash, signerHash) &&
+        account.releaseSchedules[i].releaseCount === releaseCount &&
+        // eslint-disable-next-line max-len
+        account.releaseSchedules[
+          i
+        ].delayUntilFirstReleaseInSeconds.toString() ===
+          delayUntilFirstReleaseInSeconds.toString() &&
+        account.releaseSchedules[i].initialReleasePortionInBips ===
+          initialReleasePortionInBips &&
+        // eslint-disable-next-line max-len
+        account.releaseSchedules[
+          i
+        ].periodBetweenReleasesInSeconds.toString() ===
+          periodBetweenReleasesInSeconds.toString()
+      ) {
+        result = i;
+        break;
+      }
+    }
+  } catch (e) {
+    if (!e.error || !e.transactionLogs) {
+      result = parseErrorNumber(program.idl.errors, e.transactionLogs);
+    } else result = e.error.errorMessage;
+  }
+
+  return result;
+}
+
+export async function initializeTimelock(
+  program: Program<Tokenlock>,
+  tokenlockAccount: PublicKey,
+  targetAccount: PublicKey,
+  accessControl: PublicKey,
+  authorityWalletRole: PublicKey,
+  signer: Keypair
+): Promise<PublicKey> {
+  const timelockAccount = getTimelockAccount(
+    program.programId,
+    tokenlockAccount,
+    targetAccount
+  );
+  await program.rpc.initializeTimelock({
+    accounts: {
+      tokenlockAccount,
+      timelockAccount: timelockAccount,
+      authorityWalletRole,
+      accessControl,
+      authority: signer.publicKey,
+      targetAccount,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+    },
+    signers: [signer],
+  });
+
+  return timelockAccount;
+}
+
+export async function fundReleaseSchedule(
+  connection: Connection,
+  program: Program<Tokenlock>,
+  amount: BN,
+  commencementTimestamp: BN,
+  scheduleId: number,
+  cancelableBy: PublicKey[],
+  tokenlockAccount: PublicKey,
+  escrowAccount: PublicKey,
+  escrowAccountOwnerPubkey: PublicKey,
+  to: PublicKey,
+  signer: Keypair,
+  authorityWalletRolePubkey: PublicKey,
+  accessControlPubkey: PublicKey,
+  mintPubkey: PublicKey,
+  accessControlProgramId: PublicKey
+): Promise<number | string> {
+  const timelockAccount = getTimelockAccount(
+    program.programId,
+    tokenlockAccount,
+    to
+  );
+  let accInfo = await program.provider.connection.getAccountInfo(
+    timelockAccount
+  );
+
+  if (accInfo === null) {
+    await initializeTimelock(
+      program,
+      tokenlockAccount,
+      to,
+      accessControlPubkey,
+      authorityWalletRolePubkey,
+      signer
+    );
+  }
+  const uuid = uuidBytes();
+  const signerHash = calcSignerHash(signer.publicKey, uuid);
+  const cancelByCount = cancelableBy.length;
+  const cancelBy = [];
+  for (let i = 0; i < cancelByCount; i++) cancelBy.push(cancelableBy[i]);
+
+  let result: number | string;
+  try {
+    const modifyComputeUnitsInstruction =
+      ComputeBudgetProgram.setComputeUnitLimit({
+        units: 400000,
+      });
+    const fundReleaseScheduleInstruction =
+      program.instruction.fundReleaseSchedule(
+        uuid,
+        amount,
+        commencementTimestamp,
+        scheduleId,
+        cancelableBy,
+        {
+          accounts: {
+            tokenlockAccount: tokenlockAccount,
+            timelockAccount: timelockAccount,
+            escrowAccount: escrowAccount,
+            escrowAccountOwner: escrowAccountOwnerPubkey,
+            authorityWalletRole: authorityWalletRolePubkey,
+            accessControl: accessControlPubkey,
+            mintAddress: mintPubkey,
+            to,
+            authority: signer.publicKey,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+            accessControlProgram: accessControlProgramId,
+          },
+          signers: [signer],
+        }
+      );
+
+    await sendAndConfirmTransaction(
+      connection,
+      new Transaction().add(
+        ...[modifyComputeUnitsInstruction, fundReleaseScheduleInstruction]
+      ),
+      [signer],
+      { commitment: "confirmed" }
+    );
+
+    const account = await program.account.timelockData.fetch(timelockAccount);
+    for (let i = account.timelocks.length - 1; i >= 0; i--) {
+      if (
+        compareSignerHash(account.timelocks[i].signerHash, signerHash) &&
+        account.timelocks[i].totalAmount.toString() === amount.toString() &&
+        account.timelocks[i].scheduleId === scheduleId &&
+        account.timelocks[i].commencementTimestamp.toString() ===
+          commencementTimestamp.toString()
+      ) {
+        result = i;
+        break;
+      }
+    }
+  } catch (e) {
+    console.log("error:", e);
+
+    if (!e.error || !e.transactionLogs) {
+      result = parseErrorNumber(program.idl.errors, e.transactionLogs);
+    } else result = e.error.errorMessage;
+  }
+  console.log("result:", result);
+  return result;
 }
