@@ -102,10 +102,7 @@ export class TransferRestrictionsHelper {
     );
   }
 
-  transferRulePDA(
-    groupFromId: BN,
-    groupToId: BN
-  ): [PublicKey, number] {
+  transferRulePDA(groupFromId: BN, groupToId: BN): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from(TRANSFER_RULE_PREFIX),
@@ -434,7 +431,10 @@ export class TransferRestrictionsHelper {
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
-    const userWalletSecAssocAccountData = await this.securityAssociatedAccountData(userWalletSecAssociatedAccountPubkey);
+    const userWalletSecAssocAccountData =
+      await this.securityAssociatedAccountData(
+        userWalletSecAssociatedAccountPubkey
+      );
     const groupId = userWalletSecAssocAccountData.group;
     const holderPubkey = userWalletSecAssocAccountData.holder;
     const [groupPubkey] = this.groupPDA(groupId);
