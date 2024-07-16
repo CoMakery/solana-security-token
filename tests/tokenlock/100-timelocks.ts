@@ -91,6 +91,7 @@ describe("TokenLockup stress test", () => {
         minTimelockAmount,
         tokenlockAccount,
         escrow,
+        testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.walletRolePDA(
           testEnvironment.contractAdmin.publicKey

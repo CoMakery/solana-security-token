@@ -122,11 +122,6 @@ pub fn cancel_timelock<'info>(
     }
     match timelock_account.get_timelock(timelock_id) {
         Some(timelock) => {
-            // TODO: if funder == reclaimer ???
-            if timelock.funder != *ctx.accounts.funder_account.key {
-                return Err(TokenlockErrors::InvalidFunderAccount.into());
-            }
-
             enforce_transfer_restrictions_cpi(
                 ctx.accounts.funder_account.clone(),
                 ctx.accounts.mint_address.to_account_info(),

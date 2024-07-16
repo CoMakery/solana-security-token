@@ -11,7 +11,6 @@ pub struct Timelock {
     pub commencement_timestamp: u64,
     pub tokens_transferred: u64,
     pub total_amount: u64,
-    pub funder: Pubkey,
     pub cancelable_by_count: u8,
     pub cancelable_by: [u8; 10],
     pub signer_hash: [u8; 20],

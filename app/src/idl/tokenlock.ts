@@ -766,11 +766,6 @@ export type Tokenlock = {
       "code": 6036,
       "name": "invalidAccountOwner",
       "msg": "Invalid account owner"
-    },
-    {
-      "code": 6037,
-      "name": "invalidFunderAccount",
-      "msg": "Invalid funder account"
     }
   ],
   "types": [
@@ -847,10 +842,6 @@ export type Tokenlock = {
           {
             "name": "totalAmount",
             "type": "u64"
-          },
-          {
-            "name": "funder",
-            "type": "pubkey"
           },
           {
             "name": "cancelableByCount",

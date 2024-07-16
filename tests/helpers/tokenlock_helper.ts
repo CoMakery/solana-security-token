@@ -306,6 +306,7 @@ export async function initializeTokenlock(
   minTimelockAmount: BN,
   tokenlockAccount: PublicKey,
   escrow: PublicKey,
+  transferRestrictionsPubkey: PublicKey,
   mintPubkey: PublicKey,
   authorityWalletRolePubkey: PublicKey,
   accessControlPubkey: PublicKey,
@@ -314,6 +315,7 @@ export async function initializeTokenlock(
   return program.rpc.initializeTokenlock(maxReleaseDelay, minTimelockAmount, {
     accounts: {
       tokenlockAccount,
+      transferRestrictionsData: transferRestrictionsPubkey,
       escrowAccount: escrow,
       mintAddress: mintPubkey,
       authorityWalletRole: authorityWalletRolePubkey,
