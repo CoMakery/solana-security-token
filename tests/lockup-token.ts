@@ -942,10 +942,6 @@ describe("token lockup", () => {
       transferAdminWalletRole,
       testEnvironment.transferAdmin
     )
-    const [transferRulePubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
-      funderSecAssocAccountData.group,
-      reclaimerSecAssocAccountData.group
-    );
     
     const cancelTimelockInstruction =
       tokenlockProgram.instruction.cancelTimelock(timelockIdx, {
@@ -960,11 +956,6 @@ describe("token lockup", () => {
           reclaimer: reclaimerTokenAccountPubkey,
           mintAddress: testEnvironment.mintKeypair.publicKey,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
-          transferRestrictionsProgram: testEnvironment.transferRestrictionsHelper.program.programId,
-          funderAccount: funderAssociatedTokenAccount,
-          securityAssociatedAccountFrom: testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(funderAssociatedTokenAccount)[0],
-          securityAssociatedAccountTo: testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(reclaimerTokenAccountPubkey)[0],
-          transferRule: transferRulePubkey,
         },
         signers: [testEnvironment.reserveAdmin],
       });
