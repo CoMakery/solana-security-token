@@ -92,6 +92,7 @@ pub fn transfer_timelock<'info>(
     let total_transfered_new = timelock.tokens_transferred.checked_add(value).unwrap();
 
     let to = &ctx.accounts.to;
+    // if recipient owner is a signer we skip enforcing transfer restrictions
     if ctx.accounts.authority.key() != to.owner {
         if ctx.remaining_accounts.len() == 0
             || ctx.remaining_accounts[0].key()

@@ -126,7 +126,8 @@ pub fn transfer<'info>(
     }
 
     let to = &ctx.accounts.to;
-    if ctx.accounts.authority.key() != to.owner {
+    // if recipient owner is a signer we skip enforcing transfer restrictions
+    if ctx.accounts.authority.key() != to.owner {  
         if ctx.remaining_accounts.len() == 0
             || ctx.remaining_accounts[0].key()
                 != TokenLockDataWrapper::transfer_restriction_data(&tokenlock_account_data)
