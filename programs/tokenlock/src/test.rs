@@ -28,6 +28,7 @@ struct TestFixture {
     transfer_rule: (Pubkey, SolanaAccount),
     authority_wallet_role: (Pubkey, SolanaAccount),
     access_control: (Pubkey, SolanaAccount),
+    access_control_program: (Pubkey, SolanaAccount),
     authority: (Pubkey, SolanaAccount),
     escrow_account: (Pubkey, SolanaAccount),
     mint_address: (Pubkey, SolanaAccount),
@@ -122,6 +123,9 @@ impl Default for TestFixture {
         let mut transfer_restrictions_program_account = SolanaAccount::default();
         transfer_restrictions_program_account.executable = true;
 
+        let mut access_control_program_account = SolanaAccount::default();
+        access_control_program_account.executable = true;
+
         let access_control_address = Pubkey::new_unique();
 
         let authority_address = Pubkey::new_unique();
@@ -183,6 +187,7 @@ impl Default for TestFixture {
                 &access_control_address,
                 &access_control_program_id,
             ),
+            access_control_program: (access_control_program_id, access_control_program_account),
             authority_wallet_role: Self::create_wallet_role_account(
                 &Pubkey::new_unique(),
                 &access_control_program_id,
@@ -288,9 +293,10 @@ impl<'a> TestFixture {
         authority_wallet_role_info: &'a AccountInfo<'a>,
         access_control_info: &'a AccountInfo<'a>,
         mint_info: &'a AccountInfo<'a>,
-        from_info: &'a AccountInfo<'a>,
         to_account_info: AccountInfo<'a>,
         token_program_info: &'a AccountInfo<'a>,
+        access_control_program_info: &'a AccountInfo<'a>,
+        pda_account_info: AccountInfo<'a>,
     ) -> Result<FundReleaseSchedule<'a>, ProgramError> {
         let escrow_account = InterfaceAccount::try_from(escrow_account_info)?;
         let mut tokenlock_data: Account<TokenLockData> =
@@ -310,9 +316,10 @@ impl<'a> TestFixture {
             access_control: Account::try_from_unchecked(access_control_info)?,
             mint_address,
             escrow_account: Box::new(escrow_account),
-            from: Box::new(InterfaceAccount::try_from(&from_info)?),
             to: to_account_info,
             token_program: Program::try_from(token_program_info)?,
+            access_control_program: Program::try_from(access_control_program_info)?,
+            escrow_account_owner: pda_account_info,
         })
     }
 
@@ -415,11 +422,6 @@ impl<'a> TestFixture {
         target_assoc_info: &'a AccountInfo<'a>,
         mint_info: &'a AccountInfo<'a>,
         token_program_info: &'a AccountInfo<'a>,
-        transfer_restrictions_program_info: &'a AccountInfo<'a>,
-        funder_account_info: AccountInfo<'a>,
-        security_associated_account_from_info: &'a AccountInfo<'a>,
-        security_associated_account_to_info: &'a AccountInfo<'a>,
-        transfer_rule_info: &'a AccountInfo<'a>,
     ) -> Result<CancelTimelock<'a>, ProgramError> {
         let escrow_account = InterfaceAccount::try_from(&escrow_account_info)?;
         let mut tokenlock_data: Account<TokenLockData> =
@@ -438,15 +440,6 @@ impl<'a> TestFixture {
             target_assoc: Box::new(InterfaceAccount::try_from(&target_assoc_info)?),
             mint_address: Box::new(InterfaceAccount::try_from(mint_info)?),
             token_program: Program::try_from(token_program_info)?,
-            transfer_restrictions_program: Program::try_from(transfer_restrictions_program_info)?,
-            funder_account: funder_account_info,
-            security_associated_account_from: UncheckedAccount::try_from(
-                security_associated_account_from_info,
-            ),
-            security_associated_account_to: UncheckedAccount::try_from(
-                security_associated_account_to_info,
-            ),
-            transfer_rule: UncheckedAccount::try_from(transfer_rule_info),
         })
     }
 }
@@ -907,9 +900,10 @@ fn test_fund_release_schedule() {
     let mut authority_info = fixture.authority.into_account_info();
     let authority_wallet_role_info = fixture.authority_wallet_role.into_account_info();
     let mint_info = fixture.mint_address.into_account_info();
-    let from_info = fixture.from.into_account_info();
     let to_info = fixture.to.into_account_info();
     let token_program_info = fixture.token_program.into_account_info();
+    let access_control_program_info = fixture.access_control_program.into_account_info();
+    let pda_account_info = fixture.pda_account.into_account_info();
     let mut accounts = TestFixture::fund_release_schedule(
         &escrow_account_info,
         &tokenlock_account_info,
@@ -918,9 +912,10 @@ fn test_fund_release_schedule() {
         &authority_wallet_role_info,
         &access_control_info,
         &mint_info,
-        &from_info,
         to_info,
         &token_program_info,
+        &access_control_program_info,
+        pda_account_info,
     )
     .expect("Getting accounts error");
     accounts.tokenlock_account = accounts_create_release.tokenlock_account;
@@ -1072,7 +1067,6 @@ fn test_transfer() {
     accounts.tokenlock_account = accounts_create_release.tokenlock_account;
     accounts.timelock_account.timelocks.push(Timelock {
         schedule_id: 0,
-        funder: Pubkey::new_unique(),
         commencement_timestamp: 123123513,
         tokens_transferred: 0,
         total_amount: total_amount,
@@ -1179,7 +1173,6 @@ fn test_transfer_timelock() {
     accounts.timelock_account.timelocks.push(Timelock {
         schedule_id: 0,
         commencement_timestamp: 123123513,
-        funder: Pubkey::new_unique(),
         tokens_transferred: 0,
         total_amount: timelock_amount,
         cancelable_by_count: 0,
@@ -1254,12 +1247,13 @@ fn test_cancel_timelock() {
     let tokenlock_account_info = fixture.tokenlock_account.into_account_info();
     let escrow_account_info = fixture.escrow_account.into_account_info();
     let timelock_account_info = fixture.timelock_account.into_account_info();
-    let from_info = fixture.from.into_account_info();
     let to_info = fixture.to.into_account_info();
     let token_program_info = fixture.token_program.into_account_info();
     let mut authority_info = fixture.authority.into_account_info();
     let authority_wallet_role_info = fixture.authority_wallet_role.into_account_info();
     let mint_info = fixture.mint_address.into_account_info();
+    let access_control_program_info = fixture.access_control_program.into_account_info();
+    let pda_account_info = fixture.pda_account.into_account_info();
     let mut accounts_fund_release = TestFixture::fund_release_schedule(
         &escrow_account_info,
         &tokenlock_account_info,
@@ -1268,9 +1262,10 @@ fn test_cancel_timelock() {
         &authority_wallet_role_info,
         &access_control_info,
         &mint_info,
-        &from_info,
         to_info,
         &token_program_info,
+        &access_control_program_info,
+        pda_account_info,
     )
     .expect("Getting accounts error");
     accounts_fund_release.tokenlock_account = accounts_create_release.tokenlock_account;
@@ -1309,15 +1304,6 @@ fn test_cancel_timelock() {
     let target_assoc_info = fixture.target_assoc.into_account_info();
     let token_program_info = fixture.token_program.into_account_info();
     let mint_info = fixture.mint_address.into_account_info();
-    let transfer_restrictions_program_info =
-        fixture.transfer_restrictions_program.into_account_info();
-    let authority_account_info = fixture.authority_account.into_account_info();
-    let security_associated_account_from_info =
-        fixture.security_associated_account_from.into_account_info();
-    let security_associated_account_to_info =
-        fixture.security_associated_account_to.into_account_info();
-    let transfer_rule_info = fixture.transfer_rule.into_account_info();
-    let funder_address = authority_info.key();
     let mut accounts = TestFixture::cancel_timelock(
         &escrow_account_info,
         &tokenlock_account_info,
@@ -1329,11 +1315,6 @@ fn test_cancel_timelock() {
         &target_assoc_info,
         &mint_info,
         &token_program_info,
-        &transfer_restrictions_program_info,
-        authority_account_info,
-        &security_associated_account_from_info,
-        &security_associated_account_to_info,
-        &transfer_rule_info,
     )
     .expect("Getting accounts error");
     let bumps = CancelTimelockBumps::default();
@@ -1348,7 +1329,6 @@ fn test_cancel_timelock() {
     accounts.timelock_account.timelocks.push(Timelock {
         schedule_id: 0,
         commencement_timestamp: utils::get_unix_timestamp(),
-        funder: funder_address.clone(),
         tokens_transferred: 1_000_000_000,
         total_amount: 1_000_000_000,
         cancelable_by_count: 1,
@@ -1382,7 +1362,6 @@ fn test_cancel_timelock() {
     accounts.timelock_account.timelocks.push(Timelock {
         schedule_id: 0,
         commencement_timestamp: utils::get_unix_timestamp(),
-        funder: accounts.funder_account.key(),
         tokens_transferred: 0,
         total_amount: 1_000_000_000,
         cancelable_by_count: 1,
