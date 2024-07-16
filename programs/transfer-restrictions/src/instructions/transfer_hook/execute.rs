@@ -34,11 +34,7 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         &mut &ctx.accounts.transfer_restriction_data.data.borrow()[DISCRIMINATOR_LEN..],
     )?;
     // transfer restriction for lockup escrow account is validated inside tokenlock program
-    if transfer_restriction_data.lockup_escrow_account
-        == Some(ctx.accounts.destination_account.key())
-        || transfer_restriction_data.lockup_escrow_account
-            == Some(ctx.accounts.source_account.key())
-    {
+    if transfer_restriction_data.lockup_escrow_account == Some(ctx.accounts.source_account.key()) {
         return Ok(());
     }
     if transfer_restriction_data.paused {
