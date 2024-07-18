@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use access_control::{self, AccessControl};
+use access_control::{self, AccessControl, WalletRole};
 use crate::{contexts::common::DISCRIMINATOR_LEN, TransferRestrictionData, TRANSFER_RESTRICTION_DATA_PREFIX};
 
 // Short name is required for transfer hook meta account list specification (32 bytes limit)
@@ -35,6 +35,11 @@ pub struct InitializeTransferRestrictionGroup<'info> {
   )]
   pub transfer_restriction_data: Account<'info, TransferRestrictionData>,
   pub access_control_account: Account<'info, AccessControl>,
+  #[account(
+    constraint = authority_wallet_role.owner == payer.key(),
+    constraint = authority_wallet_role.access_control == transfer_restriction_data.access_control_account.key(),
+  )]
+  pub authority_wallet_role: Account<'info, WalletRole>,
   #[account(mut)]
   pub payer: Signer<'info>,
   pub system_program: Program<'info, System>,

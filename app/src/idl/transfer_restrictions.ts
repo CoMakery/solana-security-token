@@ -571,6 +571,9 @@ export type TransferRestrictions = {
           "name": "accessControlAccount"
         },
         {
+          "name": "authorityWalletRole"
+        },
+        {
           "name": "payer",
           "writable": true,
           "signer": true
@@ -647,6 +650,9 @@ export type TransferRestrictions = {
         },
         {
           "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
         },
         {
           "name": "payer",
@@ -831,6 +837,9 @@ export type TransferRestrictions = {
           "name": "accessControlAccount"
         },
         {
+          "name": "authorityWalletRole"
+        },
+        {
           "name": "payer",
           "writable": true,
           "signer": true
@@ -899,6 +908,575 @@ export type TransferRestrictions = {
         {
           "name": "paused",
           "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "revokeHolder",
+      "discriminator": [
+        250,
+        238,
+        38,
+        18,
+        138,
+        55,
+        227,
+        111
+      ],
+      "accounts": [
+        {
+          "name": "holder",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "holder.id",
+                "account": "transferRestrictionHolder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "holderGroup",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  104,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "holder"
+              },
+              {
+                "kind": "account",
+                "path": "group.id",
+                "account": "transferRestrictionGroup"
+              }
+            ]
+          }
+        },
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transfer_restriction_data.security_token_mint",
+                "account": "transferRestrictionData"
+              }
+            ]
+          }
+        },
+        {
+          "name": "group",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "group.id",
+                "account": "transferRestrictionGroup"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authorityWalletRole",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "revokeSecurityAssociatedAccount",
+      "discriminator": [
+        75,
+        206,
+        46,
+        31,
+        84,
+        165,
+        44,
+        66
+      ],
+      "accounts": [
+        {
+          "name": "securityAssociatedAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "associatedTokenAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "group",
+          "writable": true
+        },
+        {
+          "name": "holder",
+          "writable": true
+        },
+        {
+          "name": "holderGroup",
+          "writable": true
+        },
+        {
+          "name": "securityToken"
+        },
+        {
+          "name": "transferRestrictionData",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityToken"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userWallet"
+        },
+        {
+          "name": "associatedTokenAccount",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userWallet"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  238,
+                  117,
+                  143,
+                  222,
+                  24,
+                  66,
+                  93,
+                  188,
+                  228,
+                  108,
+                  205,
+                  218,
+                  182,
+                  26,
+                  252,
+                  77,
+                  131,
+                  185,
+                  13,
+                  39,
+                  254,
+                  189,
+                  249,
+                  40,
+                  216,
+                  161,
+                  139,
+                  252
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "securityToken"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "setAllowTransferRule",
+      "discriminator": [
+        4,
+        83,
+        246,
+        172,
+        106,
+        193,
+        31,
+        116
+      ],
+      "accounts": [
+        {
+          "name": "transferRule",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionGroupFrom"
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionGroupTo"
+              }
+            ]
+          }
+        },
+        {
+          "name": "transferRestrictionData",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "access_control_account.mint",
+                "account": "accessControl"
+              }
+            ]
+          }
+        },
+        {
+          "name": "transferRestrictionGroupFrom"
+        },
+        {
+          "name": "transferRestrictionGroupTo"
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "lockedUntil",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setHolderGroupMax",
+      "discriminator": [
+        83,
+        33,
+        238,
+        145,
+        212,
+        216,
+        16,
+        197
+      ],
+      "accounts": [
+        {
+          "name": "transferRestrictionData",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "group",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "group.id",
+                "account": "transferRestrictionGroup"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "holderGroupMax",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setHolderMax",
+      "discriminator": [
+        254,
+        104,
+        250,
+        53,
+        13,
+        151,
+        2,
+        161
+      ],
+      "accounts": [
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "holderMax",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setMinWalletBalance",
+      "discriminator": [
+        219,
+        92,
+        124,
+        22,
+        205,
+        109,
+        146,
+        13
+      ],
+      "accounts": [
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "minWalletBalance",
+          "type": "u64"
         }
       ]
     },
@@ -1310,6 +1888,11 @@ export type TransferRestrictions = {
       "code": 6006,
       "name": "balanceIsTooLow",
       "msg": "Balance is too low"
+    },
+    {
+      "code": 6007,
+      "name": "currentWalletsCountMustBeZero",
+      "msg": "Current wallets count must be zero"
     }
   ],
   "types": [
@@ -1384,6 +1967,10 @@ export type TransferRestrictions = {
           },
           {
             "name": "currentHoldersCount",
+            "type": "u64"
+          },
+          {
+            "name": "holderIds",
             "type": "u64"
           },
           {

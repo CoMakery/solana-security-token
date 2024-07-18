@@ -16,4 +16,6 @@ pub enum TransferRestrictionsError {
     InvalidPDA,
     #[msg("Balance is too low")]
     BalanceIsTooLow,
+    #[msg("Current wallets count must be zero")]
+    CurrentWalletsCountMustBeZero,
 }

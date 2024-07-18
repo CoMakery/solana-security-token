@@ -6,6 +6,7 @@ import {
   getTokenMetadata,
   createTransferCheckedWithTransferHookInstruction,
   getAccount,
+  createUpdateFieldInstruction,
 } from "@solana/spl-token";
 import {
   Keypair,
@@ -174,10 +175,63 @@ describe("solana-security-token", () => {
       mintKeypair.publicKey // Mint Account address
     );
     assert.deepEqual(metadata.mint, mintKeypair.publicKey);
-    assert.deepEqual(metadata.updateAuthority, accessControlPubkey);
+    assert.deepEqual(metadata.updateAuthority, setupAccessControlArgs.authority);
     assert.equal(metadata.name, setupAccessControlArgs.name);
     assert.equal(metadata.symbol, setupAccessControlArgs.symbol);
     assert.equal(metadata.uri, setupAccessControlArgs.uri);
+  });
+
+  it("updates token metadata", async () => {
+    // NOTE: Sol balance must be increase on mint address in order to store more metadata
+    // Calculate the amount of lamports needed to store the metadata as mint account len + updateFieldInstructions.len
+    await topUpWallet(connection, mintKeypair.publicKey, solToLamports(1));
+
+    // Instruction to update metadata, adding custom fields
+    const updateFieldInstructions = [
+      {
+        field: "version",
+        value: "1",
+      },
+      {
+        field: "email",
+        value: "tokensupport@example.com",
+      },
+      {
+        field: "discord",
+        value: "https://discord.com/xyz_token",
+      },
+    ];
+
+    const updateFieldInstructionsArray = updateFieldInstructions.map((field) =>
+      createUpdateFieldInstruction({
+        programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
+        metadata: mintKeypair.publicKey, // Account address that holds the metadata
+        updateAuthority: superAdmin.publicKey, // Authority that can update the metadata
+        field: field.field, // key
+        value: field.value, // value
+      })
+    );
+
+    const transaction = new Transaction().add(...updateFieldInstructionsArray);
+    const transactionSignature = await sendAndConfirmTransaction(
+      connection,
+      transaction,
+      [superAdmin],
+      { commitment: confirmOptions }
+    );
+    console.log("Transaction Signature", transactionSignature);
+    
+    // Retrieve the metadata state
+    const metadata = await getTokenMetadata(
+      connection,
+      mintKeypair.publicKey, // Mint Account address
+    );
+    const additionalMetadataMap = new Map(metadata.additionalMetadata);
+    updateFieldInstructions.forEach(instruction => {
+      const { field, value } = instruction;
+      expect(additionalMetadataMap.has(field)).to.be.true;
+      expect(additionalMetadataMap.get(field)).to.equal(value);
+    });
   });
 
   it("creates associated token account for user wallet", async () => {
@@ -305,11 +359,38 @@ describe("solana-security-token", () => {
     );
   });
 
+  const transferAdmin = Keypair.generate();
+  const [transferAdminRolePubkey] = accessControlHelper.walletRolePDA(
+    transferAdmin.publicKey
+  );
+
+  it("assigns Transfer Admin role to user wallet", async () => {
+    const newRoles = Roles.TransferAdmin;
+    const txSignature = await accessControlHelper.initializeWalletRole(
+      transferAdmin.publicKey,
+      newRoles,
+      superAdmin
+    );
+    console.log("Assign Role Transaction Signature", txSignature);
+
+    const walletRoleData = await accessControlHelper.walletRoleData(
+      transferAdminRolePubkey
+    );
+    assert.deepEqual(walletRoleData.role, newRoles);
+
+    await topUpWallet(
+      provider.connection,
+      transferAdmin.publicKey,
+      solToLamports(1)
+    );
+  });
+
   it("creates transfer restriction group 1", async () => {
     const initTransferGroupTx =
       await transferRestrictionsHelper.initializeTransferRestrictionGroup(
         transferGroup1,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Transfer Restriction Group Transaction Signature",
@@ -345,7 +426,8 @@ describe("solana-security-token", () => {
         lockedUntil,
         transferRestrictionGroup1Pubkey,
         transferRestrictionGroup1Pubkey,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Transfer Rule Transaction Signature",
@@ -377,7 +459,8 @@ describe("solana-security-token", () => {
     const initSenderHolderTx =
       await transferRestrictionsHelper.initializeTransferRestrictionHolder(
         senderHolderId,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Sender Holder Transaction Signature",
@@ -401,7 +484,8 @@ describe("solana-security-token", () => {
     const initRecipientHolderTx =
       await transferRestrictionsHelper.initializeTransferRestrictionHolder(
         recipientHolderId,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Recipient Holder Transaction Signature",
@@ -421,31 +505,6 @@ describe("solana-security-token", () => {
     assert.equal(
       holderRecipientData.currentWalletsCount.toString(),
       Number(0).toString()
-    );
-  });
-
-  const transferAdmin = Keypair.generate();
-  const [transferAdminRolePubkey] = accessControlHelper.walletRolePDA(
-    transferAdmin.publicKey
-  );
-  it("assigns Transfer Admin role to user wallet", async () => {
-    const newRoles = Roles.TransferAdmin;
-    const txSignature = await accessControlHelper.initializeWalletRole(
-      transferAdmin.publicKey,
-      newRoles,
-      superAdmin
-    );
-    console.log("Assign Role Transaction Signature", txSignature);
-
-    const walletRoleData = await accessControlHelper.walletRoleData(
-      transferAdminRolePubkey
-    );
-    assert.deepEqual(walletRoleData.role, newRoles);
-
-    await topUpWallet(
-      provider.connection,
-      transferAdmin.publicKey,
-      solToLamports(1)
     );
   });
 
@@ -500,8 +559,8 @@ describe("solana-security-token", () => {
         holderGroupPubkey,
         userWalletPubkey,
         userWalletAssociatedAccountPubkey,
-        authorityWalletRolePubkey,
-        superAdmin
+        transferAdminRolePubkey,
+        transferAdmin
       );
     console.log(
       "Initialize Security Associated Account Transaction Signature",
@@ -574,8 +633,8 @@ describe("solana-security-token", () => {
           holderGroupPubkey,
           userWalletRecipientPubkey,
           userWalletRecipientAssociatedTokenAccountPubkey,
-          authorityWalletRolePubkey,
-          superAdmin
+          transferAdminRolePubkey,
+          transferAdmin
         );
       console.log(
         "Initialize Security Associated Account Transaction Signature",
@@ -888,6 +947,7 @@ describe("solana-security-token", () => {
   it("creates transfer restriction group 2", async () => {
     const initTransferGroupTx = await transferRestrictionsHelper.initializeTransferRestrictionGroup(
       transferGroup2Id,
+      authorityWalletRolePubkey,
       superAdmin
     );
     console.log(
@@ -907,10 +967,9 @@ describe("solana-security-token", () => {
     );
   });
 
-
   it("initialize holder group 2", async () => {
     const [userWalletNewHolderGroupPubkey] =
-    transferRestrictionsHelper.holderGroupPDA(holderSenderPubkey, transferGroup2Id);
+      transferRestrictionsHelper.holderGroupPDA(holderSenderPubkey, transferGroup2Id);
     const [group2Pubkey] = transferRestrictionsHelper.groupPDA(transferGroup2Id);
     const [transferAdminWalletRole] = accessControlHelper.walletRolePDA(transferAdmin.publicKey);
 
@@ -1004,6 +1063,7 @@ describe("solana-security-token", () => {
       lockedUntil,
       transferRestrictionGroup2Pubkey,
       transferRestrictionGroup1Pubkey,
+      authorityWalletRolePubkey,
       superAdmin
     );
     console.log(
@@ -1080,5 +1140,136 @@ describe("solana-security-token", () => {
       recipientAccountInfo.amount.toString(),
       "3000"
     );
+  });
+
+  it("sets min wallet balance by transfer admin", async () => {
+    const newMinWalletBalance = new anchor.BN(1000);
+    const setMinWalletBalanceTx = await transferRestrictionsHelper.setMinWalletBalance(
+      newMinWalletBalance,
+      accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
+      transferAdmin
+    );
+    console.log("Set Min Wallet Balance Transaction Signature", setMinWalletBalanceTx);
+
+    const transferRestrictionData =
+      await transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(transferRestrictionData.minWalletBalance.toString(), newMinWalletBalance.toString());
+  });
+
+  it("sets holder max count by transfer admin", async () => {
+    const newMaxHolders = new anchor.BN(9999);
+    const setMaxHoldersTx = await transferRestrictionsHelper.setHolderMax(
+      newMaxHolders,
+      accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
+      transferAdmin
+    );
+    console.log("Set Max Holders Transaction Signature", setMaxHoldersTx);
+
+    const transferRestrictionData =
+      await transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(transferRestrictionData.maxHolders.toString(), newMaxHolders.toString());
+  });
+
+  it("sets holder group max count by transfer admin", async () => {
+    const newMaxHolders = new anchor.BN(9999);
+    const [groupPubkey] =
+      transferRestrictionsHelper.groupPDA(transferGroup1);
+
+    const setMaxHoldersTx = await transferRestrictionsHelper.setHolderGroupMax(
+      newMaxHolders,
+      groupPubkey,
+      accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
+      transferAdmin
+    );
+    console.log("Set Group Max Holders Transaction Signature", setMaxHoldersTx);
+
+    const groupData = await transferRestrictionsHelper.groupData(groupPubkey);
+    assert.equal(groupData.maxHolders.toString(), newMaxHolders.toString());
+  });
+
+  it("sets transfer rule locked until by transfer admin", async () => {
+    const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
+      transferRestrictionGroup2Pubkey,
+      transferRestrictionGroup1Pubkey
+    );
+    const tsNow = await getNowTs(connection);
+    const lockedUntil = new anchor.BN(tsNow + 1000);
+
+    const setLockedUntilTx = await transferRestrictionsHelper.setAllowTransferRule(
+      lockedUntil,
+      transferRulePubkey,
+      transferRestrictionGroup2Pubkey,
+      transferRestrictionGroup1Pubkey,
+      accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
+      transferAdmin
+    );
+    console.log("Set Locked Until Transaction Signature", setLockedUntilTx);
+
+    const transferRuleData = await transferRestrictionsHelper.transferRuleData(transferRulePubkey);
+    assert.equal(transferRuleData.lockedUntil.toString(), lockedUntil.toString());
+  });
+
+  it("revokes security associated account", async () => {
+    const [groupPubkey] =
+      transferRestrictionsHelper.groupPDA(transferGroup1);
+    let groupData = await transferRestrictionsHelper.groupData(groupPubkey);
+    const groupCurrentHoldersCount = groupData.currentHoldersCount.toNumber();
+    const [userWalletRecipientSecurityAssociatedTokenAccountPubkey] =
+      transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userWalletRecipientAssociatedTokenAccountPubkey
+      );
+
+    const revokeSecAssocAccountRecipientTx =
+      await transferRestrictionsHelper.revokeSecurityAssociatedAccount(
+        userWalletRecipientSecurityAssociatedTokenAccountPubkey,
+        userWalletRecipientPubkey,
+        userWalletRecipientAssociatedTokenAccountPubkey,
+        transferAdminRolePubkey,
+        transferAdmin
+      );
+    console.log(
+      "Revoke Security Associated Account Transaction Signature",
+      revokeSecAssocAccountRecipientTx
+    );
+
+    try {
+      await transferRestrictionsHelper.securityAssociatedAccountData(
+        userWalletRecipientSecurityAssociatedTokenAccountPubkey
+      );
+      assert.fail("Expected error not thrown");
+    } catch (error) {
+      const errorMessage = `Error: Account does not exist or has no data ${userWalletRecipientSecurityAssociatedTokenAccountPubkey.toBase58()}`;
+      assert.equal(error, errorMessage);
+    }
+    groupData = await transferRestrictionsHelper.groupData(groupPubkey);
+
+    // revoking last wallet automatically leaves holder from the group
+    assert.equal(groupData.currentHoldersCount.toNumber(), groupCurrentHoldersCount - 1);
+  });
+
+  it("revokes holder and holder group", async () => {
+    let transferRestrictionData = await transferRestrictionsHelper.transferRestrictionData();
+    const transferRestrictionHoldersCount = transferRestrictionData.currentHoldersCount.toNumber();
+
+    const revokeHolderGroupTx = await transferRestrictionsHelper.revokeHolder(
+      holderRecipientPubkey,
+      transferGroup1,
+      transferAdminRolePubkey,
+      transferAdmin
+    );
+    console.log("Revoke Holder Group Transaction Signature", revokeHolderGroupTx);
+
+    const [userWalletCurrentHolderGroupPubkey] =
+      transferRestrictionsHelper.holderGroupPDA(holderRecipientPubkey, transferGroup1);
+    try {
+      await transferRestrictionsHelper.holderGroupData(userWalletCurrentHolderGroupPubkey);
+      assert.fail("Expected error not thrown");
+    } catch (error) {
+      const errorMessage = `Error: Account does not exist or has no data ${userWalletCurrentHolderGroupPubkey.toBase58()}`;
+      assert.equal(error, errorMessage);
+    }
+
+    transferRestrictionData = await transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(transferRestrictionData.currentHoldersCount.toNumber(), transferRestrictionHoldersCount - 1);
   });
 });

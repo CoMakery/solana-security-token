@@ -109,7 +109,7 @@ describe("token lockup", () => {
     assert.deepEqual(metadata.mint, testEnvironment.mintKeypair.publicKey);
     assert.deepEqual(
       metadata.updateAuthority,
-      testEnvironment.accessControlHelper.accessControlPubkey
+      testEnvironment.contractAdmin.publicKey
     );
     assert.equal(metadata.name, testEnvironmentParams.mint.name);
     assert.equal(metadata.symbol, testEnvironmentParams.mint.symbol);
@@ -342,28 +342,35 @@ describe("token lockup", () => {
         }
       );
 
+    const [transferAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(
+      testEnvironment.transferAdmin.publicKey
+    );
     // Initialize holders
     const reserveAdminHolderId = new anchor.BN(1);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       reserveAdminHolderId,
-      testEnvironment.reserveAdmin
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
     );
     const recipientHolderId = new anchor.BN(2);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       recipientHolderId,
-      testEnvironment.reserveAdmin
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
     );
 
     // Initialize transfer groups
     const reserveAdminGroupId = new anchor.BN(1);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
       reserveAdminGroupId,
-      testEnvironment.reserveAdmin
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
     );
     const recipientGroupId = new anchor.BN(2);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
       recipientGroupId,
-      testEnvironment.reserveAdmin
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
     );
 
     const reserveAdminHolderPubkey = testEnvironment.transferRestrictionsHelper.holderPDA(
@@ -380,7 +387,7 @@ describe("token lockup", () => {
       reserveAdminHolderGroupPubkey,
       reserveAdminHolderPubkey,
       reserveAdminGroupPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
+      transferAdminWalletRole,
       testEnvironment.transferAdmin
     );
 
@@ -398,7 +405,7 @@ describe("token lockup", () => {
       recipientHolderGroupPubkey,
       recipientHolderPubkey,
       recipientGroupIdPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
+      transferAdminWalletRole,
       testEnvironment.transferAdmin
     );
 
@@ -442,7 +449,8 @@ describe("token lockup", () => {
         reserveAdminGroupId
       )[0],
       testEnvironment.transferRestrictionsHelper.groupPDA(recipientGroupId)[0],
-      testEnvironment.reserveAdmin
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
     );
 
     const mintInfo = await testEnvironment.mintHelper.getMint();
@@ -571,16 +579,22 @@ describe("token lockup", () => {
     const transferHook = getTransferHook(mintInfo);
     assert.ok(transferHook);
 
+    const [transferAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      );
     // create transfer rule escrow -> investorTokenAccountPubkey
     const investorHolderId = new anchor.BN(3);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       investorHolderId,
-      testEnvironment.reserveAdmin
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
     );
     const investorGroupId = new anchor.BN(3);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
       investorGroupId,
-      testEnvironment.reserveAdmin
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
     );
     const investorHolderPubkey =
       testEnvironment.transferRestrictionsHelper.holderPDA(investorHolderId)[0];
@@ -595,9 +609,7 @@ describe("token lockup", () => {
       investorHolderGroupPubkey,
       investorHolderPubkey,
       investorGroupPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(
-        testEnvironment.transferAdmin.publicKey
-      )[0],
+      transferAdminWalletRole,
       testEnvironment.transferAdmin
     );
 
@@ -620,7 +632,8 @@ describe("token lockup", () => {
         lockedUntil,
         testEnvironment.transferRestrictionsHelper.groupPDA(escrowGroupId)[0],
         testEnvironment.transferRestrictionsHelper.groupPDA(investorGroupId)[0],
-        testEnvironment.reserveAdmin
+        transferAdminWalletRole,
+        testEnvironment.transferAdmin
       );
     console.log(
       "Initialze transfer rule tx:",
@@ -797,7 +810,10 @@ describe("token lockup", () => {
       lockedUntil,
       testEnvironment.transferRestrictionsHelper.groupPDA(escrowGroupdId)[0],
       testEnvironment.transferRestrictionsHelper.groupPDA(reclaimerGroupId)[0],
-      testEnvironment.reserveAdmin
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
+      testEnvironment.transferAdmin
     );
 
     const mintInfo = await testEnvironment.mintHelper.getMint();

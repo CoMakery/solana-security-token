@@ -72,4 +72,39 @@ pub mod transfer_restrictions {
     pub fn initialize_holder_group(ctx: Context<InitializeHolderGroup>) -> Result<()> {
         instructions::transfer_restrictions::initialize_holder_group(ctx)
     }
+
+    pub fn set_min_wallet_balance(
+        ctx: Context<SetMinWalletBalance>,
+        min_wallet_balance: u64,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::set_min_wallet_balance(ctx, min_wallet_balance)
+    }
+
+    pub fn set_holder_max(ctx: Context<SetHolderMax>, holder_max: u64) -> Result<()> {
+        instructions::transfer_restrictions::set_holder_max(ctx, holder_max)
+    }
+
+    pub fn set_holder_group_max(
+        ctx: Context<SetHolderGroupMax>,
+        holder_group_max: u64,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::set_holder_group_max(ctx, holder_group_max)
+    }
+
+    pub fn set_allow_transfer_rule(
+        ctx: Context<SetAllowTransferRule>,
+        locked_until: u64,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::set_allow_transfer_rule(ctx, locked_until)
+    }
+
+    pub fn revoke_security_associated_account(
+        ctx: Context<RevokeSecurityAssociatedAccount>,
+    ) -> Result<()> {
+        instructions::transfer_restrictions::revoke_security_associated_account(ctx)
+    }
+
+    pub fn revoke_holder(ctx: Context<RevokeHolder>) -> Result<()> {
+        instructions::transfer_restrictions::revoke_holder(ctx)
+    }
 }
