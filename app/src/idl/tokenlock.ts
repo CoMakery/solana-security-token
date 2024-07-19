@@ -66,6 +66,19 @@ export type Tokenlock = {
         {
           "name": "tokenProgram",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "transferRestrictionsProgram",
+          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule"
         }
       ],
       "args": [

@@ -21,7 +21,6 @@ pub fn enforce_transfer_restrictions(ctx: Context<EnforceTransferRestrictions>) 
 
     let transfer_rule = &ctx.accounts.transfer_rule;
 
-    // TODO: add transfer restrictions checks here
     if transfer_rule.locked_until > Clock::get()?.unix_timestamp as u64 {
         return Err(TransferRestrictionsError::TransferRuleLocked.into());
     }

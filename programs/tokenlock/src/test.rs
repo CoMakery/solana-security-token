@@ -420,6 +420,10 @@ impl<'a> TestFixture {
         target_assoc_info: &'a AccountInfo<'a>,
         mint_info: &'a AccountInfo<'a>,
         token_program_info: &'a AccountInfo<'a>,
+        transfer_restrictions_program_info: &'a AccountInfo<'a>,
+        security_associated_account_from_info: &'a AccountInfo<'a>,
+        security_associated_account_to_info: &'a AccountInfo<'a>,
+        transfer_rule_info: &'a AccountInfo<'a>,
     ) -> Result<CancelTimelock<'a>, ProgramError> {
         let escrow_account = InterfaceAccount::try_from(&escrow_account_info)?;
         let mut tokenlock_data: Account<TokenLockData> =
@@ -438,6 +442,14 @@ impl<'a> TestFixture {
             target_assoc: Box::new(InterfaceAccount::try_from(&target_assoc_info)?),
             mint_address: Box::new(InterfaceAccount::try_from(mint_info)?),
             token_program: Program::try_from(token_program_info)?,
+            transfer_restrictions_program: Program::try_from(transfer_restrictions_program_info)?,
+            security_associated_account_from: UncheckedAccount::try_from(
+                security_associated_account_from_info,
+            ),
+            security_associated_account_to: UncheckedAccount::try_from(
+                security_associated_account_to_info,
+            ),
+            transfer_rule: UncheckedAccount::try_from(transfer_rule_info),
         })
     }
 }
@@ -1302,6 +1314,13 @@ fn test_cancel_timelock() {
     let target_assoc_info = fixture.target_assoc.into_account_info();
     let token_program_info = fixture.token_program.into_account_info();
     let mint_info = fixture.mint_address.into_account_info();
+    let transfer_restrictions_program_info =
+        fixture.transfer_restrictions_program.into_account_info();
+    let security_associated_account_from_info =
+        fixture.security_associated_account_from.into_account_info();
+    let security_associated_account_to_info =
+        fixture.security_associated_account_to.into_account_info();
+    let transfer_rule_info = fixture.transfer_rule.into_account_info();
     let mut accounts = TestFixture::cancel_timelock(
         &escrow_account_info,
         &tokenlock_account_info,
@@ -1313,6 +1332,10 @@ fn test_cancel_timelock() {
         &target_assoc_info,
         &mint_info,
         &token_program_info,
+        &transfer_restrictions_program_info,
+        &security_associated_account_from_info,
+        &security_associated_account_to_info,
+        &transfer_rule_info,
     )
     .expect("Getting accounts error");
     let bumps = CancelTimelockBumps::default();

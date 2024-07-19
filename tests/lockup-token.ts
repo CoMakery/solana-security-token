@@ -905,15 +905,11 @@ describe("token lockup", () => {
       testEnvironment.mintHelper.getAssocciatedTokenAddress(
         testEnvironment.reserveAdmin.publicKey
       );
-    const funderAssociatedTokenAccount =
-      testEnvironment.mintHelper.getAssocciatedTokenAddress(
-        testEnvironment.reserveAdmin.publicKey
-      );
-    const [funderSecAssocAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      funderAssociatedTokenAccount
+    const [investorSecAssocAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+      investorTokenAccountPubkey
     );
-    const funderSecAssocAccountData = await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
-      funderSecAssocAccountPubkey
+    const investorSecAssocAccountData = await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
+      investorSecAssocAccountPubkey
     );
     const [reclaimerSecAssocAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
       reclaimerTokenAccountPubkey
@@ -923,12 +919,16 @@ describe("token lockup", () => {
     );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
       new anchor.BN(tsNow),
-      funderSecAssocAccountData.group,
+      investorSecAssocAccountData.group,
       reclaimerSecAssocAccountData.group,
       transferAdminWalletRole,
       testEnvironment.transferAdmin
     )
-    
+    const [transferRulePubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
+      investorSecAssocAccountData.group,
+      reclaimerSecAssocAccountData.group
+    );
+
     const cancelTimelockInstruction =
       tokenlockProgram.instruction.cancelTimelock(timelockIdx, {
         accounts: {
@@ -942,6 +942,10 @@ describe("token lockup", () => {
           reclaimer: reclaimerTokenAccountPubkey,
           mintAddress: testEnvironment.mintKeypair.publicKey,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
+          transferRestrictionsProgram: testEnvironment.transferRestrictionsHelper.program.programId,
+          securityAssociatedAccountFrom: investorSecAssocAccountPubkey,
+          securityAssociatedAccountTo: reclaimerSecAssocAccountPubkey,
+          transferRule: transferRulePubkey,
         },
         signers: [testEnvironment.reserveAdmin],
       });
