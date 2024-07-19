@@ -13,7 +13,7 @@ pub const SECURITY_ASSOCIATED_ACCOUNT_PREFIX: &str = "saa"; // security associat
 #[derive(Default, InitSpace)]
 pub struct SecurityAssociatedAccount {
     pub group: u64,
-    pub holder: Pubkey,
+    pub holder: Option<Pubkey>,
 }
 
 #[derive(Accounts)]

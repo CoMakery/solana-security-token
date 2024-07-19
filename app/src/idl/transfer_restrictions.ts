@@ -1466,6 +1466,26 @@ export type TransferRestrictions = {
           }
         },
         {
+          "name": "escrowSecurityAssociatedAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "escrowAccount"
+              }
+            ]
+          }
+        },
+        {
           "name": "mint"
         },
         {
@@ -1484,6 +1504,10 @@ export type TransferRestrictions = {
           "name": "payer",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -2015,7 +2039,9 @@ export type TransferRestrictions = {
           },
           {
             "name": "holder",
-            "type": "pubkey"
+            "type": {
+              "option": "pubkey"
+            }
           }
         ]
       }

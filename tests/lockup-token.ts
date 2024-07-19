@@ -512,19 +512,6 @@ describe("token lockup", () => {
       )[0],
       testEnvironment.walletsAdmin
     );
-    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-      testEnvironment.transferRestrictionsHelper.groupPDA(recipientGroupId)[0],
-      testEnvironment.transferRestrictionsHelper.holderPDA(
-        recipientHolderId
-      )[0],
-      recipientHolderGroupPubkey,
-      escrowOwnerPubkey,
-      escrowAccount,
-      testEnvironment.accessControlHelper.walletRolePDA(
-        testEnvironment.walletsAdmin.publicKey
-      )[0],
-      testEnvironment.walletsAdmin
-    );
     // Initialize Transfer Restrictions Rule
     const tsNow = await getNowTs(testEnvironment.connection);
     const lockedUntil = new anchor.BN(tsNow);

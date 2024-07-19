@@ -83,7 +83,7 @@ describe("TokenLockup stress test", () => {
       );
       const maxReleaseDelay = new anchor.BN(346896000);
       const minTimelockAmount = new anchor.BN(100);
-      const initializeTokenlockSignature = await initializeTokenlock(
+      await initializeTokenlock(
         tokenlockProgram,
         maxReleaseDelay,
         minTimelockAmount,
@@ -272,20 +272,9 @@ describe("TokenLockup stress test", () => {
       walletCTokenAccount,
       authorityWalletRole,
       testEnvironment.walletsAdmin,
-    )
-
-    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-      groupPubkey,
-      holderPubkey,
-      holderGroupPubkey,
-      escrowOwnerPubkey,
-      escrowAccount,
-      authorityWalletRole,
-      testEnvironment.walletsAdmin,
-    )
+    );
 
     const transferAmount = new anchor.BN(unlockedBalance);
-
     const withdrawTxSignature = await withdraw(
       testEnvironment.connection,
       transferAmount,
@@ -298,7 +287,7 @@ describe("TokenLockup stress test", () => {
       walletCTokenAccount,
       testEnvironment.transferRestrictionsHelper,
       walletC
-    )
+    );
     console.log("Transfer Transaction Signature", withdrawTxSignature);
     tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(
       tokenlockDataPubkey

@@ -489,16 +489,19 @@ export class TransferRestrictionsHelper {
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
+    const [escrowSecurityAssociatedAccountPubkey] = this.securityAssociatedAccountPDA(lockupEscrowAccountPubkey);
     return this.program.methods
       .setLockupEscrowAccount()
       .accountsStrict({
         transferRestrictionData: this.transferRestrictionDataPubkey,
+        escrowSecurityAssociatedAccount: escrowSecurityAssociatedAccountPubkey,
         mint: this.mintPubkey,
         accessControlAccount: this.accessControlPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
         escrowAccount: lockupEscrowAccountPubkey,
         tokenlockAccount: tokenlockAccountPubkey,
         payer: payer.publicKey,
+        systemProgram: SystemProgram.programId,
       })
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });

@@ -1,12 +1,15 @@
-use std::str::FromStr;
 use access_control::{self, AccessControl, WalletRole};
 use anchor_lang::prelude::*;
 use anchor_spl::{
     token_2022::{self, ID as TOKEN_2022_PROGRAM_ID},
     token_interface::{Mint, TokenAccount},
 };
+use std::str::FromStr;
 
-use crate::{TransferRestrictionData, TRANSFER_RESTRICTION_DATA_PREFIX};
+use crate::{
+    common::DISCRIMINATOR_LEN, SecurityAssociatedAccount, TransferRestrictionData,
+    SECURITY_ASSOCIATED_ACCOUNT_PREFIX, TRANSFER_RESTRICTION_DATA_PREFIX,
+};
 
 const TOKENLOCK_ID: &str = "7CN3iHcRimZRa97M38cyMQAF68ecQYDqHfCUgBeSARG2";
 #[derive(Accounts)]
@@ -20,6 +23,15 @@ pub struct SetLockupEscrowAccount<'info> {
         constraint = transfer_restriction_data.security_token_mint == mint.key(),
     )]
     pub transfer_restriction_data: Account<'info, TransferRestrictionData>,
+
+    #[account(init, payer = payer, space = DISCRIMINATOR_LEN + SecurityAssociatedAccount::INIT_SPACE,
+        seeds = [
+            SECURITY_ASSOCIATED_ACCOUNT_PREFIX.as_bytes(),
+            &escrow_account.key().to_bytes(),
+        ],
+        bump,
+    )]
+    pub escrow_security_associated_account: Account<'info, SecurityAssociatedAccount>,
 
     #[account(
         mint::token_program = TOKEN_2022_PROGRAM_ID,
@@ -49,4 +61,6 @@ pub struct SetLockupEscrowAccount<'info> {
     pub tokenlock_account: AccountInfo<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
 }

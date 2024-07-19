@@ -20,6 +20,10 @@ pub fn set_lockup_escrow_account(
     let transfer_restriction_data = &mut ctx.accounts.transfer_restriction_data;
     transfer_restriction_data.lockup_escrow_account = Some(escrow_account);
 
+    let escrow_security_associated_token_account = &mut ctx.accounts.escrow_security_associated_account;
+    escrow_security_associated_token_account.group = 0;
+    escrow_security_associated_token_account.holder = None;
+
     Ok(())
 }
 
