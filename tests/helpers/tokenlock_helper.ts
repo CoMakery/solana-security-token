@@ -242,7 +242,7 @@ export function lockedBalanceOf(
   let amount = new BN(0);
   const timelockCount = timelockCountOf(timelockAccount);
   for (let i = 0; i < timelockCount; i++) {
-    amount.add(lockedBalanceOfTimelock(account, timelockAccount, i, nowTs));
+    amount = amount.add(lockedBalanceOfTimelock(account, timelockAccount, i, nowTs));
   }
   return amount;
 }
