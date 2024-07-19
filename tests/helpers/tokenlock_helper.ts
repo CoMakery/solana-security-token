@@ -509,7 +509,6 @@ export async function fundReleaseSchedule(
         ...[modifyComputeUnitsInstruction, fundReleaseScheduleInstruction]
       ),
       [signer],
-      { commitment: "confirmed" }
     );
 
     const account = await program.account.timelockData.fetch(timelockAccount);
