@@ -410,14 +410,14 @@ describe("token lockup", () => {
       tsNow
     );
     const lockedBalance = lockedBalanceOf(tokenlockData, timelockData, tsNow);
+    const unlockedBalanceCalculated = (new anchor.BN(fundedAmount).muln(initialReleasePortionInBips)).divn(BIPS_PRECISION);
     assert.equal(
-      unlockedBalance,
-      (fundedAmount * initialReleasePortionInBips) / BIPS_PRECISION
+      unlockedBalance.toString(),
+      unlockedBalanceCalculated.toString()
     );
     assert.equal(
-      lockedBalance,
-      fundedAmount -
-      (fundedAmount * initialReleasePortionInBips) / BIPS_PRECISION
+      lockedBalance.toString(),
+      (new anchor.BN(fundedAmount)).sub(unlockedBalanceCalculated).toString()
     );
   });
 
@@ -537,7 +537,7 @@ describe("token lockup", () => {
     );
   });
 
-  let transferAmount;
+  let transferAmount: anchor.BN;
   const investorGroupId = new anchor.BN(3);
   const investorHolderId = new anchor.BN(3);
   const investorHolderPubkey =
@@ -575,7 +575,7 @@ describe("token lockup", () => {
       timelockData,
       tsNow
     );
-    transferAmount = unlockedBalance * 0.35;
+    transferAmount = unlockedBalance.muln(0.35);
 
     await topUpWallet(
       testEnvironment.connection,
@@ -589,7 +589,7 @@ describe("token lockup", () => {
       );
     // to can be any token account from the group which allows to receive tokens from escrowAccount group
     const transferInstruction = tokenlockProgram.instruction.transfer(
-      new anchor.BN(transferAmount),
+      transferAmount,
       {
         accounts: {
           tokenlockAccount: tokenlockDataPubkey,
@@ -667,7 +667,7 @@ describe("token lockup", () => {
       testEnvironment.mintKeypair.publicKey,
       investorTokenAccountPubkey,
       escrowOwnerPubkey,
-      transferAmount,
+      transferAmount.toNumber(),
       testEnvironment.confirmOptions
     );
 
@@ -683,7 +683,7 @@ describe("token lockup", () => {
       await tokenlockProgram.account.timelockData.fetch(timelockAccount);
     assert.equal(
       timelockDataAfterTransfer.timelocks[0].tokensTransferred.toNumber(),
-      transferAmount
+      transferAmount.toNumber()
     );
     const investorTokenAccountData =
       await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
@@ -711,19 +711,18 @@ describe("token lockup", () => {
       timelockData,
       tsNow
     );
-    const transferTimelockAmount = unlockedBalance * 0.35;
+    const transferTimelockAmount = unlockedBalance.muln(0.35);
 
     await topUpWallet(
       testEnvironment.connection,
       investor.publicKey,
       solToLamports(1)
     );
-    console.log(`tokenlockPubkey:`, tokenlockDataPubkey.toString());
     const timelockId = 0;
     // to can be any token account from the group which allows to receive tokens from escrowAccount group
     const transferTimelockInstruction =
       tokenlockProgram.instruction.transferTimelock(
-        new anchor.BN(transferTimelockAmount),
+        transferTimelockAmount,
         timelockId,
         {
           accounts: {
@@ -756,7 +755,7 @@ describe("token lockup", () => {
       testEnvironment.mintKeypair.publicKey,
       investorTokenAccountPubkey,
       escrowOwnerPubkey,
-      transferTimelockAmount,
+      transferTimelockAmount.toNumber(),
       testEnvironment.confirmOptions
     );
 
@@ -772,13 +771,13 @@ describe("token lockup", () => {
       await tokenlockProgram.account.timelockData.fetch(timelockAccount);
     assert.equal(
       timelockDataAfterTransfer.timelocks[0].tokensTransferred.toNumber(),
-      transferAmount + transferTimelockAmount
+      transferAmount.add(transferTimelockAmount).toNumber()
     );
     const investorTokenAccountData =
       await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
     assert.equal(
       investorTokenAccountData.amount.toString(),
-      (transferAmount + transferTimelockAmount).toString()
+      (transferAmount.add(transferTimelockAmount)).toString()
     );
   });
 
@@ -837,13 +836,13 @@ describe("token lockup", () => {
       timelockData,
       tsNow
     );
-    const transferTimelockAmount = Math.floor(unlockedBalance * 0.35);
+    const transferTimelockAmount = unlockedBalance.muln(0.35);
 
     const timelockId = 0;
     // to can be any token account from the group which allows to receive tokens from escrowAccount group
     const transferTimelockInstruction =
       tokenlockProgram.instruction.transferTimelock(
-        new anchor.BN(transferTimelockAmount),
+        transferTimelockAmount,
         timelockId,
         {
           accounts: {
@@ -876,7 +875,7 @@ describe("token lockup", () => {
       testEnvironment.mintKeypair.publicKey,
       newinvestorTokenAccountPubkey,
       escrowOwnerPubkey,
-      transferTimelockAmount,
+      transferTimelockAmount.toNumber(),
       testEnvironment.confirmOptions
     );
 
@@ -985,7 +984,7 @@ describe("token lockup", () => {
       testEnvironment.mintKeypair.publicKey,
       reclaimerTokenAccountPubkey,
       escrowOwnerPubkey,
-      transferAmount,
+      transferAmount.toNumber(),
       testEnvironment.confirmOptions
     );
 
@@ -997,7 +996,7 @@ describe("token lockup", () => {
       testEnvironment.mintKeypair.publicKey,
       investorTokenAccountPubkey,
       escrowOwnerPubkey,
-      transferAmount,
+      transferAmount.toNumber(),
       testEnvironment.confirmOptions
     );
 
@@ -1026,7 +1025,7 @@ describe("token lockup", () => {
       await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
     assert.equal(
       investorTokenAccountData.amount.toString(),
-      (investorBalanceBefore + BigInt(unlockedBalance)).toString()
+      (investorBalanceBefore + BigInt(unlockedBalance.toNumber())).toString()
     );
     const escrowAccountData = await testEnvironment.mintHelper.getAccount(
       escrowAccount
