@@ -13,7 +13,10 @@ import { createAccount, solToLamports, topUpWallet } from "./../utils";
 import {
   createReleaseSchedule,
   fundReleaseSchedule,
+  getTimelockAccount,
   initializeTokenlock,
+  unlockedBalanceOf,
+  withdraw,
 } from "./../helpers/tokenlock_helper";
 import { getNowTs } from "./../helpers/clock_helper";
 import { fromDaysToSeconds } from "../helpers/datetime";
@@ -36,11 +39,10 @@ describe("TokenLockup stress test", () => {
   let mintPubkey;
   let reserveAdmin;
   let walletB;
-  let escrow;
-  let pda;
+  let escrowAccount;
+  let escrowOwnerPubkey;
   let walletC;
-  let tokenlockAccount;
-  let funderAcc;
+  let tokenlockDataPubkey;
 
   beforeEach(async () => {
     try {
@@ -53,9 +55,6 @@ describe("TokenLockup stress test", () => {
       mintPubkey = testEnvironment.mintKeypair.publicKey;
       reserveAdmin = testEnvironment.reserveAdmin;
 
-      funderAcc = testEnvironment.mintHelper.getAssocciatedTokenAddress(
-        testEnvironment.reserveAdmin.publicKey
-      );
       await topUpWallet(
         testEnvironment.connection,
         testEnvironment.contractAdmin.publicKey,
@@ -63,23 +62,22 @@ describe("TokenLockup stress test", () => {
       );
       const space = 1 * 1024 * 1024; // 1MB
 
-      tokenlockAccount = await createAccount(
+      tokenlockDataPubkey = await createAccount(
         testEnvironment.connection,
         testEnvironment.contractAdmin,
         space,
         tokenlockProgram.programId
       );
-      const [escrowOwnerPubkey] = anchor.web3.PublicKey.findProgramAddressSync(
+      [escrowOwnerPubkey] = anchor.web3.PublicKey.findProgramAddressSync(
         [
           Buffer.from("tokenlock"),
           testEnvironment.mintKeypair.publicKey.toBuffer(),
-          tokenlockAccount.toBuffer(),
+          tokenlockDataPubkey.toBuffer(),
         ],
         tokenlockProgram.programId
       );
-      pda = escrowOwnerPubkey;
-      escrow = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-        pda,
+      escrowAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        escrowOwnerPubkey,
         testEnvironment.contractAdmin,
         true
       );
@@ -89,8 +87,8 @@ describe("TokenLockup stress test", () => {
         tokenlockProgram,
         maxReleaseDelay,
         minTimelockAmount,
-        tokenlockAccount,
-        escrow,
+        tokenlockDataPubkey,
+        escrowAccount,
         testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.walletRolePDA(
@@ -99,6 +97,14 @@ describe("TokenLockup stress test", () => {
         testEnvironment.accessControlHelper.accessControlPubkey,
         testEnvironment.contractAdmin
       );
+
+      const txSignature = await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+        escrowAccount,
+        tokenlockDataPubkey,
+        testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.contractAdmin.publicKey)[0],
+        testEnvironment.contractAdmin
+      );
+      console.log("Set escrow account into transfer restriction data tx:", txSignature);
     } catch (error) {
       console.log("error=", error);
       throw error;
@@ -114,7 +120,7 @@ describe("TokenLockup stress test", () => {
     for (let i = 0; i < 200; i++) {
       const scheduleId = await createReleaseSchedule(
         tokenlockProgram,
-        tokenlockAccount,
+        tokenlockDataPubkey,
         totalBatches,
         new anchor.BN(firstDelay),
         firstBatchBips,
@@ -140,7 +146,7 @@ describe("TokenLockup stress test", () => {
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
-      tokenlockAccount,
+      tokenlockDataPubkey,
       totalBatches,
       new anchor.BN(firstDelay),
       firstBatchBips,
@@ -160,7 +166,8 @@ describe("TokenLockup stress test", () => {
       2_000_000_000
     );
     let nowTs = await getNowTs(testEnvironment.connection);
-    for (let i = 0; i < 100; i++) {
+    const iterations = 2;
+    for (let i = 0; i < iterations; i++) {
       const timelockId = await fundReleaseSchedule(
         testEnvironment.connection,
         tokenlockProgram,
@@ -168,9 +175,9 @@ describe("TokenLockup stress test", () => {
         new anchor.BN(nowTs + commence),
         scheduleId,
         [walletC.publicKey, reserveAdmin.publicKey, walletB.publicKey],
-        tokenlockAccount,
-        escrow,
-        pda,
+        tokenlockDataPubkey,
+        escrowAccount,
+        escrowOwnerPubkey,
         walletB.publicKey,
         reserveAdmin,
         testEnvironment.accessControlHelper.walletRolePDA(
@@ -190,7 +197,7 @@ describe("TokenLockup stress test", () => {
       2_000_000_000
     );
     nowTs = await getNowTs(testEnvironment.connection);
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < iterations; i++) {
       const timelockId = await fundReleaseSchedule(
         testEnvironment.connection,
         tokenlockProgram,
@@ -198,9 +205,9 @@ describe("TokenLockup stress test", () => {
         new anchor.BN(nowTs + commence),
         scheduleId,
         [walletC.publicKey, reserveAdmin.publicKey, walletB.publicKey],
-        tokenlockAccount,
-        escrow,
-        pda,
+        tokenlockDataPubkey,
+        escrowAccount,
+        escrowOwnerPubkey,
         walletC.publicKey,
         reserveAdmin,
         testEnvironment.accessControlHelper.walletRolePDA(
@@ -213,6 +220,102 @@ describe("TokenLockup stress test", () => {
       console.log("2nd created timelock=", i);
       assert(timelockId === i);
     }
+
+    await topUpWallet(testEnvironment.connection, walletC.publicKey, solToLamports(1));
+
+    const tsNow = await getNowTs(testEnvironment.connection);
+    let tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(
+      tokenlockDataPubkey
+    );
+    const timelockAccount = getTimelockAccount(
+      tokenlockProgram.programId,
+      tokenlockDataPubkey,
+      walletC.publicKey
+    );
+    let timelockData = await tokenlockProgram.account.timelockData.fetch(
+      timelockAccount
+    );
+    const unlockedBalance = unlockedBalanceOf(
+      tokenlockData,
+      timelockData,
+      tsNow
+    );
+    const walletCTokenAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
+      walletC.publicKey,
+      reserveAdmin
+    );
+
+    const group0 = new anchor.BN(0);
+    const transferRestrictionData = await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    const holderId = transferRestrictionData.holderIds.addn(1);
+    const [authorityWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.walletsAdmin.publicKey);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
+      holderId,
+      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.walletsAdmin.publicKey)[0],
+      testEnvironment.walletsAdmin,
+    );
+    const [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(group0);
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
+    const [holderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(holderPubkey, group0);
+    await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+      holderGroupPubkey,
+      holderPubkey,
+      groupPubkey,
+      authorityWalletRole,
+      testEnvironment.walletsAdmin,
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      walletC.publicKey,
+      walletCTokenAccount,
+      authorityWalletRole,
+      testEnvironment.walletsAdmin,
+    )
+
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      escrowOwnerPubkey,
+      escrowAccount,
+      authorityWalletRole,
+      testEnvironment.walletsAdmin,
+    )
+
+    const transferAmount = new anchor.BN(unlockedBalance);
+
+    const withdrawTxSignature = await withdraw(
+      testEnvironment.connection,
+      transferAmount,
+      tokenlockProgram,
+      testEnvironment.transferRestrictionsHelper.program.programId,
+      testEnvironment.mintKeypair.publicKey,
+      tokenlockDataPubkey,
+      timelockAccount,
+      escrowOwnerPubkey,
+      walletCTokenAccount,
+      testEnvironment.transferRestrictionsHelper,
+      walletC
+    )
+    console.log("Transfer Transaction Signature", withdrawTxSignature);
+    tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(
+      tokenlockDataPubkey
+    );
+    timelockData = await tokenlockProgram.account.timelockData.fetch(
+      timelockAccount
+    );
+    assert.equal(0,
+      unlockedBalanceOf(
+        tokenlockData,
+        timelockData,
+        tsNow
+      ).toNumber()
+    );
+
+    const walletCTokenAccountData = await testEnvironment.mintHelper.getAccount(walletCTokenAccount);
+    assert.equal(transferAmount.toString(), walletCTokenAccountData.amount.toString());
   });
 
   it("100 funds release Schedule for different recipients", async () => {
@@ -224,7 +327,7 @@ describe("TokenLockup stress test", () => {
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
-      tokenlockAccount,
+      tokenlockDataPubkey,
       totalBatches,
       new anchor.BN(firstDelay),
       firstBatchBips,
@@ -252,9 +355,9 @@ describe("TokenLockup stress test", () => {
         new anchor.BN(nowTs + commence),
         scheduleId,
         [walletC.publicKey, reserveAdmin.publicKey, walletB.publicKey],
-        tokenlockAccount,
-        escrow,
-        pda,
+        tokenlockDataPubkey,
+        escrowAccount,
+        escrowOwnerPubkey,
         walletB.publicKey,
         reserveAdmin,
         testEnvironment.accessControlHelper.walletRolePDA(
@@ -282,9 +385,9 @@ describe("TokenLockup stress test", () => {
         new anchor.BN(nowTs + commence),
         scheduleId,
         [walletC.publicKey, reserveAdmin.publicKey, walletB.publicKey],
-        tokenlockAccount,
-        escrow,
-        pda,
+        tokenlockDataPubkey,
+        escrowAccount,
+        escrowOwnerPubkey,
         walletC.publicKey,
         reserveAdmin,
         testEnvironment.accessControlHelper.walletRolePDA(

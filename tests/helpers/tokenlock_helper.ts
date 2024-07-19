@@ -12,7 +12,12 @@ import {
 } from "@solana/web3.js";
 import { BN, Program } from "@coral-xyz/anchor";
 import { Tokenlock } from "../../target/types/tokenlock";
-import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import {
+  addExtraAccountMetasForExecute,
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID
+} from "@solana/spl-token";
+import { TransferRestrictionsHelper } from "./transfer-restrictions_helper";
 
 export function uuidBytes(): number[] {
   const uuid = uuidv4().replace(/-/g, "");
@@ -118,9 +123,9 @@ function getReleaseSchedule(account: any, scheduleId: number): any {
 function calculateUnlocked(
   commencementTimestamp: number,
   currentTimestamp: number,
-  amount: number,
+  amount: BN,
   releaseSchedule: any
-): number {
+): BN {
   return calculateUnlockedForReleaseSchedule(
     commencementTimestamp,
     currentTimestamp,
@@ -141,20 +146,21 @@ function totalUnlockedToDateOfTimelock(
   timelockAccount: any,
   timelockId: number,
   nowTs: number
-) {
+): BN {
   if (timelockAccount === null) {
-    return 0;
+    return new BN(0);
   }
 
   const timelock = timelockOf(timelockAccount, timelockId);
-  if (timelock == null) return 0;
+  if (timelock == null) return new BN(0);
   const releaseSchedule = getReleaseSchedule(account, timelock.scheduleId);
 
-  if (releaseSchedule == null) return 0;
+  if (releaseSchedule == null) return new BN(0);
+
   return calculateUnlocked(
     timelock.commencementTimestamp,
     nowTs,
-    timelock.totalAmount.toNumber(),
+    timelock.totalAmount,
     releaseSchedule
   );
 }
@@ -167,18 +173,16 @@ export function unlockedBalanceOfTimelock(
   timelockAccount: any,
   timelockIndex: number,
   nowTs: number
-): number {
+): BN {
   const timelock = checkAndgetTimelock(timelockAccount, timelockIndex);
-  if (timelock === null) return null;
+  if (timelock === null) return new BN(0);
 
-  return (
-    totalUnlockedToDateOfTimelock(
-      account,
-      timelockAccount,
-      timelockIndex,
-      nowTs
-    ) - timelock.tokensTransferred.toNumber()
-  );
+  return totalUnlockedToDateOfTimelock(
+    account,
+    timelockAccount,
+    timelockIndex,
+    nowTs
+  ).sub(timelock.tokensTransferred);
 }
 
 /**
@@ -189,12 +193,11 @@ function lockedBalanceOfTimelock(
   timelockAccount: any,
   timelockIndex: number,
   nowTs: number
-) {
+): BN {
   const timelock = checkAndgetTimelock(timelockAccount, timelockIndex);
   if (timelock === null) return null;
 
-  return (
-    timelock.totalAmount.toNumber() -
+  return timelock.totalAmount.sub(
     totalUnlockedToDateOfTimelock(
       account,
       timelockAccount,
@@ -211,15 +214,15 @@ export function unlockedBalanceOf(
   account: any,
   timelockAccount: any,
   nowTs: number
-): number {
+): BN {
   if (timelockAccount === null) {
-    return 0;
+    return new BN(0);
   }
 
-  let amount = 0;
+  let amount = new BN(0);
   const timelockCount = timelockAccount.timelocks.length;
   for (let i = 0; i < timelockCount; i++) {
-    amount += unlockedBalanceOfTimelock(account, timelockAccount, i, nowTs);
+    amount = amount.add(unlockedBalanceOfTimelock(account, timelockAccount, i, nowTs));
   }
   return amount;
 }
@@ -231,15 +234,15 @@ export function lockedBalanceOf(
   account: any,
   timelockAccount: any,
   nowTs: number
-): number {
+): BN {
   if (timelockAccount === null) {
-    return 0;
+    return new BN(0);
   }
 
-  let amount = 0;
+  let amount = new BN(0);
   const timelockCount = timelockCountOf(timelockAccount);
   for (let i = 0; i < timelockCount; i++) {
-    amount += lockedBalanceOfTimelock(account, timelockAccount, i, nowTs);
+    amount.add(lockedBalanceOfTimelock(account, timelockAccount, i, nowTs));
   }
   return amount;
 }
@@ -249,13 +252,13 @@ export const BIPS_PRECISION: number = 10000;
 function calculateUnlockedForReleaseSchedule(
   commencementTimestamp: number,
   currentTimestamp: number,
-  amount: number,
+  amount: BN,
   releaseCount: number,
   delayUntilFirstReleaseInSeconds: number,
   initialReleasePortionInBips: number,
   periodBetweenReleasesInSeconds: number
-): number {
-  if (commencementTimestamp > currentTimestamp) return 0;
+): BN {
+  if (commencementTimestamp > currentTimestamp) return new BN(0);
 
   const secondsElapsed = currentTimestamp - commencementTimestamp;
 
@@ -266,34 +269,38 @@ function calculateUnlockedForReleaseSchedule(
   if (
     secondsElapsed >=
     delayUntilFirstReleaseInSeconds +
-      periodBetweenReleasesInSeconds * (releaseCount - 1)
+    periodBetweenReleasesInSeconds * (releaseCount - 1)
   ) {
     return amount;
   }
 
-  let unlocked = 0;
+  let unlocked = new BN(0);
   // unlock the initial release if the delay has elapsed
   if (secondsElapsed >= delayUntilFirstReleaseInSeconds) {
-    unlocked = (amount * initialReleasePortionInBips) / BIPS_PRECISION;
+    unlocked = (amount.muln(initialReleasePortionInBips)).divn(BIPS_PRECISION)
 
+    const timePassedAfterFirstReleaseInSeconds = secondsElapsed - delayUntilFirstReleaseInSeconds;
     // if at least one period after the delay has passed
     if (
-      secondsElapsed - delayUntilFirstReleaseInSeconds >=
+      timePassedAfterFirstReleaseInSeconds >=
       periodBetweenReleasesInSeconds
     ) {
       // calculate the number of additional periods that have passed (not including the initial release)
       // this discards any remainders (ie it truncates / rounds down)
       // eslint-disable-next-line max-len
-      const additionalUnlockedPeriods =
-        (secondsElapsed - delayUntilFirstReleaseInSeconds) /
-        periodBetweenReleasesInSeconds;
+      const additionalUnlockedPeriods = Math.floor(
+        timePassedAfterFirstReleaseInSeconds /
+        periodBetweenReleasesInSeconds
+      );
 
       // calculate the amount of unlocked tokens for the additionalUnlockedPeriods
       // multiplication is applied before division to delay truncating to the smallest unit
       // this distributes unlocked tokens more evenly across unlock periods
       // than truncated division followed by multiplication
-      unlocked +=
-        ((amount - unlocked) * additionalUnlockedPeriods) / (releaseCount - 1);
+      const amountMulAdditionalReleasePeriods = (amount.sub(unlocked)).muln(additionalUnlockedPeriods);
+      const unlockedAmountAfterFirstRelease = amountMulAdditionalReleasePeriods.divn(releaseCount - 1);
+
+      unlocked = unlocked.add(unlockedAmountAfterFirstRelease);
     }
   }
 
@@ -371,14 +378,14 @@ export async function createReleaseSchedule(
         account.releaseSchedules[
           i
         ].delayUntilFirstReleaseInSeconds.toString() ===
-          delayUntilFirstReleaseInSeconds.toString() &&
+        delayUntilFirstReleaseInSeconds.toString() &&
         account.releaseSchedules[i].initialReleasePortionInBips ===
-          initialReleasePortionInBips &&
+        initialReleasePortionInBips &&
         // eslint-disable-next-line max-len
         account.releaseSchedules[
           i
         ].periodBetweenReleasesInSeconds.toString() ===
-          periodBetweenReleasesInSeconds.toString()
+        periodBetweenReleasesInSeconds.toString()
       ) {
         result = i;
         break;
@@ -512,7 +519,7 @@ export async function fundReleaseSchedule(
         account.timelocks[i].totalAmount.toString() === amount.toString() &&
         account.timelocks[i].scheduleId === scheduleId &&
         account.timelocks[i].commencementTimestamp.toString() ===
-          commencementTimestamp.toString()
+        commencementTimestamp.toString()
       ) {
         result = i;
         break;
@@ -527,4 +534,75 @@ export async function fundReleaseSchedule(
   }
   console.log("result:", result);
   return result;
+}
+
+export async function withdraw(
+  connection: Connection,
+  amount: BN,
+  program: Program<Tokenlock>,
+  transferHookProgramId: PublicKey,
+  mintPubkey: PublicKey,
+  tokenlockAccount: PublicKey,
+  timelockAccount: PublicKey,
+  escrowOwnerPubkey: PublicKey,
+  recipientAccount: PublicKey,
+  transferRestrictionsHelper: TransferRestrictionsHelper,
+  signer: Keypair,
+): Promise<string> {
+  const escrowAccount = getAssociatedTokenAddressSync(mintPubkey, escrowOwnerPubkey, true, TOKEN_2022_PROGRAM_ID);
+  const authorityAccount = getAssociatedTokenAddressSync(mintPubkey, signer.publicKey, false, TOKEN_2022_PROGRAM_ID);
+  const securityAssociatedAccountFrom = transferRestrictionsHelper.securityAssociatedAccountPDA(authorityAccount)[0];
+  const securityAssociatedAccountTo = transferRestrictionsHelper.securityAssociatedAccountPDA(recipientAccount)[0];
+  const secAssocAccountFromData = await transferRestrictionsHelper.securityAssociatedAccountData(securityAssociatedAccountFrom);
+  const secAssocAccountToData = await transferRestrictionsHelper.securityAssociatedAccountData(securityAssociatedAccountTo);
+  const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
+    secAssocAccountFromData.group,
+    secAssocAccountToData.group
+  );
+  const transferInstruction = program.instruction.transfer(
+    amount,
+    {
+      accounts: {
+        tokenlockAccount,
+        timelockAccount,
+        escrowAccount,
+        pdaAccount: escrowOwnerPubkey,
+        authority: signer.publicKey,
+        to: recipientAccount,
+        mintAddress: mintPubkey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        transferRestrictionsProgram: transferRestrictionsHelper.program.programId,
+        authorityAccount,
+        securityAssociatedAccountFrom,
+        securityAssociatedAccountTo,
+        transferRule: transferRulePubkey,
+      },
+      signers: [signer],
+    }
+  );
+
+
+  await addExtraAccountMetasForExecute(
+    connection,
+    transferInstruction,
+    transferHookProgramId,
+    escrowAccount,
+    mintPubkey,
+    recipientAccount,
+    escrowOwnerPubkey,
+    BigInt(amount.toString()),
+    "confirmed"
+  );
+
+  const modifyComputeUnitsInstruction =
+    ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400000,
+    });
+
+  return sendAndConfirmTransaction(
+    connection,
+    new Transaction().add(modifyComputeUnitsInstruction, transferInstruction),
+    [signer],
+    { commitment: "confirmed" }
+  );
 }
