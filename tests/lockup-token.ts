@@ -302,8 +302,9 @@ describe("token lockup", () => {
       timelockAccount
     );
     if (accInfo === null) {
-      const tx = await tokenlockProgram.rpc.initializeTimelock({
-        accounts: {
+      const tx = await tokenlockProgram.methods
+        .initializeTimelock()
+        .accountsStrict({
           tokenlockAccount: tokenlockDataPubkey,
           timelockAccount: timelockAccount,
           authorityWalletRole:
@@ -316,9 +317,9 @@ describe("token lockup", () => {
           targetAccount: investor.publicKey,
           systemProgram: SystemProgram.programId,
           rent: SYSVAR_RENT_PUBKEY,
-        },
-        signers: [testEnvironment.reserveAdmin],
-      });
+        })
+        .signers([testEnvironment.reserveAdmin])
+        .rpc({ commitment: testEnvironment.confirmOptions });
       console.log("Initialize Timelock Transaction Signature", tx);
     }
 
@@ -326,10 +327,6 @@ describe("token lockup", () => {
 
     const scheduleId = 0;
     const commencementTimestamp = await getNowTs(testEnvironment.connection);
-    const funderAssociatedTokenAccount =
-      testEnvironment.mintHelper.getAssocciatedTokenAddress(
-        testEnvironment.reserveAdmin.publicKey
-      );
     const authorityWalletRole =
       testEnvironment.accessControlHelper.walletRolePDA(
         testEnvironment.reserveAdmin.publicKey
