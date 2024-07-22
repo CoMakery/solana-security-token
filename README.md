@@ -232,7 +232,7 @@ The variable `maxTotalSupply` is set when the contract is created and limits the
 
 | From                                 | To                                                        | Restrict                                                                                          | Enforced By                                                                                                  | Admin Role                                                                                |
 | :----------------------------------- | :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
-| Reg D/S/CF                           | Anyone                                                    | Until TimeLock ends                                                                               | `fundReleaseSchedule(investorAddress, balanceReserved, commencementTime, scheduleId, cancelableByAddresses)` | Any Admin                                                                                 |
+| Reg D/S/CF                           | Anyone                                                    | Until TimeLock ends                                                                               | `mintReleaseSchedule(investorAddress, balanceReserved, commencementTime, scheduleId, cancelableByAddresses)` | Reserve Admin                                                                                 |
 | Reg S Group                          | US Accredited                                             | Forbidden During Flowback Restriction Period                                                      | `initializeTransferRule(fromGroupS, toGroupD, afterTime)`                                                     | Transfer Admin                                                                            |
 | Reg S Group                          | Reg S Group                                               | Forbidden Until Shorter Reg S TimeLock Ended                                                      | `initializeTransferRule(fromGroupS, toGroupS, afterTime)`                                                     | Transfer Admin                                                                            |
 | Issuer                               | Reg CF with > maximum number of total holders allowed     | Forbid transfers increasing number of total Holders (across all groups) above a certain threshold | `setHolderMax(maxAmount)`                                                                                    | Transfer Admin                                                                            |
@@ -290,8 +290,7 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | addHolderWithAddresses()   | no             | no            | **yes**        | **yes**       |
 | removeHolder()             | no             | no            | **yes**        | **yes**       |
 | createReleaseSchedule()    | **yes**        | **yes**       | **yes**        | **yes**       |
-| batchFundReleaseSchedule() | **yes**        | **yes**       | **yes**        | **yes**       |
-| fundReleaseSchedule()      | **yes**        | **yes**       | **yes**        | **yes**       |
+| mintReleaseSchedule()      | no             | **yes**       | no             | no            |
 
 Note! Anyone can burn owned tokens by Solana SPL design
 

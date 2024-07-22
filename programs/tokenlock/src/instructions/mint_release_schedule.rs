@@ -13,7 +13,7 @@ use crate::{
 };
 
 #[derive(Accounts)]
-pub struct FundReleaseSchedule<'info> {
+pub struct MintReleaseSchedule<'info> {
     /// CHECK: implemented own serialization in order to save compute units
     pub tokenlock_account: AccountInfo<'info>,
 
@@ -74,8 +74,8 @@ pub struct FundReleaseSchedule<'info> {
     pub access_control_program: Program<'info, AccessControlProgram>,
 }
 
-pub fn fund_release_schedule<'info>(
-    ctx: Context<'_, '_, '_, 'info, FundReleaseSchedule<'info>>,
+pub fn mint_release_schedule<'info>(
+    ctx: Context<'_, '_, '_, 'info, MintReleaseSchedule<'info>>,
     uuid: [u8; 16],
     amount: u64,
     commencement_timestamp: u64,

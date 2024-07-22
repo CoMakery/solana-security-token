@@ -291,8 +291,8 @@ describe("token lockup", () => {
   const investor = anchor.web3.Keypair.generate();
   const investorTokenAccountPubkey =
     testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey);
-  const fundedAmount = 1_000_000;
-  it("funds release schedule", async () => {
+  const mintedAmount = 1_000_000;
+  it("mints release schedule", async () => {
     const timelockAccount = getTimelockAccount(
       tokenlockProgram.programId,
       tokenlockDataPubkey,
@@ -332,10 +332,10 @@ describe("token lockup", () => {
         testEnvironment.reserveAdmin.publicKey
       )[0];
 
-    const fundReleaseScheduleInstruction =
-      tokenlockProgram.instruction.fundReleaseSchedule(
+    const mintReleaseScheduleInstruction =
+      tokenlockProgram.instruction.mintReleaseSchedule(
         uuid,
-        new anchor.BN(fundedAmount),
+        new anchor.BN(mintedAmount),
         new anchor.BN(commencementTimestamp),
         scheduleId,
         cancelableBy,
@@ -359,15 +359,15 @@ describe("token lockup", () => {
         }
       );
 
-    const fundReleaseScheduleWithHookTx = await sendAndConfirmTransaction(
+    const mintReleaseScheduleWithHookTx = await sendAndConfirmTransaction(
       testEnvironment.connection,
-      new Transaction().add(fundReleaseScheduleInstruction),
+      new Transaction().add(mintReleaseScheduleInstruction),
       [testEnvironment.reserveAdmin],
       { commitment: testEnvironment.confirmOptions }
     );
     console.log(
-      "FundReleaseSchedule Transaction Signature",
-      fundReleaseScheduleWithHookTx
+      "mintReleaseSchedule Transaction Signature",
+      mintReleaseScheduleWithHookTx
     );
 
     const timelockData = await tokenlockProgram.account.timelockData.fetch(
@@ -379,7 +379,7 @@ describe("token lockup", () => {
     assert.equal(timelockData.timelocks.length, 1);
     assert.equal(
       timelockData.timelocks[0].totalAmount.toNumber(),
-      fundedAmount
+      mintedAmount
     );
     assert.equal(
       timelockData.timelocks[0].commencementTimestamp.toNumber(),
@@ -396,7 +396,7 @@ describe("token lockup", () => {
     const escrowAccountData = await testEnvironment.mintHelper.getAccount(
       escrowAccount
     );
-    assert.equal(escrowAccountData.amount.toString(), fundedAmount.toString());
+    assert.equal(escrowAccountData.amount.toString(), mintedAmount.toString());
     const tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(
       tokenlockDataPubkey
     );
@@ -407,14 +407,14 @@ describe("token lockup", () => {
       tsNow
     );
     const lockedBalance = lockedBalanceOf(tokenlockData, timelockData, tsNow);
-    const unlockedBalanceCalculated = (new anchor.BN(fundedAmount).muln(initialReleasePortionInBips)).divn(BIPS_PRECISION);
+    const unlockedBalanceCalculated = (new anchor.BN(mintedAmount).muln(initialReleasePortionInBips)).divn(BIPS_PRECISION);
     assert.equal(
       unlockedBalance.toString(),
       unlockedBalanceCalculated.toString()
     );
     assert.equal(
       lockedBalance.toString(),
-      (new anchor.BN(fundedAmount)).sub(unlockedBalanceCalculated).toString()
+      (new anchor.BN(mintedAmount)).sub(unlockedBalanceCalculated).toString()
     );
   });
 

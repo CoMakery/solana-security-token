@@ -430,7 +430,7 @@ export async function initializeTimelock(
   return timelockAccount;
 }
 
-export async function fundReleaseSchedule(
+export async function mintReleaseSchedule(
   connection: Connection,
   program: Program<Tokenlock>,
   amount: BN,
@@ -478,8 +478,8 @@ export async function fundReleaseSchedule(
       ComputeBudgetProgram.setComputeUnitLimit({
         units: 400000,
       });
-    const fundReleaseScheduleInstruction =
-      program.instruction.fundReleaseSchedule(
+    const mintReleaseScheduleInstruction =
+      program.instruction.mintReleaseSchedule(
         uuid,
         amount,
         commencementTimestamp,
@@ -506,7 +506,7 @@ export async function fundReleaseSchedule(
     await sendAndConfirmTransaction(
       connection,
       new Transaction().add(
-        ...[modifyComputeUnitsInstruction, fundReleaseScheduleInstruction]
+        ...[modifyComputeUnitsInstruction, mintReleaseScheduleInstruction]
       ),
       [signer],
     );

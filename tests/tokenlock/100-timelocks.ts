@@ -12,7 +12,7 @@ import {
 import { createAccount, solToLamports, topUpWallet } from "./../utils";
 import {
   createReleaseSchedule,
-  fundReleaseSchedule,
+  mintReleaseSchedule,
   getTimelockAccount,
   initializeTokenlock,
   unlockedBalanceOf,
@@ -137,7 +137,7 @@ describe("TokenLockup stress test", () => {
     }
   });
 
-  it("200 fund release Schedule", async () => {
+  it("200 mint release Schedule", async () => {
     const totalBatches = 3;
     const firstDelay = 0;
     const firstBatchBips = 800; // 8%
@@ -168,7 +168,7 @@ describe("TokenLockup stress test", () => {
     let nowTs = await getNowTs(testEnvironment.connection);
     const iterations = 2;
     for (let i = 0; i < iterations; i++) {
-      const timelockId = await fundReleaseSchedule(
+      const timelockId = await mintReleaseSchedule(
         testEnvironment.connection,
         tokenlockProgram,
         new anchor.BN(490),
@@ -198,7 +198,7 @@ describe("TokenLockup stress test", () => {
     );
     nowTs = await getNowTs(testEnvironment.connection);
     for (let i = 0; i < iterations; i++) {
-      const timelockId = await fundReleaseSchedule(
+      const timelockId = await mintReleaseSchedule(
         testEnvironment.connection,
         tokenlockProgram,
         new anchor.BN(490),
@@ -307,7 +307,7 @@ describe("TokenLockup stress test", () => {
     assert.equal(transferAmount.toString(), walletCTokenAccountData.amount.toString());
   });
 
-  it("100 funds release Schedule for different recipients", async () => {
+  it("100 mints release Schedule for different recipients", async () => {
     const totalBatches = 3;
     const firstDelay = 0;
     const firstBatchBips = 800; // 8%
@@ -337,7 +337,7 @@ describe("TokenLockup stress test", () => {
     );
     let nowTs = await getNowTs(testEnvironment.connection);
     for (let i = 0; i < 100; i++) {
-      const timelockId = await fundReleaseSchedule(
+      const timelockId = await mintReleaseSchedule(
         testEnvironment.connection,
         tokenlockProgram,
         new anchor.BN(490),
@@ -367,7 +367,7 @@ describe("TokenLockup stress test", () => {
     );
     nowTs = await getNowTs(testEnvironment.connection);
     for (let i = 0; i < 100; i++) {
-      const timelockId = await fundReleaseSchedule(
+      const timelockId = await mintReleaseSchedule(
         testEnvironment.connection,
         tokenlockProgram,
         new anchor.BN(490),

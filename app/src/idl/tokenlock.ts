@@ -146,119 +146,6 @@ export type Tokenlock = {
       ]
     },
     {
-      "name": "fundReleaseSchedule",
-      "discriminator": [
-        134,
-        94,
-        179,
-        68,
-        79,
-        186,
-        184,
-        173
-      ],
-      "accounts": [
-        {
-          "name": "tokenlockAccount"
-        },
-        {
-          "name": "timelockAccount",
-          "writable": true
-        },
-        {
-          "name": "escrowAccount",
-          "writable": true
-        },
-        {
-          "name": "escrowAccountOwner",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  111,
-                  107,
-                  101,
-                  110,
-                  108,
-                  111,
-                  99,
-                  107
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mintAddress"
-              },
-              {
-                "kind": "account",
-                "path": "tokenlockAccount"
-              }
-            ]
-          }
-        },
-        {
-          "name": "authority",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "authorityWalletRole"
-        },
-        {
-          "name": "accessControl"
-        },
-        {
-          "name": "mintAddress",
-          "writable": true
-        },
-        {
-          "name": "to",
-          "docs": [
-            "with which will be linked timelocks"
-          ]
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-        },
-        {
-          "name": "accessControlProgram",
-          "address": "4X79YRjz9KNMhdjdxXg2ZNTS3YnMGYdwJkBHnezMJwr3"
-        }
-      ],
-      "args": [
-        {
-          "name": "uuid",
-          "type": {
-            "array": [
-              "u8",
-              16
-            ]
-          }
-        },
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "commencementTimestamp",
-          "type": "u64"
-        },
-        {
-          "name": "scheduleId",
-          "type": "u16"
-        },
-        {
-          "name": "cancelableBy",
-          "type": {
-            "vec": "pubkey"
-          }
-        }
-      ]
-    },
-    {
       "name": "initializeTimelock",
       "discriminator": [
         47,
@@ -369,6 +256,119 @@ export type Tokenlock = {
         {
           "name": "minTimelockAmount",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "mintReleaseSchedule",
+      "discriminator": [
+        124,
+        157,
+        84,
+        33,
+        123,
+        128,
+        222,
+        184
+      ],
+      "accounts": [
+        {
+          "name": "tokenlockAccount"
+        },
+        {
+          "name": "timelockAccount",
+          "writable": true
+        },
+        {
+          "name": "escrowAccount",
+          "writable": true
+        },
+        {
+          "name": "escrowAccountOwner",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mintAddress"
+              },
+              {
+                "kind": "account",
+                "path": "tokenlockAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "accessControl"
+        },
+        {
+          "name": "mintAddress",
+          "writable": true
+        },
+        {
+          "name": "to",
+          "docs": [
+            "with which will be linked timelocks"
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "accessControlProgram",
+          "address": "4X79YRjz9KNMhdjdxXg2ZNTS3YnMGYdwJkBHnezMJwr3"
+        }
+      ],
+      "args": [
+        {
+          "name": "uuid",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "commencementTimestamp",
+          "type": "u64"
+        },
+        {
+          "name": "scheduleId",
+          "type": "u16"
+        },
+        {
+          "name": "cancelableBy",
+          "type": {
+            "vec": "pubkey"
+          }
         }
       ]
     },

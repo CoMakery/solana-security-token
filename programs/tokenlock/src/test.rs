@@ -283,7 +283,7 @@ impl<'a> TestFixture {
         })
     }
 
-    fn fund_release_schedule(
+    fn mint_release_schedule(
         escrow_account_info: &'a AccountInfo<'a>,
         tokenlock_account_info: &'a AccountInfo<'a>,
         timelock_account_info: &'a AccountInfo<'a>,
@@ -295,7 +295,7 @@ impl<'a> TestFixture {
         token_program_info: &'a AccountInfo<'a>,
         access_control_program_info: &'a AccountInfo<'a>,
         pda_account_info: AccountInfo<'a>,
-    ) -> Result<FundReleaseSchedule<'a>, ProgramError> {
+    ) -> Result<MintReleaseSchedule<'a>, ProgramError> {
         let escrow_account = InterfaceAccount::try_from(escrow_account_info)?;
         let mut tokenlock_data: Account<TokenLockData> =
             Account::try_from_unchecked(tokenlock_account_info).unwrap();
@@ -306,7 +306,7 @@ impl<'a> TestFixture {
         authority_wallet_role.role = Roles::ReserveAdmin as u8;
         let mint_address = Box::new(InterfaceAccount::try_from(mint_info)?);
 
-        Ok(FundReleaseSchedule {
+        Ok(MintReleaseSchedule {
             tokenlock_account: tokenlock_data.to_account_info(),
             timelock_account: Account::try_from_unchecked(&timelock_account_info).unwrap(),
             authority: Signer::try_from(authority_info)?,
@@ -864,7 +864,7 @@ fn test_create_release_schedule() {
 }
 
 #[test]
-fn test_fund_release_schedule() {
+fn test_mint_release_schedule() {
     let mut fixture_create_release = TestFixture::default();
     let program_id = fixture_create_release.program_id;
     let tokenlock_account_info = fixture_create_release.tokenlock_account.into_account_info();
@@ -914,7 +914,7 @@ fn test_fund_release_schedule() {
     let token_program_info = fixture.token_program.into_account_info();
     let access_control_program_info = fixture.access_control_program.into_account_info();
     let pda_account_info = fixture.pda_account.into_account_info();
-    let mut accounts = TestFixture::fund_release_schedule(
+    let mut accounts = TestFixture::mint_release_schedule(
         &escrow_account_info,
         &tokenlock_account_info,
         &timelock_account_info,
@@ -935,10 +935,10 @@ fn test_fund_release_schedule() {
     let schedule_id = 0;
     let cancelar = Pubkey::new_unique();
     let cancelable_by = vec![cancelar, Pubkey::new_unique()];
-    let bumps = FundReleaseScheduleBumps::default();
-    let ctx: Context<FundReleaseSchedule> = Context::new(&program_id, &mut accounts, &[], bumps);
+    let bumps = MintReleaseScheduleBumps::default();
+    let ctx: Context<MintReleaseSchedule> = Context::new(&program_id, &mut accounts, &[], bumps);
     assert_eq!(
-        tokenlock::fund_release_schedule(
+        tokenlock::mint_release_schedule(
             ctx,
             UUID,
             amount,
@@ -951,10 +951,10 @@ fn test_fund_release_schedule() {
     );
 
     // BadCase: timelock already exists
-    let bumps = FundReleaseScheduleBumps::default();
-    let ctx: Context<FundReleaseSchedule> = Context::new(&program_id, &mut accounts, &[], bumps);
+    let bumps = MintReleaseScheduleBumps::default();
+    let ctx: Context<MintReleaseSchedule> = Context::new(&program_id, &mut accounts, &[], bumps);
     match_anchor_err(
-        tokenlock::fund_release_schedule(
+        tokenlock::mint_release_schedule(
             ctx,
             UUID,
             amount,
@@ -968,10 +968,10 @@ fn test_fund_release_schedule() {
 
     // BadCase: Commencement time out of range
     let commencement_timestamp = utils::get_unix_timestamp() + 10;
-    let bumps = FundReleaseScheduleBumps::default();
-    let ctx: Context<FundReleaseSchedule> = Context::new(&program_id, &mut accounts, &[], bumps);
+    let bumps = MintReleaseScheduleBumps::default();
+    let ctx: Context<MintReleaseSchedule> = Context::new(&program_id, &mut accounts, &[], bumps);
     match_anchor_err(
-        tokenlock::fund_release_schedule(
+        tokenlock::mint_release_schedule(
             ctx,
             UUID,
             amount,
@@ -984,11 +984,11 @@ fn test_fund_release_schedule() {
     );
 
     // BadCase: Max 10 cancelableBy addressees
-    let bumps = FundReleaseScheduleBumps::default();
-    let ctx: Context<FundReleaseSchedule> = Context::new(&program_id, &mut accounts, &[], bumps);
+    let bumps = MintReleaseScheduleBumps::default();
+    let ctx: Context<MintReleaseSchedule> = Context::new(&program_id, &mut accounts, &[], bumps);
     let cancelable_by = vec![Pubkey::new_unique(); Timelock::CANCELABLE_BY_COUNT_MAX as usize + 1];
     match_anchor_err(
-        tokenlock::fund_release_schedule(
+        tokenlock::mint_release_schedule(
             ctx,
             UUID,
             amount,
@@ -1264,7 +1264,7 @@ fn test_cancel_timelock() {
     let mint_info = fixture.mint_address.into_account_info();
     let access_control_program_info = fixture.access_control_program.into_account_info();
     let pda_account_info = fixture.pda_account.into_account_info();
-    let mut accounts_fund_release = TestFixture::fund_release_schedule(
+    let mut accounts_mint_release = TestFixture::mint_release_schedule(
         &escrow_account_info,
         &tokenlock_account_info,
         &timelock_account_info,
@@ -1278,18 +1278,18 @@ fn test_cancel_timelock() {
         pda_account_info,
     )
     .expect("Getting accounts error");
-    accounts_fund_release.tokenlock_account = accounts_create_release.tokenlock_account;
+    accounts_mint_release.tokenlock_account = accounts_create_release.tokenlock_account;
 
     let amount = 10000;
     let commencement_timestamp = 0;
     let schedule_id = 0;
     let cancelar = Pubkey::new_unique();
     let cancelable_by = vec![cancelar, Pubkey::new_unique()];
-    let bumps = FundReleaseScheduleBumps::default();
-    let ctx: Context<FundReleaseSchedule> =
-        Context::new(&program_id, &mut accounts_fund_release, &[], bumps);
+    let bumps = MintReleaseScheduleBumps::default();
+    let ctx: Context<MintReleaseSchedule> =
+        Context::new(&program_id, &mut accounts_mint_release, &[], bumps);
     assert_eq!(
-        tokenlock::fund_release_schedule(
+        tokenlock::mint_release_schedule(
             ctx,
             UUID,
             amount,
@@ -1379,7 +1379,7 @@ fn test_cancel_timelock() {
         6012,
     );
 
-    accounts.tokenlock_account = accounts_fund_release.tokenlock_account;
+    accounts.tokenlock_account = accounts_mint_release.tokenlock_account;
     accounts.timelock_account.timelocks.push(Timelock {
         schedule_id: 0,
         commencement_timestamp: utils::get_unix_timestamp(),
