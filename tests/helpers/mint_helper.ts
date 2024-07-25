@@ -101,10 +101,6 @@ export class MintHelper {
       [payer],
       { commitment: this.confirmOptions }
     );
-    console.log(
-      "Create Associated Token Account Transaction Signature",
-      txCreateRecipientAssTokenAccount
-    );
 
     return userWalletAssociatedTokenAccountPubkey;
   }

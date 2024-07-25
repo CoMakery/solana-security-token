@@ -27,6 +27,7 @@ import { createAccount, solToLamports, topUpWallet } from "./utils";
 import {
   BIPS_PRECISION,
   calcSignerHash,
+  cancelTimelock,
   getTimelockAccount,
   initializeTokenlock,
   lockedBalanceOf,
@@ -926,27 +927,6 @@ describe("token lockup", () => {
       reclaimerSecAssocAccountData.group
     );
 
-    const cancelTimelockInstruction =
-      tokenlockProgram.instruction.cancelTimelock(timelockIdx, {
-        accounts: {
-          tokenlockAccount: tokenlockDataPubkey,
-          timelockAccount,
-          escrowAccount: escrowAccount,
-          pdaAccount: escrowOwnerPubkey,
-          target: investor.publicKey,
-          targetAssoc: investorTokenAccountPubkey,
-          authority: testEnvironment.reserveAdmin.publicKey,
-          reclaimer: reclaimerTokenAccountPubkey,
-          mintAddress: testEnvironment.mintKeypair.publicKey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-          transferRestrictionsProgram: testEnvironment.transferRestrictionsHelper.program.programId,
-          securityAssociatedAccountFrom: investorSecAssocAccountPubkey,
-          securityAssociatedAccountTo: reclaimerSecAssocAccountPubkey,
-          transferRule: transferRulePubkey,
-        },
-        signers: [testEnvironment.reserveAdmin],
-      });
-
     const lockedUntil = new anchor.BN(tsNow);
     const escrowGroupdId = new anchor.BN(2);
     const reclaimerGroupId = new anchor.BN(1);
@@ -960,48 +940,17 @@ describe("token lockup", () => {
       testEnvironment.transferAdmin
     );
 
-    const mintInfo = await testEnvironment.mintHelper.getMint();
-    const transferHook = getTransferHook(mintInfo);
-    assert.ok(transferHook);
-
-    await addExtraAccountMetasForExecute(
-      testEnvironment.connection,
-      cancelTimelockInstruction,
-      transferHook.programId,
-      escrowAccount,
+    await cancelTimelock(
+      tokenlockProgram,
+      timelockIdx,
+      tokenlockDataPubkey,
       testEnvironment.mintKeypair.publicKey,
+      investor.publicKey,
+      escrowOwnerPubkey,
       reclaimerTokenAccountPubkey,
-      escrowOwnerPubkey,
-      transferAmount.toNumber(),
-      testEnvironment.confirmOptions
-    );
-
-    await addExtraAccountMetasForExecute(
-      testEnvironment.connection,
-      cancelTimelockInstruction,
-      transferHook.programId,
-      escrowAccount,
-      testEnvironment.mintKeypair.publicKey,
-      investorTokenAccountPubkey,
-      escrowOwnerPubkey,
-      transferAmount.toNumber(),
-      testEnvironment.confirmOptions
-    );
-
-    const modifyComputeUnitsInstruction =
-      ComputeBudgetProgram.setComputeUnitLimit({
-        units: 400000,
-      });
-
-    const transferTxSignature = await sendAndConfirmTransaction(
-      testEnvironment.connection,
-      new Transaction().add(
-        ...[modifyComputeUnitsInstruction, cancelTimelockInstruction]
-      ),
-      [testEnvironment.reserveAdmin],
-      { commitment: testEnvironment.confirmOptions }
-    );
-    console.log("Cancel Timelock Transaction Signature", transferTxSignature);
+      testEnvironment.transferRestrictionsHelper,
+      testEnvironment.reserveAdmin
+    )
 
     const timelockDataAfterTransfer =
       await tokenlockProgram.account.timelockData.fetch(timelockAccount);
