@@ -34,7 +34,6 @@ describe('TokenLockup calculate unlocked', () => {
     };
     let testEnvironment: TestEnvironment;
 
-    // Address of the deployed program.
     const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;
 
     let mintPubkey: anchor.web3.PublicKey;

@@ -44,7 +44,6 @@ describe('TokenLockup check cancelables', () => {
 
     const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;
 
-    // Address of the deployed program.
     let mintPubkey: anchor.web3.PublicKey;
     let walletA: anchor.web3.Keypair;
     let walletATokenAcc: anchor.web3.PublicKey;

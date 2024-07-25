@@ -32,7 +32,6 @@ describe('TokenLockup batch mint testing', () => {
     };
     let testEnvironment: TestEnvironment;
 
-    // Address of the deployed program.
     const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;
 
     let startTs: number;
