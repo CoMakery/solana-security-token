@@ -9,7 +9,7 @@ use spl_tlv_account_resolution::{
 
 use crate::{
     errors::TransferRestrictionsError, SECURITY_ASSOCIATED_ACCOUNT_PREFIX,
-    TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RESTRICTION_GROUP_PREFIX, TRANSFER_RULE_PREFIX,
+    TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RULE_PREFIX,
 };
 
 use crate::{AccountInfo, Rent, SolanaSysvar};
@@ -53,11 +53,11 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
             false,
             false,
         )?,
-        // [index 8, 3] transfer restriction group from account
+        // [index 8, 3] transfer rule account
         ExtraAccountMeta::new_with_seeds(
             &[
                 Seed::Literal {
-                    bytes: TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes().to_vec(),
+                    bytes: TRANSFER_RULE_PREFIX.as_bytes().to_vec(),
                 },
                 Seed::AccountKey { index: 5 },
                 Seed::AccountData {
@@ -65,34 +65,11 @@ pub fn get_extra_account_metas() -> Result<Vec<ExtraAccountMeta>> {
                     data_index: 8,
                     length: 8,
                 },
-            ],
-            false,
-            false,
-        )?,
-        // [index 9, 4] transfer restriction group to account
-        ExtraAccountMeta::new_with_seeds(
-            &[
-                Seed::Literal {
-                    bytes: TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes().to_vec(),
-                },
-                Seed::AccountKey { index: 5 },
                 Seed::AccountData {
                     account_index: 7,
                     data_index: 8,
                     length: 8,
                 },
-            ],
-            false,
-            false,
-        )?,
-        // [index 10, 5] transfer rule account
-        ExtraAccountMeta::new_with_seeds(
-            &[
-                Seed::Literal {
-                    bytes: TRANSFER_RULE_PREFIX.as_bytes().to_vec(),
-                },
-                Seed::AccountKey { index: 8 },
-                Seed::AccountKey { index: 9 },
             ],
             false,
             false,
@@ -120,5 +97,16 @@ pub fn verify_pda(address: &Pubkey, seeds: &[&[u8]], program_id: &Pubkey) -> Res
     if pda != *address {
         return Err(TransferRestrictionsError::InvalidPDA.into());
     }
+    Ok(())
+}
+
+pub fn validate_min_wallet_balance(
+    min_wallet_balance: u64,
+    account_balance: u64,
+) -> Result<()> {
+    if min_wallet_balance > 0 && account_balance > 0 && account_balance < min_wallet_balance  {
+        return Err(TransferRestrictionsError::BalanceIsTooLow.into());
+    }
+
     Ok(())
 }

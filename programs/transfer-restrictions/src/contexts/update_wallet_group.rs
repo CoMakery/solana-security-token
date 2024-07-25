@@ -54,24 +54,24 @@ pub struct UpdateWalletGroup<'info> {
     #[account(mut,
       seeds = [
         TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX.as_bytes(),
-        &security_associated_account.holder.to_bytes(),
+        &security_associated_account.holder.unwrap().to_bytes(),
         &security_associated_account.group.to_le_bytes(),
       ],
       bump,
       constraint = holder_group_current.group == security_associated_account.group,
       constraint = holder_group_current.group == transfer_restriction_group_current.id,
-      constraint = holder_group_current.holder == security_associated_account.holder,
+      constraint = holder_group_current.holder == security_associated_account.holder.unwrap(),
     )]
     pub holder_group_current: Account<'info, HolderGroup>,
     #[account(mut,
       seeds = [
         TRANSFER_RESTRICTION_HOLDER_GROUP_PREFIX.as_bytes(),
-        &security_associated_account.holder.to_bytes(),
+        &security_associated_account.holder.unwrap().to_bytes(),
         &transfer_restriction_group_new.id.to_le_bytes(),
       ],
       bump,
       constraint = holder_group_new.group == transfer_restriction_group_new.id,
-      constraint = holder_group_new.holder == security_associated_account.holder,
+      constraint = holder_group_new.holder == security_associated_account.holder.unwrap(),
     )]
     pub holder_group_new: Account<'info, HolderGroup>,
 

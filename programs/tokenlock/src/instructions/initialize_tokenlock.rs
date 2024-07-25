@@ -1,4 +1,5 @@
 use access_control::{program::AccessControl as AccessControlProgram, AccessControl, WalletRole};
+use transfer_restrictions::{program::TransferRestrictions as TransferRestrictionsProgram, TransferRestrictionData};
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 
@@ -20,6 +21,13 @@ pub struct InitializeTokenLock<'info> {
         constraint = mint_address.key() == access_control.mint,
     )]
     pub mint_address: Box<InterfaceAccount<'info, Mint>>,
+
+    #[account(
+        constraint = transfer_restrictions_data.security_token_mint == mint_address.key(),
+        constraint = transfer_restrictions_data.access_control_account == access_control.key(),
+        owner = TransferRestrictionsProgram::id(),
+    )]
+    pub transfer_restrictions_data: Account<'info, TransferRestrictionData>,
 
     #[account(
         constraint = authority_wallet_role.owner == authority.key(),
@@ -47,6 +55,7 @@ impl<'info> InitializeTokenLock<'info> {
         authority_wallet_role: Account<'info, WalletRole>,
         authority: Signer<'info>,
         access_control: Account<'info, AccessControl>,
+        transfer_restrictions_data: Account<'info, TransferRestrictionData>,
     ) -> InitializeTokenLock<'info> {
         Self {
             tokenlock_account,
@@ -56,6 +65,7 @@ impl<'info> InitializeTokenLock<'info> {
             authority_wallet_role,
             authority,
             access_control,
+            transfer_restrictions_data,
         }
     }
 }
@@ -103,6 +113,7 @@ pub fn initialize_tokenlock(
     tokenlock_account.release_schedules = Vec::new();
     tokenlock_account.bump_seed = bump_seed;
     tokenlock_account.access_control = ctx.accounts.access_control.key();
+    tokenlock_account.transfer_restrictions_data = ctx.accounts.transfer_restrictions_data.key();
 
     Ok(())
 }

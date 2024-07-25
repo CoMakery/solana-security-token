@@ -18,4 +18,6 @@ pub enum TransferRestrictionsError {
     BalanceIsTooLow,
     #[msg("Current wallets count must be zero")]
     CurrentWalletsCountMustBeZero,
+    #[msg("Escrow accounts mismatch")]
+    EscrowAccountsMismatch,
 }

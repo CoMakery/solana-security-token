@@ -1,10 +1,15 @@
+use access_control::common::DISCRIMINATOR_LEN;
 use anchor_lang::prelude::*;
 use anchor_spl::{
     token_2022::spl_token_2022::extension::permanent_delegate::PermanentDelegate,
     token_interface::get_mint_extension_data,
 };
 
-use crate::{errors::TransferRestrictionsError, ExecuteTransferHook};
+use crate::{
+    errors::TransferRestrictionsError, validate_min_wallet_balance, verify_pda,
+    ExecuteTransferHook, SecurityAssociatedAccount, TransferRestrictionData, TransferRule,
+    SECURITY_ASSOCIATED_ACCOUNT_PREFIX, TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RULE_PREFIX,
+};
 
 pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
     let mint_data: &AccountInfo = &ctx.accounts.mint.to_account_info();
@@ -17,19 +22,70 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         return Ok(());
     }
 
-    let transfer_restriction_data = &ctx.accounts.transfer_restriction_data;
+    verify_pda(
+        ctx.accounts.transfer_restriction_data.key,
+        &[
+            TRANSFER_RESTRICTION_DATA_PREFIX.as_bytes(),
+            &mint_data.key().to_bytes(),
+        ],
+        &ctx.program_id,
+    )?;
+    let transfer_restriction_data = TransferRestrictionData::deserialize(
+        &mut &ctx.accounts.transfer_restriction_data.data.borrow()[DISCRIMINATOR_LEN..],
+    )?;
+    // transfer restriction for lockup escrow account is validated inside tokenlock program
+    if transfer_restriction_data.lockup_escrow_account == Some(ctx.accounts.source_account.key()) {
+        return Ok(());
+    }
     if transfer_restriction_data.paused {
         return Err(TransferRestrictionsError::AllTransfersPaused.into());
     }
 
-    let transfer_rule = &ctx.accounts.transfer_rule;
+    verify_pda(
+        ctx.accounts.security_associated_account_from.key,
+        &[
+            SECURITY_ASSOCIATED_ACCOUNT_PREFIX.as_bytes(),
+            &ctx.accounts.source_account.key().to_bytes(),
+        ],
+        &ctx.program_id,
+    )?;
+    let security_associated_account_from = SecurityAssociatedAccount::deserialize(
+        &mut &ctx.accounts.security_associated_account_from.data.borrow()[DISCRIMINATOR_LEN..],
+    )?;
+    verify_pda(
+        ctx.accounts.security_associated_account_to.key,
+        &[
+            SECURITY_ASSOCIATED_ACCOUNT_PREFIX.as_bytes(),
+            &ctx.accounts.destination_account.key().to_bytes(),
+        ],
+        &ctx.program_id,
+    )?;
+    let security_associated_account_to = SecurityAssociatedAccount::deserialize(
+        &mut &ctx.accounts.security_associated_account_to.data.borrow()[DISCRIMINATOR_LEN..],
+    )?;
 
+    verify_pda(
+        ctx.accounts.transfer_rule.key,
+        &[
+            TRANSFER_RULE_PREFIX.as_bytes(),
+            &ctx.accounts.transfer_restriction_data.key().to_bytes(),
+            &security_associated_account_from.group.to_le_bytes(),
+            &security_associated_account_to.group.to_le_bytes(),
+        ],
+        &ctx.program_id,
+    )?;
+    let transfer_rule = TransferRule::deserialize(
+        &mut &ctx.accounts.transfer_rule.data.borrow()[DISCRIMINATOR_LEN..],
+    )?;
     // TODO: add transfer restrictions checks here
     if transfer_rule.locked_until > Clock::get()?.unix_timestamp as u64 {
         return Err(TransferRestrictionsError::TransferRuleLocked.into());
     }
 
-    ctx.accounts.validate_min_wallet_balance()?;
+    validate_min_wallet_balance(
+        transfer_restriction_data.min_wallet_balance,
+        ctx.accounts.source_account.amount,
+    )?;
 
     Ok(())
 }

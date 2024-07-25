@@ -18,7 +18,7 @@ pub struct Timelock {
 impl Timelock {
     pub const MAX_CANCELABLES_COUNT: usize = 256;
     pub const CANCELABLE_BY_COUNT_MAX: u8 = 10;
-    pub const DEFAULT_SIZE: usize = 2 + 8 + 8 + 8 + 1 + 10 + 20;
+    pub const DEFAULT_SIZE: usize = 2 + 8 + 8 + 8 + 32 + 1 + 10 + 20;
 
     pub fn has_cancelable_by(&self, cancelable_by_index: u8) -> bool {
         for i in 0..self.cancelable_by_count {

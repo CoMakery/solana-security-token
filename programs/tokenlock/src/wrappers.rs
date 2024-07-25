@@ -96,6 +96,9 @@ impl TokenLockDataWrapper {
     pub fn escrow_account(account_data: &[u8]) -> Pubkey {
         return BinaryOperation::key_read(account_data, TokenLockData::ESCROW_ACCOUNT_OFFSET);
     }
+    pub fn transfer_restriction_data(account_data: &[u8]) -> Pubkey {
+        return BinaryOperation::key_read(account_data, TokenLockData::TRANSFER_RESTRICTIONS_DATA_OFFSET);
+    }
     pub fn bump_seed(account_data: &[u8]) -> u8 {
         return BinaryOperation::u8_read(account_data, TokenLockData::BUMP_SEED_OFFSET);
     }

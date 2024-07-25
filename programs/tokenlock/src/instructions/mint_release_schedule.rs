@@ -1,20 +1,19 @@
 use access_control::{
     program::AccessControl as AccessControlProgram, AccessControl, WalletRole, ADMIN_ROLES,
 };
+use access_control::cpi::accounts::MintSecurities;
 use anchor_lang::{prelude::*, Discriminator};
-use anchor_spl::{
-    token_2022::spl_token_2022::onchain::invoke_transfer_checked,
-    token_interface::{Mint, Token2022, TokenAccount},
-};
+use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 use solana_program::program_memory::{sol_memcmp, sol_memcpy};
 
+use crate::TOKENLOCK_PDA_SEED;
 use crate::{
     common::PUBKEY_SIZE, utils, Timelock, TimelockData, TokenLockData, TokenLockDataWrapper,
     TokenlockErrors,
 };
 
 #[derive(Accounts)]
-pub struct FundReleaseSchedule<'info> {
+pub struct MintReleaseSchedule<'info> {
     /// CHECK: implemented own serialization in order to save compute units
     pub tokenlock_account: AccountInfo<'info>,
 
@@ -26,8 +25,20 @@ pub struct FundReleaseSchedule<'info> {
     #[account(mut,
         token::mint = mint_address,
         token::token_program = token_program,
+        constraint = escrow_account.owner == escrow_account_owner.key(),
     )]
     pub escrow_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    #[account(
+        seeds = [
+            TOKENLOCK_PDA_SEED,
+            mint_address.key().as_ref(), 
+            tokenlock_account.key().as_ref()
+        ],
+        bump
+    )]
+    /// CHECK: PDA which controls escrow account
+    pub escrow_account_owner: AccountInfo<'info>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -39,22 +50,17 @@ pub struct FundReleaseSchedule<'info> {
     )]
     pub authority_wallet_role: Account<'info, WalletRole>,
 
-    #[account(owner = AccessControlProgram::id())]
+    #[account(
+        constraint = access_control.mint == mint_address.key(),
+        owner = AccessControlProgram::id(),
+    )]
     pub access_control: Account<'info, AccessControl>,
 
-    #[account(
+    #[account(mut,
         mint::token_program = token_program,
         constraint = mint_address.key() == access_control.mint,
     )]
     pub mint_address: Box<InterfaceAccount<'info, Mint>>,
-
-    #[account(mut,
-        associated_token::token_program = token_program,
-        associated_token::mint = mint_address,
-        associated_token::authority = authority,
-        constraint = escrow_account.mint == from.mint
-    )]
-    pub from: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         constraint = *to.key == timelock_account.target_account,
@@ -64,10 +70,12 @@ pub struct FundReleaseSchedule<'info> {
     pub to: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token2022>,
+
+    pub access_control_program: Program<'info, AccessControlProgram>,
 }
 
-pub fn fund_release_schedule<'info>(
-    ctx: Context<'_, '_, '_, 'info, FundReleaseSchedule<'info>>,
+pub fn mint_release_schedule<'info>(
+    ctx: Context<'_, '_, '_, 'info, MintReleaseSchedule<'info>>,
     uuid: [u8; 16],
     amount: u64,
     commencement_timestamp: u64,
@@ -94,7 +102,7 @@ pub fn fund_release_schedule<'info>(
     let mint_address = TokenLockDataWrapper::mint_address(&tokenlock_account_data);
     let escrow_account = TokenLockDataWrapper::escrow_account(&tokenlock_account_data);
     //constraint
-    if mint_address != ctx.accounts.from.mint {
+    if mint_address != ctx.accounts.mint_address.key() {
         return Err(TokenlockErrors::MisMatchedToken.into());
     }
     if escrow_account != *ctx.accounts.escrow_account.to_account_info().key {
@@ -198,21 +206,21 @@ pub fn fund_release_schedule<'info>(
         return Err(TokenlockErrors::InsufficientDataSpace.into());
     }
 
-    let decimals = ctx.accounts.mint_address.decimals;
-    let from_info = ctx.accounts.from.to_account_info();
-    let mint_info = ctx.accounts.mint_address.to_account_info();
-    let escrow_account_info = ctx.accounts.escrow_account.to_account_info();
-    let authority_info = ctx.accounts.authority.to_account_info();
-    invoke_transfer_checked(
-        &ctx.accounts.token_program.key,
-        from_info,
-        mint_info,
-        escrow_account_info,
-        authority_info,
-        ctx.remaining_accounts,
-        amount,
-        decimals,
-        &[],
+    let cpi_accounts = MintSecurities {
+        authority_wallet_role: ctx.accounts.authority_wallet_role.to_account_info(),
+        authority: ctx.accounts.authority.to_account_info(),
+        access_control: ctx.accounts.access_control.to_account_info(),
+        security_mint: ctx.accounts.mint_address.to_account_info(),
+        destination_account: ctx.accounts.escrow_account.to_account_info(),
+        destination_authority: ctx.accounts.escrow_account_owner.to_account_info(),
+        token_program: ctx.accounts.token_program.to_account_info(),
+    };
+
+    access_control::cpi::mint_securities(CpiContext::new(
+            ctx.accounts.access_control_program.to_account_info(), 
+            cpi_accounts
+        ), 
+        amount
     )?;
 
     //add new cancelables

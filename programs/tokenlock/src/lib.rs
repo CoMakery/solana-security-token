@@ -53,15 +53,15 @@ mod tokenlock {
         )
     }
 
-    pub fn fund_release_schedule<'info>(
-        ctx: Context<'_, '_, '_, 'info, FundReleaseSchedule<'info>>,
+    pub fn mint_release_schedule<'info>(
+        ctx: Context<'_, '_, '_, 'info, MintReleaseSchedule<'info>>,
         uuid: [u8; 16],
         amount: u64,
         commencement_timestamp: u64,
         schedule_id: u16,
         cancelable_by: Vec<Pubkey>,
     ) -> Result<()> {
-        instructions::fund_release_schedule(
+        instructions::mint_release_schedule(
             ctx,
             uuid,
             amount,

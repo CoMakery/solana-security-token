@@ -102,15 +102,13 @@ export class TransferRestrictionsHelper {
     );
   }
 
-  transferRulePDA(
-    groupFromPubkey: PublicKey,
-    groupToPubkey: PublicKey
-  ): [PublicKey, number] {
+  transferRulePDA(groupFromId: BN, groupToId: BN): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from(TRANSFER_RULE_PREFIX),
-        groupFromPubkey.toBuffer(),
-        groupToPubkey.toBuffer(),
+        this.transferRestrictionDataPubkey.toBuffer(),
+        groupFromId.toArrayLike(Buffer, "le", 8),
+        groupToId.toArrayLike(Buffer, "le", 8),
       ],
       this.program.programId
     );
@@ -213,23 +211,25 @@ export class TransferRestrictionsHelper {
 
   async initializeTransferRule(
     lockedUntil: BN,
-    transferRuleFromPubkey: PublicKey,
-    transferRuleToPubkey: PublicKey,
+    transferGroupFromId: BN,
+    transferGroupToId: BN,
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
     const [transferRulePubkey] = this.transferRulePDA(
-      transferRuleFromPubkey,
-      transferRuleToPubkey
+      transferGroupFromId,
+      transferGroupToId
     );
+    const [transferGroupFromPubkey] = this.groupPDA(transferGroupFromId);
+    const [transferGroupToPubkey] = this.groupPDA(transferGroupToId);
 
     return this.program.methods
       .initializeTransferRule(lockedUntil)
       .accountsStrict({
         transferRule: transferRulePubkey,
         transferRestrictionData: this.transferRestrictionDataPubkey,
-        transferRestrictionGroupFrom: transferRuleFromPubkey,
-        transferRestrictionGroupTo: transferRuleToPubkey,
+        transferRestrictionGroupFrom: transferGroupFromPubkey,
+        transferRestrictionGroupTo: transferGroupToPubkey,
         accessControlAccount: this.accessControlPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
         payer: payer.publicKey,
@@ -431,7 +431,10 @@ export class TransferRestrictionsHelper {
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
-    const userWalletSecAssocAccountData = await this.securityAssociatedAccountData(userWalletSecAssociatedAccountPubkey);
+    const userWalletSecAssocAccountData =
+      await this.securityAssociatedAccountData(
+        userWalletSecAssociatedAccountPubkey
+      );
     const groupId = userWalletSecAssocAccountData.group;
     const holderPubkey = userWalletSecAssocAccountData.holder;
     const [groupPubkey] = this.groupPDA(groupId);
@@ -473,6 +476,30 @@ export class TransferRestrictionsHelper {
         transferRestrictionData: this.transferRestrictionDataPubkey,
         group: groupPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
+        payer: payer.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.confirmOptions });
+  }
+
+  async setLockupEscrowAccount(
+    lockupEscrowAccountPubkey: PublicKey,
+    tokenlockAccountPubkey: PublicKey,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    const [escrowSecurityAssociatedAccountPubkey] = this.securityAssociatedAccountPDA(lockupEscrowAccountPubkey);
+    return this.program.methods
+      .setLockupEscrowAccount()
+      .accountsStrict({
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        escrowSecurityAssociatedAccount: escrowSecurityAssociatedAccountPubkey,
+        mint: this.mintPubkey,
+        accessControlAccount: this.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        escrowAccount: lockupEscrowAccountPubkey,
+        tokenlockAccount: tokenlockAccountPubkey,
         payer: payer.publicKey,
         systemProgram: SystemProgram.programId,
       })

@@ -1,10 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
-use crate::{
-    errors::TransferRestrictionsError, SecurityAssociatedAccount, TransferRestrictionData,
-    TransferRestrictionGroup, TransferRule, TRANSFER_RESTRICTION_GROUP_PREFIX, TRANSFER_RULE_PREFIX,
-};
 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
@@ -36,54 +32,24 @@ pub struct ExecuteTransferHook<'info> {
     )]
     pub extra_metas_account: UncheckedAccount<'info>,
 
-    pub transfer_restriction_data: Box<Account<'info, TransferRestrictionData>>,
+    /// CHECK: Box<Account<'info, TransferRestrictionData>>
+    pub transfer_restriction_data: UncheckedAccount<'info>,
 
-    pub security_associated_account_from: Box<Account<'info, SecurityAssociatedAccount>>,
+    /// CHECK: Box<Account<'info, SecurityAssociatedAccount>>
+    pub security_associated_account_from: UncheckedAccount<'info>,
 
-    pub security_associated_account_to: Box<Account<'info, SecurityAssociatedAccount>>,
+    /// CHECK: Box<Account<'info, SecurityAssociatedAccount>>
+    pub security_associated_account_to: UncheckedAccount<'info>,
 
-    #[account(
-      seeds = [
-        TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(),
-        &transfer_restriction_data.key().to_bytes(),
-        &security_associated_account_from.group.to_le_bytes()
-      ],
-      bump,
-    )]
-    pub transfer_restriction_group_from: Box<Account<'info, TransferRestrictionGroup>>,
-
-    #[account(
-      seeds = [
-        TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(),
-        &transfer_restriction_data.key().to_bytes(),
-        &security_associated_account_to.group.to_le_bytes()
-      ],
-      bump,
-    )]
-    pub transfer_restriction_group_to: Box<Account<'info, TransferRestrictionGroup>>,
-
-    #[account(
-      seeds = [
-        TRANSFER_RULE_PREFIX.as_bytes(),
-        &transfer_restriction_group_from.key().to_bytes(),
-        &transfer_restriction_group_to.key().to_bytes(),
-      ],
-      bump,
-    )]
-    pub transfer_rule: Box<Account<'info, TransferRule>>,
-
-    // from locked account
-    // to locked account
-    // 
-}
-
-impl<'info> ExecuteTransferHook<'info> {
-    pub fn validate_min_wallet_balance(&self) -> Result<()> {
-        let min_wallet_balance = self.transfer_restriction_data.min_wallet_balance;
-        let source_account = &self.source_account;
-        if min_wallet_balance > 0 && source_account.amount < min_wallet_balance {
-            return Err(TransferRestrictionsError::BalanceIsTooLow.into());
-        }
-        Ok(())
-    }
+    // #[account(
+    //   seeds = [
+    //     TRANSFER_RULE_PREFIX.as_bytes(),
+    //     &transfer_restriction_data.key().to_bytes(),
+    //     &security_associated_account_from.group.to_le_bytes(),
+    //     &security_associated_account_to.group.to_le_bytes(),
+    //   ],
+    //   bump,
+    // )]
+    /// CHECK: Box<Account<'info, TransferRule>>
+    pub transfer_rule: UncheckedAccount<'info>,
 }

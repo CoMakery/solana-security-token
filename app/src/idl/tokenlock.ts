@@ -66,6 +66,19 @@ export type Tokenlock = {
         {
           "name": "tokenProgram",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "transferRestrictionsProgram",
+          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule"
         }
       ],
       "args": [
@@ -129,142 +142,6 @@ export type Tokenlock = {
         {
           "name": "periodBetweenReleasesInSeconds",
           "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "fundReleaseSchedule",
-      "discriminator": [
-        134,
-        94,
-        179,
-        68,
-        79,
-        186,
-        184,
-        173
-      ],
-      "accounts": [
-        {
-          "name": "tokenlockAccount"
-        },
-        {
-          "name": "timelockAccount",
-          "writable": true
-        },
-        {
-          "name": "escrowAccount",
-          "writable": true
-        },
-        {
-          "name": "authority",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "authorityWalletRole"
-        },
-        {
-          "name": "accessControl"
-        },
-        {
-          "name": "mintAddress"
-        },
-        {
-          "name": "from",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "authority"
-              },
-              {
-                "kind": "account",
-                "path": "tokenProgram"
-              },
-              {
-                "kind": "account",
-                "path": "mintAddress"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "to",
-          "docs": [
-            "with which will be linked timelocks"
-          ]
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-        }
-      ],
-      "args": [
-        {
-          "name": "uuid",
-          "type": {
-            "array": [
-              "u8",
-              16
-            ]
-          }
-        },
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "commencementTimestamp",
-          "type": "u64"
-        },
-        {
-          "name": "scheduleId",
-          "type": "u16"
-        },
-        {
-          "name": "cancelableBy",
-          "type": {
-            "vec": "pubkey"
-          }
         }
       ]
     },
@@ -353,6 +230,9 @@ export type Tokenlock = {
           "name": "mintAddress"
         },
         {
+          "name": "transferRestrictionsData"
+        },
+        {
           "name": "authorityWalletRole"
         },
         {
@@ -376,6 +256,119 @@ export type Tokenlock = {
         {
           "name": "minTimelockAmount",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "mintReleaseSchedule",
+      "discriminator": [
+        124,
+        157,
+        84,
+        33,
+        123,
+        128,
+        222,
+        184
+      ],
+      "accounts": [
+        {
+          "name": "tokenlockAccount"
+        },
+        {
+          "name": "timelockAccount",
+          "writable": true
+        },
+        {
+          "name": "escrowAccount",
+          "writable": true
+        },
+        {
+          "name": "escrowAccountOwner",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mintAddress"
+              },
+              {
+                "kind": "account",
+                "path": "tokenlockAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "accessControl"
+        },
+        {
+          "name": "mintAddress",
+          "writable": true
+        },
+        {
+          "name": "to",
+          "docs": [
+            "with which will be linked timelocks"
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "accessControlProgram",
+          "address": "4X79YRjz9KNMhdjdxXg2ZNTS3YnMGYdwJkBHnezMJwr3"
+        }
+      ],
+      "args": [
+        {
+          "name": "uuid",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "commencementTimestamp",
+          "type": "u64"
+        },
+        {
+          "name": "scheduleId",
+          "type": "u16"
+        },
+        {
+          "name": "cancelableBy",
+          "type": {
+            "vec": "pubkey"
+          }
         }
       ]
     },
@@ -421,6 +414,22 @@ export type Tokenlock = {
         {
           "name": "tokenProgram",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "transferRestrictionsProgram",
+          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "authorityAccount"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule"
         }
       ],
       "args": [
@@ -472,6 +481,22 @@ export type Tokenlock = {
         {
           "name": "tokenProgram",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "transferRestrictionsProgram",
+          "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
+        },
+        {
+          "name": "authorityAccount"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule"
         }
       ],
       "args": [
@@ -524,6 +549,19 @@ export type Tokenlock = {
         58,
         210,
         120
+      ]
+    },
+    {
+      "name": "transferRestrictionData",
+      "discriminator": [
+        166,
+        184,
+        205,
+        98,
+        165,
+        224,
+        174,
+        148
       ]
     },
     {
@@ -715,6 +753,16 @@ export type Tokenlock = {
       "code": 6034,
       "name": "invalidAccessControlAccount",
       "msg": "Invalid access control account"
+    },
+    {
+      "code": 6035,
+      "name": "invalidTransferRestrictionData",
+      "msg": "Invalid transfer restriction data"
+    },
+    {
+      "code": 6036,
+      "name": "invalidAccountOwner",
+      "msg": "Invalid account owner"
     }
   ],
   "types": [
@@ -867,6 +915,10 @@ export type Tokenlock = {
             "type": "pubkey"
           },
           {
+            "name": "transferRestrictionsData",
+            "type": "pubkey"
+          },
+          {
             "name": "bumpSeed",
             "type": "u8"
           },
@@ -886,6 +938,48 @@ export type Tokenlock = {
                   "name": "releaseSchedule"
                 }
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "transferRestrictionData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "securityTokenMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "accessControlAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "currentHoldersCount",
+            "type": "u64"
+          },
+          {
+            "name": "holderIds",
+            "type": "u64"
+          },
+          {
+            "name": "maxHolders",
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "minWalletBalance",
+            "type": "u64"
+          },
+          {
+            "name": "lockupEscrowAccount",
+            "type": {
+              "option": "pubkey"
             }
           }
         ]

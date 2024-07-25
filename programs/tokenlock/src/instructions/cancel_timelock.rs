@@ -1,10 +1,11 @@
 use anchor_lang::{prelude::*, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 use solana_program::program_memory::sol_memcmp;
+use transfer_restrictions::program::TransferRestrictions;
 
 use crate::{
-    transfer_spl_from_escrow, utils, TimelockData, TokenLockData, TokenLockDataWrapper,
-    TokenlockErrors,
+    enforce_transfer_restrictions_cpi, transfer_spl_from_escrow, utils, TimelockData,
+    TokenLockData, TokenLockDataWrapper, TokenlockErrors,
 };
 
 #[derive(Accounts)]
@@ -51,6 +52,15 @@ pub struct CancelTimelock<'info> {
     pub mint_address: Box<InterfaceAccount<'info, Mint>>,
 
     pub token_program: Program<'info, Token2022>,
+
+    pub transfer_restrictions_program: Program<'info, TransferRestrictions>,
+
+    /// CHECK: extra account for the authority
+    pub security_associated_account_from: UncheckedAccount<'info>,
+    /// CHECK: extra account for the recipient
+    pub security_associated_account_to: UncheckedAccount<'info>,
+    /// CHECK: extra account for the transfer rule
+    pub transfer_rule: UncheckedAccount<'info>,
 }
 
 pub fn cancel_timelock<'info>(
@@ -101,6 +111,27 @@ pub fn cancel_timelock<'info>(
         return Err(TokenlockErrors::TimelockHasntValue.into());
     }
 
+    if ctx.remaining_accounts.len() == 0
+        || ctx.remaining_accounts[0].key()
+            != TokenLockDataWrapper::transfer_restriction_data(&tokenlock_account_data)
+    {
+        return Err(TokenlockErrors::InvalidTransferRestrictionData.into());
+    }
+    enforce_transfer_restrictions_cpi(
+        ctx.accounts.target_assoc.to_account_info().clone(),
+        ctx.accounts.mint_address.to_account_info(),
+        ctx.accounts.reclaimer.to_account_info().to_account_info(),
+        ctx.remaining_accounts[0].clone(),
+        ctx.accounts
+            .security_associated_account_from
+            .to_account_info(),
+        ctx.accounts
+            .security_associated_account_to
+            .to_account_info(),
+        ctx.accounts.transfer_rule.to_account_info(),
+        ctx.accounts.transfer_restrictions_program.to_account_info(),
+    )?;
+
     let split_at_pos = ctx.remaining_accounts.len() / 2;
     transfer_spl_from_escrow(
         &ctx.accounts.token_program,
@@ -114,6 +145,7 @@ pub fn cancel_timelock<'info>(
         ctx.accounts.mint_address.decimals,
         TokenLockDataWrapper::bump_seed(&tokenlock_account_data),
     )?;
+    // NOTE: no need to enforceTransferRestriction because it is a target wallet
     transfer_spl_from_escrow(
         &ctx.accounts.token_program,
         &ctx.accounts.escrow_account.to_account_info(),

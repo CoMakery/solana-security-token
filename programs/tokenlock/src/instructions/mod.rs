@@ -7,8 +7,8 @@ pub use initialize_timelock::*;
 pub mod create_release_schedule;
 pub use create_release_schedule::*;
 
-pub mod fund_release_schedule;
-pub use fund_release_schedule::*;
+pub mod mint_release_schedule;
+pub use mint_release_schedule::*;
 
 pub mod transfer_from;
 pub use transfer_from::*;

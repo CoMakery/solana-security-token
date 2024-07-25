@@ -1,10 +1,11 @@
 use anchor_lang::{prelude::*, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 use solana_program::program_memory::sol_memcmp;
+use transfer_restrictions::program::TransferRestrictions;
 
 use crate::{
-    transfer_spl_from_escrow, utils, TimelockData, TokenLockData, TokenLockDataWrapper,
-    TokenlockErrors,
+    enforce_transfer_restrictions_cpi, transfer_spl_from_escrow, utils, TimelockData,
+    TokenLockData, TokenLockDataWrapper, TokenlockErrors,
 };
 
 #[derive(Accounts)]
@@ -39,6 +40,16 @@ pub struct TransferTimelock<'info> {
     pub mint_address: Box<InterfaceAccount<'info, Mint>>,
 
     pub token_program: Program<'info, Token2022>,
+
+    pub transfer_restrictions_program: Program<'info, TransferRestrictions>,
+    /// CHECK: extra account for the authority associated account
+    pub authority_account: AccountInfo<'info>,
+    /// CHECK: extra account for the authority
+    pub security_associated_account_from: UncheckedAccount<'info>,
+    /// CHECK: extra account for the recipient
+    pub security_associated_account_to: UncheckedAccount<'info>,
+    /// CHECK: extra account for the transfer rule
+    pub transfer_rule: UncheckedAccount<'info>,
 }
 
 pub fn transfer_timelock<'info>(
@@ -80,10 +91,43 @@ pub fn transfer_timelock<'info>(
     let timelock = timelock_account.get_timelock_mut(timelock_id).unwrap();
     let total_transfered_new = timelock.tokens_transferred.checked_add(value).unwrap();
 
+    let to = &ctx.accounts.to;
+    // if recipient owner is a signer we skip enforcing transfer restrictions
+    if ctx.accounts.authority.key() != to.owner {
+        if ctx.remaining_accounts.len() == 0
+            || ctx.remaining_accounts[0].key()
+                != TokenLockDataWrapper::transfer_restriction_data(&tokenlock_account_data)
+        {
+            return Err(TokenlockErrors::InvalidTransferRestrictionData.into());
+        }
+
+        let authority_account_info = ctx.accounts.authority_account.clone();
+        let mut account_data: &[u8] = &authority_account_info.try_borrow_data()?;
+        let authority_account_data = TokenAccount::try_deserialize(&mut account_data)?;
+        if authority_account_data.owner != ctx.accounts.authority.key() {
+            return Err(TokenlockErrors::InvalidAccountOwner.into());
+        }
+
+        enforce_transfer_restrictions_cpi(
+            ctx.accounts.authority_account.clone(),
+            ctx.accounts.mint_address.to_account_info(),
+            to.to_account_info(),
+            ctx.remaining_accounts[0].clone(),
+            ctx.accounts
+                .security_associated_account_from
+                .to_account_info(),
+            ctx.accounts
+                .security_associated_account_to
+                .to_account_info(),
+            ctx.accounts.transfer_rule.to_account_info(),
+            ctx.accounts.transfer_restrictions_program.to_account_info(),
+        )?;
+    }
+
     transfer_spl_from_escrow(
         &ctx.accounts.token_program,
         &ctx.accounts.escrow_account.to_account_info(),
-        &ctx.accounts.to.to_account_info(),
+        &to.to_account_info(),
         &ctx.accounts.pda_account,
         value,
         &ctx.accounts.mint_address.to_account_info(),

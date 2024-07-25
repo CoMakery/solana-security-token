@@ -106,4 +106,10 @@ pub enum TokenlockErrors {
 
     #[msg("Invalid access control account")]
     InvalidAccessControlAccount,
+
+    #[msg("Invalid transfer restriction data")]
+    InvalidTransferRestrictionData,
+
+    #[msg("Invalid account owner")]
+    InvalidAccountOwner,
 }

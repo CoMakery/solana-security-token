@@ -14,6 +14,68 @@ export type TransferRestrictions = {
   },
   "instructions": [
     {
+      "name": "enforceTransferRestrictions",
+      "discriminator": [
+        77,
+        50,
+        36,
+        109,
+        250,
+        175,
+        122,
+        22
+      ],
+      "accounts": [
+        {
+          "name": "sourceAccount"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "destinationAccount"
+        },
+        {
+          "name": "transferRestrictionData"
+        },
+        {
+          "name": "securityAssociatedAccountFrom"
+        },
+        {
+          "name": "securityAssociatedAccountTo"
+        },
+        {
+          "name": "transferRule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "security_associated_account_from.group",
+                "account": "securityAssociatedAccount"
+              },
+              {
+                "kind": "account",
+                "path": "security_associated_account_to.group",
+                "account": "securityAssociatedAccount"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "executeTransaction",
       "docs": [
         "execute transfer hook"
@@ -86,74 +148,7 @@ export type TransferRestrictions = {
           "name": "securityAssociatedAccountTo"
         },
         {
-          "name": "transferRestrictionGroupFrom",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  103
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "transferRestrictionData"
-              },
-              {
-                "kind": "account",
-                "path": "security_associated_account_from.group",
-                "account": "securityAssociatedAccount"
-              }
-            ]
-          }
-        },
-        {
-          "name": "transferRestrictionGroupTo",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  103
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "transferRestrictionData"
-              },
-              {
-                "kind": "account",
-                "path": "security_associated_account_to.group",
-                "account": "securityAssociatedAccount"
-              }
-            ]
-          }
-        },
-        {
-          "name": "transferRule",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "transferRestrictionGroupFrom"
-              },
-              {
-                "kind": "account",
-                "path": "transferRestrictionGroupTo"
-              }
-            ]
-          }
+          "name": "transferRule"
         }
       ],
       "args": [
@@ -798,11 +793,17 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionGroupFrom"
+                "path": "transferRestrictionData"
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionGroupTo"
+                "path": "transfer_restriction_group_from.id",
+                "account": "transferRestrictionGroup"
+              },
+              {
+                "kind": "account",
+                "path": "transfer_restriction_group_to.id",
+                "account": "transferRestrictionGroup"
               }
             ]
           }
@@ -1237,11 +1238,17 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionGroupFrom"
+                "path": "transferRestrictionData"
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionGroupTo"
+                "path": "transfer_restriction_group_from.id",
+                "account": "transferRestrictionGroup"
+              },
+              {
+                "kind": "account",
+                "path": "transfer_restriction_group_to.id",
+                "account": "transferRestrictionGroup"
               }
             ]
           }
@@ -1424,6 +1431,86 @@ export type TransferRestrictions = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "setLockupEscrowAccount",
+      "discriminator": [
+        134,
+        172,
+        249,
+        223,
+        25,
+        118,
+        55,
+        93
+      ],
+      "accounts": [
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrowSecurityAssociatedAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "escrowAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "accessControlAccount"
+        },
+        {
+          "name": "authorityWalletRole"
+        },
+        {
+          "name": "escrowAccount"
+        },
+        {
+          "name": "tokenlockAccount"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "setMinWalletBalance",
@@ -1893,6 +1980,11 @@ export type TransferRestrictions = {
       "code": 6007,
       "name": "currentWalletsCountMustBeZero",
       "msg": "Current wallets count must be zero"
+    },
+    {
+      "code": 6008,
+      "name": "escrowAccountsMismatch",
+      "msg": "Escrow accounts mismatch"
     }
   ],
   "types": [
@@ -1947,7 +2039,9 @@ export type TransferRestrictions = {
           },
           {
             "name": "holder",
-            "type": "pubkey"
+            "type": {
+              "option": "pubkey"
+            }
           }
         ]
       }
@@ -1984,6 +2078,12 @@ export type TransferRestrictions = {
           {
             "name": "minWalletBalance",
             "type": "u64"
+          },
+          {
+            "name": "lockupEscrowAccount",
+            "type": {
+              "option": "pubkey"
+            }
           }
         ]
       }

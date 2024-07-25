@@ -5754,6 +5754,7 @@ dependencies = [
  "solana-program-test",
  "solana-sdk",
  "spl-token-2022 3.0.2",
+ "transfer-restrictions",
 ]
 
 [[package]]
