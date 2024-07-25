@@ -264,7 +264,7 @@ export function unlockedBalanceOf(
     return new BN(0);
   }
 
-  let amount = new BN(0);``
+  let amount = new BN(0);
   const timelockCount = timelockAccount.timelocks.length;
   for (let i = 0; i < timelockCount; i++) {
     amount = amount.add(unlockedBalanceOfTimelock(account, timelockAccount, i, nowTs));
@@ -309,7 +309,20 @@ export function balanceOfTimelock(
   ).add(lockedBalanceOfTimelock(account, timelockAccount, timelockid, nowTs));
 }
 
+/**
+ * Calculate sum of locked and unlocked amount for user account
+ */
+export function balanceOf(
+  account: any,
+  timelockAccount: any,
+  nowTs: number
+) {
+  return unlockedBalanceOf(account, timelockAccount, nowTs).add(
+    lockedBalanceOf(account, timelockAccount, nowTs)
+  );
+}
 
+export const MAX_RELEASE_DELAY = 346896000;
 export const BIPS_PRECISION: number = 10000;
 
 function calculateUnlockedForReleaseSchedule(

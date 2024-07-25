@@ -14,6 +14,7 @@ import {
     createReleaseSchedule,
     initializeTokenlock,
     batchMintReleaseSchedule,
+    MAX_RELEASE_DELAY,
 } from "../helpers/tokenlock_helper";
 import { getNowTs } from "../helpers/clock_helper";
 
@@ -86,7 +87,7 @@ describe('TokenLockup batch mint testing', () => {
             testEnvironment.contractAdmin,
             true
         );
-        const maxReleaseDelay = new anchor.BN(346896000);
+        const maxReleaseDelay = new anchor.BN(MAX_RELEASE_DELAY);
         const minTimelockAmount = new anchor.BN(100);
         await initializeTokenlock(
             tokenlockProgram,
@@ -119,9 +120,7 @@ describe('TokenLockup batch mint testing', () => {
             firstBatchBips,
             new anchor.BN(batchDelay),
             testEnvironment.accessControlHelper.accessControlPubkey,
-            testEnvironment.accessControlHelper.walletRolePDA(
-                reserveAdmin.publicKey
-            )[0],
+            reserveAdminWalletRolePubkey,
             reserveAdmin
         );
         assert(scheduleId === 0);
@@ -160,9 +159,7 @@ describe('TokenLockup batch mint testing', () => {
             firstBatchBips,
             new anchor.BN(batchDelay),
             testEnvironment.accessControlHelper.accessControlPubkey,
-            testEnvironment.accessControlHelper.walletRolePDA(
-                reserveAdmin.publicKey
-            )[0],
+            reserveAdminWalletRolePubkey,
             reserveAdmin
         );
         assert(scheduleId === 0);
@@ -235,9 +232,7 @@ describe('TokenLockup batch mint testing', () => {
             firstBatchBips,
             new anchor.BN(batchDelay),
             testEnvironment.accessControlHelper.accessControlPubkey,
-            testEnvironment.accessControlHelper.walletRolePDA(
-                reserveAdmin.publicKey
-            )[0],
+            reserveAdminWalletRolePubkey,
             reserveAdmin
         );
         assert(scheduleId === 0);
@@ -278,9 +273,7 @@ describe('TokenLockup batch mint testing', () => {
             firstBatchBips,
             new anchor.BN(batchDelay),
             testEnvironment.accessControlHelper.accessControlPubkey,
-            testEnvironment.accessControlHelper.walletRolePDA(
-                reserveAdmin.publicKey
-            )[0],
+            reserveAdminWalletRolePubkey,
             reserveAdmin
         );
         assert(scheduleId === 0);

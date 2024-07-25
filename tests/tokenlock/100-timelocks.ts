@@ -17,6 +17,7 @@ import {
   initializeTokenlock,
   unlockedBalanceOf,
   withdraw,
+  MAX_RELEASE_DELAY,
 } from "./../helpers/tokenlock_helper";
 import { getNowTs } from "./../helpers/clock_helper";
 import { fromDaysToSeconds } from "../helpers/datetime";
@@ -43,6 +44,7 @@ describe("TokenLockup stress test", () => {
   let escrowOwnerPubkey;
   let walletC;
   let tokenlockDataPubkey;
+  let reserveAdminWalletRolePubkey;
 
   beforeEach(async () => {
     try {
@@ -54,6 +56,9 @@ describe("TokenLockup stress test", () => {
 
       mintPubkey = testEnvironment.mintKeypair.publicKey;
       reserveAdmin = testEnvironment.reserveAdmin;
+      [reserveAdminWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(
+        reserveAdmin.publicKey
+      );
 
       await topUpWallet(
         testEnvironment.connection,
@@ -81,7 +86,7 @@ describe("TokenLockup stress test", () => {
         testEnvironment.contractAdmin,
         true
       );
-      const maxReleaseDelay = new anchor.BN(346896000);
+      const maxReleaseDelay = new anchor.BN(MAX_RELEASE_DELAY);
       const minTimelockAmount = new anchor.BN(100);
       await initializeTokenlock(
         tokenlockProgram,
@@ -126,9 +131,7 @@ describe("TokenLockup stress test", () => {
         firstBatchBips,
         new anchor.BN(batchDelay),
         testEnvironment.accessControlHelper.accessControlPubkey,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         reserveAdmin
       );
 
@@ -152,9 +155,7 @@ describe("TokenLockup stress test", () => {
       firstBatchBips,
       new anchor.BN(batchDelay),
       testEnvironment.accessControlHelper.accessControlPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(
-        reserveAdmin.publicKey
-      )[0],
+      reserveAdminWalletRolePubkey,
       reserveAdmin
     );
     console.log("scheduleId=", scheduleId);
@@ -180,9 +181,7 @@ describe("TokenLockup stress test", () => {
         escrowOwnerPubkey,
         walletB.publicKey,
         reserveAdmin,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         testEnvironment.accessControlHelper.accessControlPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.program.programId
@@ -210,9 +209,7 @@ describe("TokenLockup stress test", () => {
         escrowOwnerPubkey,
         walletC.publicKey,
         reserveAdmin,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         testEnvironment.accessControlHelper.accessControlPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.program.programId
@@ -322,9 +319,7 @@ describe("TokenLockup stress test", () => {
       firstBatchBips,
       new anchor.BN(batchDelay),
       testEnvironment.accessControlHelper.accessControlPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(
-        reserveAdmin.publicKey
-      )[0],
+      reserveAdminWalletRolePubkey,
       reserveAdmin
     );
     console.log("scheduleId=", scheduleId);
@@ -349,9 +344,7 @@ describe("TokenLockup stress test", () => {
         escrowOwnerPubkey,
         walletB.publicKey,
         reserveAdmin,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         testEnvironment.accessControlHelper.accessControlPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.program.programId
@@ -379,9 +372,7 @@ describe("TokenLockup stress test", () => {
         escrowOwnerPubkey,
         walletC.publicKey,
         reserveAdmin,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         testEnvironment.accessControlHelper.accessControlPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.program.programId

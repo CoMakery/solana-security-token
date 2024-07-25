@@ -31,6 +31,7 @@ import {
   getTimelockAccount,
   initializeTokenlock,
   lockedBalanceOf,
+  MAX_RELEASE_DELAY,
   unlockedBalanceOf,
   uuidBytes,
 } from "./helpers/tokenlock_helper";
@@ -168,7 +169,7 @@ describe("token lockup", () => {
         true
       );
 
-    const maxReleaseDelay = new anchor.BN(346896000);
+    const maxReleaseDelay = new anchor.BN(MAX_RELEASE_DELAY);
     const minTimelockAmount = new anchor.BN(100);
     const initializeTokenlockSignature = await initializeTokenlock(
       tokenlockProgram,
