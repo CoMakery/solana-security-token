@@ -55,6 +55,7 @@ describe("TokenLockup check cancelables", () => {
   let reserveAdmin: anchor.web3.Keypair;
   let reserveAdminWalletRolePubkey: anchor.web3.PublicKey;
   let reserveAdminTokenAccountPubkey: anchor.web3.PublicKey;
+  let transferAdminWalletRole: anchor.web3.PublicKey;
 
   beforeEach(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
@@ -148,6 +149,85 @@ describe("TokenLockup check cancelables", () => {
       tokenlockDataPubkey,
       contractAdminWalletRole,
       testEnvironment.contractAdmin
+    );
+
+
+    const groupId = new anchor.BN(0);
+    const [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(groupId);
+    const holderId = new anchor.BN(1);
+    const [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        groupId
+      );
+    [transferAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      );
+
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
+      holderId,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+      holderGroupPubkey,
+      holderPubkey,
+      groupPubkey,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      reserveAdmin.publicKey,
+      reserveAdminTokenAccountPubkey,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      walletA.publicKey,
+      walletATokenAcc,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      walletB.publicKey,
+      walletBTokenAcc,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
+    );
+    const tokenlockWalletTokenAcc =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        tokenlockWallet.publicKey,
+        testEnvironment.contractAdmin
+      );
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      tokenlockWallet.publicKey,
+      tokenlockWalletTokenAcc,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
+    );
+    const nowTs = await getNowTs(testEnvironment.connection);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
+      new anchor.BN(nowTs),
+      groupId,
+      groupId,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
     );
   });
 
@@ -245,60 +325,6 @@ describe("TokenLockup check cancelables", () => {
     );
     assert(timelockCount === 2);
 
-    const groupId = new anchor.BN(0);
-    const [groupPubkey] =
-      testEnvironment.transferRestrictionsHelper.groupPDA(groupId);
-    const holderId = new anchor.BN(1);
-    const [holderPubkey] =
-      testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
-    const [holderGroupPubkey] =
-      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-        holderPubkey,
-        groupId
-      );
-
-    const [transferAdminWalletRole] =
-      testEnvironment.accessControlHelper.walletRolePDA(
-        testEnvironment.transferAdmin.publicKey
-      );
-    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
-      holderId,
-      transferAdminWalletRole,
-      testEnvironment.transferAdmin
-    );
-    await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
-      holderGroupPubkey,
-      holderPubkey,
-      groupPubkey,
-      transferAdminWalletRole,
-      testEnvironment.transferAdmin
-    );
-    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-      groupPubkey,
-      holderPubkey,
-      holderGroupPubkey,
-      reserveAdmin.publicKey,
-      reserveAdminTokenAccountPubkey,
-      transferAdminWalletRole,
-      testEnvironment.transferAdmin
-    );
-    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-      groupPubkey,
-      holderPubkey,
-      holderGroupPubkey,
-      walletA.publicKey,
-      walletATokenAcc,
-      transferAdminWalletRole,
-      testEnvironment.transferAdmin
-    );
-    await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
-      new anchor.BN(nowTs),
-      groupId,
-      groupId,
-      transferAdminWalletRole,
-      testEnvironment.transferAdmin
-    );
-
     timelockId = await cancelTimelock(
       tokenlockProgram,
       0,
@@ -358,7 +384,6 @@ describe("TokenLockup check cancelables", () => {
   describe("Check cancel timelock after funding with multi cancelable addresses", () => {
     let cancelerList = [];
     let timelockId: number | string;
-    let transferAdminWalletRole: anchor.web3.PublicKey;
 
     beforeEach(async () => {
       cancelerList = [];
@@ -397,83 +422,6 @@ describe("TokenLockup check cancelables", () => {
         testEnvironment.accessControlHelper.program.programId
       );
       assert(timelockId === 0);
-
-      const groupId = new anchor.BN(0);
-      const [groupPubkey] =
-        testEnvironment.transferRestrictionsHelper.groupPDA(groupId);
-      const holderId = new anchor.BN(1);
-      const [holderPubkey] =
-        testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
-      const [holderGroupPubkey] =
-        testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-          holderPubkey,
-          groupId
-        );
-      [transferAdminWalletRole] =
-        testEnvironment.accessControlHelper.walletRolePDA(
-          testEnvironment.transferAdmin.publicKey
-        );
-
-      await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
-        holderId,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
-        holderGroupPubkey,
-        holderPubkey,
-        groupPubkey,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-        groupPubkey,
-        holderPubkey,
-        holderGroupPubkey,
-        reserveAdmin.publicKey,
-        reserveAdminTokenAccountPubkey,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-        groupPubkey,
-        holderPubkey,
-        holderGroupPubkey,
-        walletA.publicKey,
-        walletATokenAcc,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-        groupPubkey,
-        holderPubkey,
-        holderGroupPubkey,
-        walletB.publicKey,
-        walletBTokenAcc,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      const tokenlockWalletTokenAcc =
-        await testEnvironment.mintHelper.createAssociatedTokenAccount(
-          tokenlockWallet.publicKey,
-          testEnvironment.contractAdmin
-        );
-      await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-        groupPubkey,
-        holderPubkey,
-        holderGroupPubkey,
-        tokenlockWallet.publicKey,
-        tokenlockWalletTokenAcc,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
-        new anchor.BN(nowTs),
-        groupId,
-        groupId,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
     });
 
     it("cancel with first canceler", async () => {
@@ -646,70 +594,6 @@ describe("TokenLockup check cancelables", () => {
         reserveAdmin
       );
       assert(scheduleId === 0);
-
-      const groupId = new anchor.BN(0);
-      const [groupPubkey] =
-        testEnvironment.transferRestrictionsHelper.groupPDA(groupId);
-      const holderId = new anchor.BN(1);
-      const [holderPubkey] =
-        testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
-      const [holderGroupPubkey] =
-        testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-          holderPubkey,
-          groupId
-        );
-      [transferAdminWalletRole] =
-        testEnvironment.accessControlHelper.walletRolePDA(
-          testEnvironment.transferAdmin.publicKey
-        );
-
-      await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
-        holderId,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
-        holderGroupPubkey,
-        holderPubkey,
-        groupPubkey,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-        groupPubkey,
-        holderPubkey,
-        holderGroupPubkey,
-        reserveAdmin.publicKey,
-        reserveAdminTokenAccountPubkey,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-        groupPubkey,
-        holderPubkey,
-        holderGroupPubkey,
-        walletA.publicKey,
-        walletATokenAcc,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
-        groupPubkey,
-        holderPubkey,
-        holderGroupPubkey,
-        walletB.publicKey,
-        walletBTokenAcc,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-      const nowTs = await getNowTs(testEnvironment.connection);
-      await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
-        new anchor.BN(nowTs),
-        groupId,
-        groupId,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
     });
 
     it("should be able to check if the lockup is cancelable", async () => {
