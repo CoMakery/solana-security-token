@@ -233,7 +233,7 @@ export function unlockedBalanceOfTimelock(
 /**
  * Calculate locked amount which can be withdrawal in future for specific timelock index
  */
-function lockedBalanceOfTimelock(
+export function lockedBalanceOfTimelock(
   account: any,
   timelockAccount: any,
   timelockIndex: number,
