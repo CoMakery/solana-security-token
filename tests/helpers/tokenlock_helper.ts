@@ -17,7 +17,7 @@ import {
   getAssociatedTokenAddressSync,
   getMint,
   getTransferHook,
-  TOKEN_2022_PROGRAM_ID
+  TOKEN_2022_PROGRAM_ID,
 } from "@solana/spl-token";
 import { TransferRestrictionsHelper } from "./transfer-restrictions_helper";
 import { AccessControl } from "../../target/types/access_control";
@@ -49,7 +49,7 @@ export function parseCustomProgramErrorNumber(errors, logs) {
   const key = "custom program error: ";
   for (let i = 0; i < logs.length; i++) {
     if (logs[i].indexOf(key) >= 0) {
-      const idxStart = logs[i].indexOf(key);      
+      const idxStart = logs[i].indexOf(key);
       const numStr = logs[i].substring(idxStart + key.length);
       const errorNum = Number(numStr);
       const idx = errorNum % 100;
@@ -59,14 +59,15 @@ export function parseCustomProgramErrorNumber(errors, logs) {
   return undefined;
 }
 
-export function parseAnchorErrorNumber(errors: any, logs : string[]) {
+export function parseAnchorErrorNumber(errors: any, logs: string[]) {
   const key = "Program log: AnchorError occurred. Error Code: ";
   const errorNumberText = "Error Number: ";
   for (let i = 0; i < logs.length; i++) {
     if (logs[i].indexOf(key) >= 0) {
       const idxStart = logs[i].indexOf(key);
       const numStr = logs[i].substring(idxStart + key.length);
-      const errorNumberStart = numStr.indexOf(errorNumberText) + errorNumberText.length;
+      const errorNumberStart =
+        numStr.indexOf(errorNumberText) + errorNumberText.length;
       const endOfStr = numStr.substring(errorNumberStart);
       const errorNumberEnd = endOfStr.indexOf(".");
       const errorNumber = Number(endOfStr.substring(0, errorNumberEnd));
@@ -95,9 +96,15 @@ export async function getTimelockAccountData(
   tokenlockAccount: PublicKey,
   target: PublicKey
 ): Promise<any> {
-  const timlockAccount = getTimelockAccount(program.programId, tokenlockAccount, target);
+  const timlockAccount = getTimelockAccount(
+    program.programId,
+    tokenlockAccount,
+    target
+  );
   try {
-    const timelockAccountData = await program.account.timelockData.fetch(timlockAccount);
+    const timelockAccountData = await program.account.timelockData.fetch(
+      timlockAccount
+    );
     return timelockAccountData;
   } catch (e) {
     console.log(e);
@@ -149,7 +156,10 @@ function checkAndgetTimelock(timelockAccount: any, timelockIndex: number): any {
   return timelock;
 }
 
-export async function getTokenlockAccount(program: Program<Tokenlock>, tokenlockAcc: PublicKey): Promise<any> {
+export async function getTokenlockAccount(
+  program: Program<Tokenlock>,
+  tokenlockAcc: PublicKey
+): Promise<any> {
   return program.account.tokenLockData.fetch(tokenlockAcc);
 }
 
@@ -267,7 +277,9 @@ export function unlockedBalanceOf(
   let amount = new BN(0);
   const timelockCount = timelockAccount.timelocks.length;
   for (let i = 0; i < timelockCount; i++) {
-    amount = amount.add(unlockedBalanceOfTimelock(account, timelockAccount, i, nowTs));
+    amount = amount.add(
+      unlockedBalanceOfTimelock(account, timelockAccount, i, nowTs)
+    );
   }
   return amount;
 }
@@ -287,7 +299,9 @@ export function lockedBalanceOf(
   let amount = new BN(0);
   const timelockCount = timelockCountOf(timelockAccount);
   for (let i = 0; i < timelockCount; i++) {
-    amount = amount.add(lockedBalanceOfTimelock(account, timelockAccount, i, nowTs));
+    amount = amount.add(
+      lockedBalanceOfTimelock(account, timelockAccount, i, nowTs)
+    );
   }
   return amount;
 }
@@ -302,21 +316,17 @@ export function balanceOfTimelock(
   nowTs: number
 ): BN {
   return unlockedBalanceOfTimelock(
-      account,
-      timelockAccount,
-      timelockid,
-      nowTs,
+    account,
+    timelockAccount,
+    timelockid,
+    nowTs
   ).add(lockedBalanceOfTimelock(account, timelockAccount, timelockid, nowTs));
 }
 
 /**
  * Calculate sum of locked and unlocked amount for user account
  */
-export function balanceOf(
-  account: any,
-  timelockAccount: any,
-  nowTs: number
-) {
+export function balanceOf(account: any, timelockAccount: any, nowTs: number) {
   return unlockedBalanceOf(account, timelockAccount, nowTs).add(
     lockedBalanceOf(account, timelockAccount, nowTs)
   );
@@ -345,7 +355,7 @@ function calculateUnlockedForReleaseSchedule(
   if (
     secondsElapsed >=
     delayUntilFirstReleaseInSeconds +
-    periodBetweenReleasesInSeconds * (releaseCount - 1)
+      periodBetweenReleasesInSeconds * (releaseCount - 1)
   ) {
     return amount;
   }
@@ -353,28 +363,30 @@ function calculateUnlockedForReleaseSchedule(
   let unlocked = new BN(0);
   // unlock the initial release if the delay has elapsed
   if (secondsElapsed >= delayUntilFirstReleaseInSeconds) {
-    unlocked = (amount.muln(initialReleasePortionInBips)).divn(BIPS_PRECISION)
+    unlocked = amount.muln(initialReleasePortionInBips).divn(BIPS_PRECISION);
 
-    const timePassedAfterFirstReleaseInSeconds = secondsElapsed - delayUntilFirstReleaseInSeconds;
+    const timePassedAfterFirstReleaseInSeconds =
+      secondsElapsed - delayUntilFirstReleaseInSeconds;
     // if at least one period after the delay has passed
     if (
-      timePassedAfterFirstReleaseInSeconds >=
-      periodBetweenReleasesInSeconds
+      timePassedAfterFirstReleaseInSeconds >= periodBetweenReleasesInSeconds
     ) {
       // calculate the number of additional periods that have passed (not including the initial release)
       // this discards any remainders (ie it truncates / rounds down)
       // eslint-disable-next-line max-len
       const additionalUnlockedPeriods = Math.floor(
-        timePassedAfterFirstReleaseInSeconds /
-        periodBetweenReleasesInSeconds
+        timePassedAfterFirstReleaseInSeconds / periodBetweenReleasesInSeconds
       );
 
       // calculate the amount of unlocked tokens for the additionalUnlockedPeriods
       // multiplication is applied before division to delay truncating to the smallest unit
       // this distributes unlocked tokens more evenly across unlock periods
       // than truncated division followed by multiplication
-      const amountMulAdditionalReleasePeriods = (amount.sub(unlocked)).muln(additionalUnlockedPeriods);
-      const unlockedAmountAfterFirstRelease = amountMulAdditionalReleasePeriods.divn(releaseCount - 1);
+      const amountMulAdditionalReleasePeriods = amount
+        .sub(unlocked)
+        .muln(additionalUnlockedPeriods);
+      const unlockedAmountAfterFirstRelease =
+        amountMulAdditionalReleasePeriods.divn(releaseCount - 1);
 
       unlocked = unlocked.add(unlockedAmountAfterFirstRelease);
     }
@@ -454,14 +466,14 @@ export async function createReleaseSchedule(
         account.releaseSchedules[
           i
         ].delayUntilFirstReleaseInSeconds.toString() ===
-        delayUntilFirstReleaseInSeconds.toString() &&
+          delayUntilFirstReleaseInSeconds.toString() &&
         account.releaseSchedules[i].initialReleasePortionInBips ===
-        initialReleasePortionInBips &&
+          initialReleasePortionInBips &&
         // eslint-disable-next-line max-len
         account.releaseSchedules[
           i
         ].periodBetweenReleasesInSeconds.toString() ===
-        periodBetweenReleasesInSeconds.toString()
+          periodBetweenReleasesInSeconds.toString()
       ) {
         result = i;
         break;
@@ -469,7 +481,10 @@ export async function createReleaseSchedule(
     }
   } catch (e) {
     if (!e.error && !e.error.errorCode && !e.error.errorMessage) {
-      result = parseCustomProgramErrorNumber(program.idl.errors, e.transactionLogs);
+      result = parseCustomProgramErrorNumber(
+        program.idl.errors,
+        e.transactionLogs
+      );
     } else result = e.error.errorMessage;
   }
 
@@ -584,7 +599,7 @@ export async function mintReleaseSchedule(
       new Transaction().add(
         ...[modifyComputeUnitsInstruction, mintReleaseScheduleInstruction]
       ),
-      [signer],
+      [signer]
     );
 
     const account = await program.account.timelockData.fetch(timelockAccount);
@@ -594,7 +609,7 @@ export async function mintReleaseSchedule(
         account.timelocks[i].totalAmount.toString() === amount.toString() &&
         account.timelocks[i].scheduleId === scheduleId &&
         account.timelocks[i].commencementTimestamp.toString() ===
-        commencementTimestamp.toString()
+          commencementTimestamp.toString()
       ) {
         result = i;
         break;
@@ -620,40 +635,58 @@ export async function withdraw(
   escrowOwnerPubkey: PublicKey,
   recipientAccount: PublicKey,
   transferRestrictionsHelper: TransferRestrictionsHelper,
-  signer: Keypair,
+  signer: Keypair
 ): Promise<string> {
-  const escrowAccount = getAssociatedTokenAddressSync(mintPubkey, escrowOwnerPubkey, true, TOKEN_2022_PROGRAM_ID);
-  const authorityAccount = getAssociatedTokenAddressSync(mintPubkey, signer.publicKey, false, TOKEN_2022_PROGRAM_ID);
-  const securityAssociatedAccountFrom = transferRestrictionsHelper.securityAssociatedAccountPDA(authorityAccount)[0];
-  const securityAssociatedAccountTo = transferRestrictionsHelper.securityAssociatedAccountPDA(recipientAccount)[0];
-  const secAssocAccountFromData = await transferRestrictionsHelper.securityAssociatedAccountData(securityAssociatedAccountFrom);
-  const secAssocAccountToData = await transferRestrictionsHelper.securityAssociatedAccountData(securityAssociatedAccountTo);
+  const escrowAccount = getAssociatedTokenAddressSync(
+    mintPubkey,
+    escrowOwnerPubkey,
+    true,
+    TOKEN_2022_PROGRAM_ID
+  );
+  const authorityAccount = getAssociatedTokenAddressSync(
+    mintPubkey,
+    signer.publicKey,
+    false,
+    TOKEN_2022_PROGRAM_ID
+  );
+  const securityAssociatedAccountFrom =
+    transferRestrictionsHelper.securityAssociatedAccountPDA(
+      authorityAccount
+    )[0];
+  const securityAssociatedAccountTo =
+    transferRestrictionsHelper.securityAssociatedAccountPDA(
+      recipientAccount
+    )[0];
+  const secAssocAccountFromData =
+    await transferRestrictionsHelper.securityAssociatedAccountData(
+      securityAssociatedAccountFrom
+    );
+  const secAssocAccountToData =
+    await transferRestrictionsHelper.securityAssociatedAccountData(
+      securityAssociatedAccountTo
+    );
   const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
     secAssocAccountFromData.group,
     secAssocAccountToData.group
   );
-  const transferInstruction = program.instruction.transfer(
-    amount,
-    {
-      accounts: {
-        tokenlockAccount,
-        timelockAccount,
-        escrowAccount,
-        pdaAccount: escrowOwnerPubkey,
-        authority: signer.publicKey,
-        to: recipientAccount,
-        mintAddress: mintPubkey,
-        tokenProgram: TOKEN_2022_PROGRAM_ID,
-        transferRestrictionsProgram: transferRestrictionsHelper.program.programId,
-        authorityAccount,
-        securityAssociatedAccountFrom,
-        securityAssociatedAccountTo,
-        transferRule: transferRulePubkey,
-      },
-      signers: [signer],
-    }
-  );
-
+  const transferInstruction = program.instruction.transfer(amount, {
+    accounts: {
+      tokenlockAccount,
+      timelockAccount,
+      escrowAccount,
+      pdaAccount: escrowOwnerPubkey,
+      authority: signer.publicKey,
+      to: recipientAccount,
+      mintAddress: mintPubkey,
+      tokenProgram: TOKEN_2022_PROGRAM_ID,
+      transferRestrictionsProgram: transferRestrictionsHelper.program.programId,
+      authorityAccount,
+      securityAssociatedAccountFrom,
+      securityAssociatedAccountTo,
+      transferRule: transferRulePubkey,
+    },
+    signers: [signer],
+  });
 
   await addExtraAccountMetasForExecute(
     connection,
@@ -688,11 +721,24 @@ export async function getOrCreateTimelockAccount(
   authorityWalletRole: PublicKey,
   signer: Keypair
 ): Promise<PublicKey> {
-  let timelockAccount = getTimelockAccount(program.programId, tokenlockAcc, target);
-  const accInfo = await program.provider.connection.getAccountInfo(timelockAccount);
+  let timelockAccount = getTimelockAccount(
+    program.programId,
+    tokenlockAcc,
+    target
+  );
+  const accInfo = await program.provider.connection.getAccountInfo(
+    timelockAccount
+  );
 
   if (accInfo == null) {
-    timelockAccount = await initializeTimelock(program, tokenlockAcc, target, accessControl, authorityWalletRole, signer);
+    timelockAccount = await initializeTimelock(
+      program,
+      tokenlockAcc,
+      target,
+      accessControl,
+      authorityWalletRole,
+      signer
+    );
   }
   return timelockAccount;
 }
@@ -710,13 +756,17 @@ export async function batchMintReleaseSchedule(
   to: PublicKey[],
   mintPubkey: PublicKey,
   accessControlProgram: Program<AccessControl>,
-  signer: Keypair,
+  signer: Keypair
 ) {
   const cancelByCount = cancelableBy.length;
-  if (cancelByCount > 10) return 'max 10 cancelableBy addressees';
+  if (cancelByCount > 10) return "max 10 cancelableBy addressees";
 
-  if (amount.length !== commencementTimestamp.length || amount.length !== scheduleId.length || amount.length !== to.length) {
-    return 'mismatched array length';
+  if (
+    amount.length !== commencementTimestamp.length ||
+    amount.length !== scheduleId.length ||
+    amount.length !== to.length
+  ) {
+    return "mismatched array length";
   }
 
   let totalAmount = 0;
@@ -731,11 +781,14 @@ export async function batchMintReleaseSchedule(
     TOKEN_2022_PROGRAM_ID
   );
   const mintCurrentSupply = mintInfo.supply;
-  const accessControlData = await accessControlProgram.account.accessControl.fetch(
-    accessControlPubkey
-  );
+  const accessControlData =
+    await accessControlProgram.account.accessControl.fetch(accessControlPubkey);
   const mintMaxTotalSupply = accessControlData.maxTotalSupply;
-  if (mintCurrentSupply + BigInt(totalAmount) > BigInt(mintMaxTotalSupply.toString())) return 'more than max mint total supply!';
+  if (
+    mintCurrentSupply + BigInt(totalAmount) >
+    BigInt(mintMaxTotalSupply.toString())
+  )
+    return "more than max mint total supply!";
 
   const timelockAccounts = [];
   for (let i = 0; i < to.length; i++) {
@@ -755,7 +808,12 @@ export async function batchMintReleaseSchedule(
   const cancelBy = [];
   for (let i = 0; i < cancelByCount; i++) cancelBy.push(cancelableBy[i]);
 
-  const escrowAccount = getAssociatedTokenAddressSync(mintPubkey, escrowAccountOwnerPubkey, true, TOKEN_2022_PROGRAM_ID);
+  const escrowAccount = getAssociatedTokenAddressSync(
+    mintPubkey,
+    escrowAccountOwnerPubkey,
+    true,
+    TOKEN_2022_PROGRAM_ID
+  );
 
   // making instructions
   const instructions = [];
@@ -795,7 +853,7 @@ export async function batchMintReleaseSchedule(
 
   try {
     await sendAndConfirmTransaction(program.provider.connection, trx, [signer]);
-    result = 'ok';
+    result = "ok";
   } catch (e) {
     if (!e.error || !e.logs) {
       result = parseAnchorErrorNumber(program.idl.errors, e.logs);
@@ -815,14 +873,40 @@ export async function cancelTimelock(
   transferRestrictionsHelper: TransferRestrictionsHelper,
   signer: Keypair
 ): Promise<string> {
-  const timelockAccount = getTimelockAccount(program.programId, tokenlockDataPubkey, target);
-  const accInfo = await program.provider.connection.getAccountInfo(timelockAccount);
-  const escrowAccount = getAssociatedTokenAddressSync(mintPubkey, escrowOwnerPubkey, true, TOKEN_2022_PROGRAM_ID);
-  const targetAssoc = getAssociatedTokenAddressSync(mintPubkey, target, false, TOKEN_2022_PROGRAM_ID);
-  const [securityAssociatedAccountFrom] = transferRestrictionsHelper.securityAssociatedAccountPDA(targetAssoc);
-  const [securityAssociatedAccountTo] = transferRestrictionsHelper.securityAssociatedAccountPDA(reclaimerTokenAccountPubkey);
-  const secAssocAccountFromData = await transferRestrictionsHelper.securityAssociatedAccountData(securityAssociatedAccountFrom);
-  const secAssocAccountToData = await transferRestrictionsHelper.securityAssociatedAccountData(securityAssociatedAccountTo);
+  const timelockAccount = getTimelockAccount(
+    program.programId,
+    tokenlockDataPubkey,
+    target
+  );
+  const accInfo = await program.provider.connection.getAccountInfo(
+    timelockAccount
+  );
+  const escrowAccount = getAssociatedTokenAddressSync(
+    mintPubkey,
+    escrowOwnerPubkey,
+    true,
+    TOKEN_2022_PROGRAM_ID
+  );
+  const targetAssoc = getAssociatedTokenAddressSync(
+    mintPubkey,
+    target,
+    false,
+    TOKEN_2022_PROGRAM_ID
+  );
+  const [securityAssociatedAccountFrom] =
+    transferRestrictionsHelper.securityAssociatedAccountPDA(targetAssoc);
+  const [securityAssociatedAccountTo] =
+    transferRestrictionsHelper.securityAssociatedAccountPDA(
+      reclaimerTokenAccountPubkey
+    );
+  const secAssocAccountFromData =
+    await transferRestrictionsHelper.securityAssociatedAccountData(
+      securityAssociatedAccountFrom
+    );
+  const secAssocAccountToData =
+    await transferRestrictionsHelper.securityAssociatedAccountData(
+      securityAssociatedAccountTo
+    );
   const [transferRulePubkey] = transferRestrictionsHelper.transferRulePDA(
     secAssocAccountFromData.group,
     secAssocAccountToData.group
@@ -833,29 +917,29 @@ export async function cancelTimelock(
   }
   let result;
   try {
-    const cancelTimelockInstruction =
-      program.instruction.cancelTimelock(
-        timelockId,
-        {
-          accounts: {
-            tokenlockAccount: tokenlockDataPubkey,
-            timelockAccount,
-            escrowAccount: escrowAccount,
-            pdaAccount: escrowOwnerPubkey,
-            target,
-            targetAssoc,
-            authority: signer.publicKey,
-            reclaimer: reclaimerTokenAccountPubkey,
-            mintAddress: mintPubkey,
-            tokenProgram: TOKEN_2022_PROGRAM_ID,
-            transferRestrictionsProgram: transferRestrictionsHelper.program.programId,
-            securityAssociatedAccountFrom,
-            securityAssociatedAccountTo,
-            transferRule: transferRulePubkey,
-          },
-          signers: [signer],
-        }
-      );
+    const cancelTimelockInstruction = program.instruction.cancelTimelock(
+      timelockId,
+      {
+        accounts: {
+          tokenlockAccount: tokenlockDataPubkey,
+          timelockAccount,
+          escrowAccount: escrowAccount,
+          pdaAccount: escrowOwnerPubkey,
+          target,
+          targetAssoc,
+          authority: signer.publicKey,
+          reclaimer: reclaimerTokenAccountPubkey,
+          mintAddress: mintPubkey,
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+          transferRestrictionsProgram:
+            transferRestrictionsHelper.program.programId,
+          securityAssociatedAccountFrom,
+          securityAssociatedAccountTo,
+          transferRule: transferRulePubkey,
+        },
+        signers: [signer],
+      }
+    );
 
     const mintInfo = await getMint(
       program.provider.connection,

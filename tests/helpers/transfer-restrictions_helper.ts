@@ -489,7 +489,8 @@ export class TransferRestrictionsHelper {
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
-    const [escrowSecurityAssociatedAccountPubkey] = this.securityAssociatedAccountPDA(lockupEscrowAccountPubkey);
+    const [escrowSecurityAssociatedAccountPubkey] =
+      this.securityAssociatedAccountPDA(lockupEscrowAccountPubkey);
     return this.program.methods
       .setLockupEscrowAccount()
       .accountsStrict({
