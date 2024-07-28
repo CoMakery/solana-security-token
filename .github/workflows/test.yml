@@ -40,3 +40,9 @@ jobs:
 
       - name: JS E2E Tests
         run: anchor test
+
+      - name: Install llvm-cov
+        run: cargo install cargo-llvm-cov
+      
+      - name: Rust Tests
+        run: cargo llvm-cov

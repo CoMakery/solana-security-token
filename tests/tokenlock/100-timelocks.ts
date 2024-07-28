@@ -17,6 +17,7 @@ import {
   initializeTokenlock,
   unlockedBalanceOf,
   withdraw,
+  MAX_RELEASE_DELAY,
 } from "./../helpers/tokenlock_helper";
 import { getNowTs } from "./../helpers/clock_helper";
 import { fromDaysToSeconds } from "../helpers/datetime";
@@ -43,6 +44,7 @@ describe("TokenLockup stress test", () => {
   let escrowOwnerPubkey;
   let walletC;
   let tokenlockDataPubkey;
+  let reserveAdminWalletRolePubkey;
 
   beforeEach(async () => {
     try {
@@ -54,6 +56,10 @@ describe("TokenLockup stress test", () => {
 
       mintPubkey = testEnvironment.mintKeypair.publicKey;
       reserveAdmin = testEnvironment.reserveAdmin;
+      [reserveAdminWalletRolePubkey] =
+        testEnvironment.accessControlHelper.walletRolePDA(
+          reserveAdmin.publicKey
+        );
 
       await topUpWallet(
         testEnvironment.connection,
@@ -76,12 +82,13 @@ describe("TokenLockup stress test", () => {
         ],
         tokenlockProgram.programId
       );
-      escrowAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-        escrowOwnerPubkey,
-        testEnvironment.contractAdmin,
-        true
-      );
-      const maxReleaseDelay = new anchor.BN(346896000);
+      escrowAccount =
+        await testEnvironment.mintHelper.createAssociatedTokenAccount(
+          escrowOwnerPubkey,
+          testEnvironment.contractAdmin,
+          true
+        );
+      const maxReleaseDelay = new anchor.BN(MAX_RELEASE_DELAY);
       const minTimelockAmount = new anchor.BN(100);
       await initializeTokenlock(
         tokenlockProgram,
@@ -89,7 +96,8 @@ describe("TokenLockup stress test", () => {
         minTimelockAmount,
         tokenlockDataPubkey,
         escrowAccount,
-        testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+        testEnvironment.transferRestrictionsHelper
+          .transferRestrictionDataPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.walletRolePDA(
           testEnvironment.contractAdmin.publicKey
@@ -98,13 +106,19 @@ describe("TokenLockup stress test", () => {
         testEnvironment.contractAdmin
       );
 
-      const txSignature = await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
-        escrowAccount,
-        tokenlockDataPubkey,
-        testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.contractAdmin.publicKey)[0],
-        testEnvironment.contractAdmin
+      const txSignature =
+        await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+          escrowAccount,
+          tokenlockDataPubkey,
+          testEnvironment.accessControlHelper.walletRolePDA(
+            testEnvironment.contractAdmin.publicKey
+          )[0],
+          testEnvironment.contractAdmin
+        );
+      console.log(
+        "Set escrow account into transfer restriction data tx:",
+        txSignature
       );
-      console.log("Set escrow account into transfer restriction data tx:", txSignature);
     } catch (error) {
       console.log("error=", error);
       throw error;
@@ -126,9 +140,7 @@ describe("TokenLockup stress test", () => {
         firstBatchBips,
         new anchor.BN(batchDelay),
         testEnvironment.accessControlHelper.accessControlPubkey,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         reserveAdmin
       );
 
@@ -152,9 +164,7 @@ describe("TokenLockup stress test", () => {
       firstBatchBips,
       new anchor.BN(batchDelay),
       testEnvironment.accessControlHelper.accessControlPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(
-        reserveAdmin.publicKey
-      )[0],
+      reserveAdminWalletRolePubkey,
       reserveAdmin
     );
     console.log("scheduleId=", scheduleId);
@@ -180,9 +190,7 @@ describe("TokenLockup stress test", () => {
         escrowOwnerPubkey,
         walletB.publicKey,
         reserveAdmin,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         testEnvironment.accessControlHelper.accessControlPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.program.programId
@@ -210,9 +218,7 @@ describe("TokenLockup stress test", () => {
         escrowOwnerPubkey,
         walletC.publicKey,
         reserveAdmin,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         testEnvironment.accessControlHelper.accessControlPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.program.programId
@@ -221,7 +227,11 @@ describe("TokenLockup stress test", () => {
       assert(timelockId === i);
     }
 
-    await topUpWallet(testEnvironment.connection, walletC.publicKey, solToLamports(1));
+    await topUpWallet(
+      testEnvironment.connection,
+      walletC.publicKey,
+      solToLamports(1)
+    );
 
     const tsNow = await getNowTs(testEnvironment.connection);
     let tokenlockData = await tokenlockProgram.account.tokenLockData.fetch(
@@ -240,29 +250,42 @@ describe("TokenLockup stress test", () => {
       timelockData,
       tsNow
     );
-    const walletCTokenAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-      walletC.publicKey,
-      reserveAdmin
-    );
+    const walletCTokenAccount =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        walletC.publicKey,
+        reserveAdmin
+      );
 
     const group0 = new anchor.BN(0);
-    const transferRestrictionData = await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    const transferRestrictionData =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
     const holderId = transferRestrictionData.holderIds.addn(1);
-    const [authorityWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.walletsAdmin.publicKey);
+    const [authorityWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       holderId,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.walletsAdmin.publicKey)[0],
-      testEnvironment.walletsAdmin,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
     );
-    const [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(group0);
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
-    const [holderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(holderPubkey, group0);
+    const [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(group0);
+    const [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        group0
+      );
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
       holderGroupPubkey,
       holderPubkey,
       groupPubkey,
       authorityWalletRole,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
       groupPubkey,
@@ -271,7 +294,7 @@ describe("TokenLockup stress test", () => {
       walletC.publicKey,
       walletCTokenAccount,
       authorityWalletRole,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
 
     const transferAmount = new anchor.BN(unlockedBalance);
@@ -295,16 +318,18 @@ describe("TokenLockup stress test", () => {
     timelockData = await tokenlockProgram.account.timelockData.fetch(
       timelockAccount
     );
-    assert.equal(0,
-      unlockedBalanceOf(
-        tokenlockData,
-        timelockData,
-        tsNow
-      ).toNumber()
+    assert.equal(
+      0,
+      unlockedBalanceOf(tokenlockData, timelockData, tsNow).toNumber()
     );
 
-    const walletCTokenAccountData = await testEnvironment.mintHelper.getAccount(walletCTokenAccount);
-    assert.equal(transferAmount.toString(), walletCTokenAccountData.amount.toString());
+    const walletCTokenAccountData = await testEnvironment.mintHelper.getAccount(
+      walletCTokenAccount
+    );
+    assert.equal(
+      transferAmount.toString(),
+      walletCTokenAccountData.amount.toString()
+    );
   });
 
   it("100 mints release Schedule for different recipients", async () => {
@@ -322,9 +347,7 @@ describe("TokenLockup stress test", () => {
       firstBatchBips,
       new anchor.BN(batchDelay),
       testEnvironment.accessControlHelper.accessControlPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(
-        reserveAdmin.publicKey
-      )[0],
+      reserveAdminWalletRolePubkey,
       reserveAdmin
     );
     console.log("scheduleId=", scheduleId);
@@ -349,9 +372,7 @@ describe("TokenLockup stress test", () => {
         escrowOwnerPubkey,
         walletB.publicKey,
         reserveAdmin,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         testEnvironment.accessControlHelper.accessControlPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.program.programId
@@ -379,9 +400,7 @@ describe("TokenLockup stress test", () => {
         escrowOwnerPubkey,
         walletC.publicKey,
         reserveAdmin,
-        testEnvironment.accessControlHelper.walletRolePDA(
-          reserveAdmin.publicKey
-        )[0],
+        reserveAdminWalletRolePubkey,
         testEnvironment.accessControlHelper.accessControlPubkey,
         mintPubkey,
         testEnvironment.accessControlHelper.program.programId

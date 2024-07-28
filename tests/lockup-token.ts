@@ -27,9 +27,11 @@ import { createAccount, solToLamports, topUpWallet } from "./utils";
 import {
   BIPS_PRECISION,
   calcSignerHash,
+  cancelTimelock,
   getTimelockAccount,
   initializeTokenlock,
   lockedBalanceOf,
+  MAX_RELEASE_DELAY,
   unlockedBalanceOf,
   uuidBytes,
 } from "./helpers/tokenlock_helper";
@@ -167,7 +169,7 @@ describe("token lockup", () => {
         true
       );
 
-    const maxReleaseDelay = new anchor.BN(346896000);
+    const maxReleaseDelay = new anchor.BN(MAX_RELEASE_DELAY);
     const minTimelockAmount = new anchor.BN(100);
     const initializeTokenlockSignature = await initializeTokenlock(
       tokenlockProgram,
@@ -216,21 +218,29 @@ describe("token lockup", () => {
       await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
     assert.equal(transferRestrictionData.lockupEscrowAccount, null);
 
-    const [contractAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(
-      testEnvironment.contractAdmin.publicKey
-    );
+    const [contractAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.contractAdmin.publicKey
+      );
 
-    const txSignature = await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
-      escrowAccount,
-      tokenlockDataPubkey,
-      contractAdminWalletRole,
-      testEnvironment.contractAdmin
+    const txSignature =
+      await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+        escrowAccount,
+        tokenlockDataPubkey,
+        contractAdminWalletRole,
+        testEnvironment.contractAdmin
+      );
+    console.log(
+      "Set escrow account into transfer restriction data tx:",
+      txSignature
     );
-    console.log("Set escrow account into transfer restriction data tx:", txSignature);
 
     transferRestrictionData =
       await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
-    assert.deepEqual(transferRestrictionData.lockupEscrowAccount, escrowAccount);
+    assert.deepEqual(
+      transferRestrictionData.lockupEscrowAccount,
+      escrowAccount
+    );
   });
 
   const uuid = uuidBytes();
@@ -407,14 +417,16 @@ describe("token lockup", () => {
       tsNow
     );
     const lockedBalance = lockedBalanceOf(tokenlockData, timelockData, tsNow);
-    const unlockedBalanceCalculated = (new anchor.BN(mintedAmount).muln(initialReleasePortionInBips)).divn(BIPS_PRECISION);
+    const unlockedBalanceCalculated = new anchor.BN(mintedAmount)
+      .muln(initialReleasePortionInBips)
+      .divn(BIPS_PRECISION);
     assert.equal(
       unlockedBalance.toString(),
       unlockedBalanceCalculated.toString()
     );
     assert.equal(
       lockedBalance.toString(),
-      (new anchor.BN(mintedAmount)).sub(unlockedBalanceCalculated).toString()
+      new anchor.BN(mintedAmount).sub(unlockedBalanceCalculated).toString()
     );
   });
 
@@ -537,10 +549,11 @@ describe("token lockup", () => {
     testEnvironment.accessControlHelper.walletRolePDA(
       testEnvironment.transferAdmin.publicKey
     );
-  const [transferRulePubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
-    investorGroupId,
-    investorGroupId
-  );
+  const [transferRulePubkey] =
+    testEnvironment.transferRestrictionsHelper.transferRulePDA(
+      investorGroupId,
+      investorGroupId
+    );
   it("transfers for recipient", async () => {
     const timelockAccount = getTimelockAccount(
       tokenlockProgram.programId,
@@ -584,10 +597,20 @@ describe("token lockup", () => {
           to: investorTokenAccountPubkey,
           mintAddress: testEnvironment.mintKeypair.publicKey,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
-          transferRestrictionsProgram: testEnvironment.transferRestrictionsHelper.program.programId,
-          authorityAccount: testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey),
-          securityAssociatedAccountFrom: testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey),
-          securityAssociatedAccountTo: testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey),
+          transferRestrictionsProgram:
+            testEnvironment.transferRestrictionsHelper.program.programId,
+          authorityAccount:
+            testEnvironment.mintHelper.getAssocciatedTokenAddress(
+              investor.publicKey
+            ),
+          securityAssociatedAccountFrom:
+            testEnvironment.mintHelper.getAssocciatedTokenAddress(
+              investor.publicKey
+            ),
+          securityAssociatedAccountTo:
+            testEnvironment.mintHelper.getAssocciatedTokenAddress(
+              investor.publicKey
+            ),
           transferRule: transferRulePubkey,
         },
         signers: [investor],
@@ -718,10 +741,20 @@ describe("token lockup", () => {
             to: investorTokenAccountPubkey,
             mintAddress: testEnvironment.mintKeypair.publicKey,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
-            transferRestrictionsProgram: testEnvironment.transferRestrictionsHelper.program.programId,
-            authorityAccount: testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey),
-            securityAssociatedAccountFrom: testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey),
-            securityAssociatedAccountTo: testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey),
+            transferRestrictionsProgram:
+              testEnvironment.transferRestrictionsHelper.program.programId,
+            authorityAccount:
+              testEnvironment.mintHelper.getAssocciatedTokenAddress(
+                investor.publicKey
+              ),
+            securityAssociatedAccountFrom:
+              testEnvironment.mintHelper.getAssocciatedTokenAddress(
+                investor.publicKey
+              ),
+            securityAssociatedAccountTo:
+              testEnvironment.mintHelper.getAssocciatedTokenAddress(
+                investor.publicKey
+              ),
             transferRule: transferRulePubkey,
           },
           signers: [investor],
@@ -761,13 +794,15 @@ describe("token lockup", () => {
       await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
     assert.equal(
       investorTokenAccountData.amount.toString(),
-      (transferAmount.add(transferTimelockAmount)).toString()
+      transferAmount.add(transferTimelockAmount).toString()
     );
   });
 
   const newInvestorWallet = anchor.web3.Keypair.generate();
   const newinvestorTokenAccountPubkey =
-    testEnvironment.mintHelper.getAssocciatedTokenAddress(newInvestorWallet.publicKey);
+    testEnvironment.mintHelper.getAssocciatedTokenAddress(
+      newInvestorWallet.publicKey
+    );
   it("creates new wallet for investor", async () => {
     await testEnvironment.mintHelper.createAssociatedTokenAccount(
       newInvestorWallet.publicKey,
@@ -784,15 +819,18 @@ describe("token lockup", () => {
         testEnvironment.walletsAdmin.publicKey
       )[0],
       testEnvironment.walletsAdmin
-    )
+    );
   });
 
-  const [transferRuleInvestorPubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
-    investorGroupId,
-    investorGroupId
-  );
+  const [transferRuleInvestorPubkey] =
+    testEnvironment.transferRestrictionsHelper.transferRulePDA(
+      investorGroupId,
+      investorGroupId
+    );
   it("creates transfer rule for new wallet", async () => {
-    const lockedUntil = new anchor.BN(await getNowTs(testEnvironment.connection));
+    const lockedUntil = new anchor.BN(
+      await getNowTs(testEnvironment.connection)
+    );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
       lockedUntil,
       investorGroupId,
@@ -838,10 +876,20 @@ describe("token lockup", () => {
             to: newinvestorTokenAccountPubkey,
             mintAddress: testEnvironment.mintKeypair.publicKey,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
-            transferRestrictionsProgram: testEnvironment.transferRestrictionsHelper.program.programId,
-            authorityAccount: testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey),
-            securityAssociatedAccountFrom: testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(investorTokenAccountPubkey)[0],
-            securityAssociatedAccountTo: testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(newinvestorTokenAccountPubkey)[0],
+            transferRestrictionsProgram:
+              testEnvironment.transferRestrictionsHelper.program.programId,
+            authorityAccount:
+              testEnvironment.mintHelper.getAssocciatedTokenAddress(
+                investor.publicKey
+              ),
+            securityAssociatedAccountFrom:
+              testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+                investorTokenAccountPubkey
+              )[0],
+            securityAssociatedAccountTo:
+              testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+                newinvestorTokenAccountPubkey
+              )[0],
             transferRule: transferRuleInvestorPubkey,
           },
           signers: [investor],
@@ -894,58 +942,43 @@ describe("token lockup", () => {
 
     const investorTokenAccountPubkey =
       testEnvironment.mintHelper.getAssocciatedTokenAddress(investor.publicKey);
-    let investorTokenAccountData =
-      await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
+    let investorTokenAccountData = await testEnvironment.mintHelper.getAccount(
+      investorTokenAccountPubkey
+    );
     const investorBalanceBefore = investorTokenAccountData.amount;
     const timelockIdx = 0;
     const reclaimerTokenAccountPubkey =
       testEnvironment.mintHelper.getAssocciatedTokenAddress(
         testEnvironment.reserveAdmin.publicKey
       );
-    const [investorSecAssocAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      investorTokenAccountPubkey
-    );
-    const investorSecAssocAccountData = await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
-      investorSecAssocAccountPubkey
-    );
-    const [reclaimerSecAssocAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      reclaimerTokenAccountPubkey
-    );
-    const reclaimerSecAssocAccountData = await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
-      reclaimerSecAssocAccountPubkey
-    );
+    const [investorSecAssocAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        investorTokenAccountPubkey
+      );
+    const investorSecAssocAccountData =
+      await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
+        investorSecAssocAccountPubkey
+      );
+    const [reclaimerSecAssocAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        reclaimerTokenAccountPubkey
+      );
+    const reclaimerSecAssocAccountData =
+      await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
+        reclaimerSecAssocAccountPubkey
+      );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
       new anchor.BN(tsNow),
       investorSecAssocAccountData.group,
       reclaimerSecAssocAccountData.group,
       transferAdminWalletRole,
       testEnvironment.transferAdmin
-    )
-    const [transferRulePubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
-      investorSecAssocAccountData.group,
-      reclaimerSecAssocAccountData.group
     );
-
-    const cancelTimelockInstruction =
-      tokenlockProgram.instruction.cancelTimelock(timelockIdx, {
-        accounts: {
-          tokenlockAccount: tokenlockDataPubkey,
-          timelockAccount,
-          escrowAccount: escrowAccount,
-          pdaAccount: escrowOwnerPubkey,
-          target: investor.publicKey,
-          targetAssoc: investorTokenAccountPubkey,
-          authority: testEnvironment.reserveAdmin.publicKey,
-          reclaimer: reclaimerTokenAccountPubkey,
-          mintAddress: testEnvironment.mintKeypair.publicKey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-          transferRestrictionsProgram: testEnvironment.transferRestrictionsHelper.program.programId,
-          securityAssociatedAccountFrom: investorSecAssocAccountPubkey,
-          securityAssociatedAccountTo: reclaimerSecAssocAccountPubkey,
-          transferRule: transferRulePubkey,
-        },
-        signers: [testEnvironment.reserveAdmin],
-      });
+    const [transferRulePubkey] =
+      testEnvironment.transferRestrictionsHelper.transferRulePDA(
+        investorSecAssocAccountData.group,
+        reclaimerSecAssocAccountData.group
+      );
 
     const lockedUntil = new anchor.BN(tsNow);
     const escrowGroupdId = new anchor.BN(2);
@@ -960,48 +993,17 @@ describe("token lockup", () => {
       testEnvironment.transferAdmin
     );
 
-    const mintInfo = await testEnvironment.mintHelper.getMint();
-    const transferHook = getTransferHook(mintInfo);
-    assert.ok(transferHook);
-
-    await addExtraAccountMetasForExecute(
-      testEnvironment.connection,
-      cancelTimelockInstruction,
-      transferHook.programId,
-      escrowAccount,
+    await cancelTimelock(
+      tokenlockProgram,
+      timelockIdx,
+      tokenlockDataPubkey,
       testEnvironment.mintKeypair.publicKey,
+      investor.publicKey,
+      escrowOwnerPubkey,
       reclaimerTokenAccountPubkey,
-      escrowOwnerPubkey,
-      transferAmount.toNumber(),
-      testEnvironment.confirmOptions
+      testEnvironment.transferRestrictionsHelper,
+      testEnvironment.reserveAdmin
     );
-
-    await addExtraAccountMetasForExecute(
-      testEnvironment.connection,
-      cancelTimelockInstruction,
-      transferHook.programId,
-      escrowAccount,
-      testEnvironment.mintKeypair.publicKey,
-      investorTokenAccountPubkey,
-      escrowOwnerPubkey,
-      transferAmount.toNumber(),
-      testEnvironment.confirmOptions
-    );
-
-    const modifyComputeUnitsInstruction =
-      ComputeBudgetProgram.setComputeUnitLimit({
-        units: 400000,
-      });
-
-    const transferTxSignature = await sendAndConfirmTransaction(
-      testEnvironment.connection,
-      new Transaction().add(
-        ...[modifyComputeUnitsInstruction, cancelTimelockInstruction]
-      ),
-      [testEnvironment.reserveAdmin],
-      { commitment: testEnvironment.confirmOptions }
-    );
-    console.log("Cancel Timelock Transaction Signature", transferTxSignature);
 
     const timelockDataAfterTransfer =
       await tokenlockProgram.account.timelockData.fetch(timelockAccount);
@@ -1009,8 +1011,9 @@ describe("token lockup", () => {
       timelockDataAfterTransfer.timelocks[0].tokensTransferred.toNumber(),
       timelockDataAfterTransfer.timelocks[0].totalAmount.toNumber()
     );
-    investorTokenAccountData =
-      await testEnvironment.mintHelper.getAccount(investorTokenAccountPubkey);
+    investorTokenAccountData = await testEnvironment.mintHelper.getAccount(
+      investorTokenAccountPubkey
+    );
     assert.equal(
       investorTokenAccountData.amount.toString(),
       (investorBalanceBefore + BigInt(unlockedBalance.toNumber())).toString()
