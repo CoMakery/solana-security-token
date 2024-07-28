@@ -297,7 +297,7 @@ describe("Transfer Negative cases", async () => {
     assert(accInfo !== null);
 
     const amount = 51;
-    const funderPretenderBalanceBeforeTransfer = (
+    const walletPretenderBalanceBeforeTransfer = (
       await testEnvironment.mintHelper.getAccount(walletPretenderAcc)
     ).amount;
     const authorityAccount =
@@ -351,12 +351,12 @@ describe("Transfer Negative cases", async () => {
           `Error: unknown signer: ${walletPretender.publicKey.toBase58()}`
       );
     }
-    const funderPretenderBalanceAfterTransfer = (
+    const walletPretenderBalanceAfterTransfer = (
       await testEnvironment.mintHelper.getAccount(walletPretenderAcc)
     ).amount;
     assert(
-      funderPretenderBalanceBeforeTransfer ===
-        funderPretenderBalanceAfterTransfer
+      walletPretenderBalanceBeforeTransfer ===
+        walletPretenderBalanceAfterTransfer
     );
 
     const balanceEscrowAfterTransfer = (
@@ -395,7 +395,7 @@ describe("Transfer Negative cases", async () => {
     assert(accInfo !== null);
 
     const amount = 51;
-    const funderPretenderBalanceBeforeTransfer = (
+    const walletPretenderBalanceBeforeTransfer = (
       await testEnvironment.mintHelper.getAccount(walletPretenderAcc)
     ).amount;
     const authorityAccount =
@@ -447,12 +447,12 @@ describe("Transfer Negative cases", async () => {
           `Error: unknown signer: ${walletPretender.publicKey.toBase58()}`
       );
     }
-    const funderPretenderBalanceAfterTransfer = (
+    const walletPretenderBalanceAfterTransfer = (
       await testEnvironment.mintHelper.getAccount(walletPretenderAcc)
     ).amount;
     assert(
-      funderPretenderBalanceBeforeTransfer ===
-        funderPretenderBalanceAfterTransfer
+      walletPretenderBalanceBeforeTransfer ===
+        walletPretenderBalanceAfterTransfer
     );
 
     const balanceEscrowAfterTransfer = (

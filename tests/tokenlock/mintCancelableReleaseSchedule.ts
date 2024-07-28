@@ -231,7 +231,7 @@ describe("TokenLockup check cancelables", () => {
     );
   });
 
-  it("should emit an event with the correct scheduleId when the release schedule is funded and canceled", async () => {
+  it("should emit an event with the correct scheduleId when the release schedule is minted and canceled", async () => {
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
       tokenlockDataPubkey,
@@ -381,7 +381,7 @@ describe("TokenLockup check cancelables", () => {
     assert(Number(timelockId) === 1);
   });
 
-  describe("Check cancel timelock after funding with multi cancelable addresses", () => {
+  describe("Check cancel timelock after minting with multi cancelable addresses", () => {
     let cancelerList = [];
     let timelockId: number | string;
 

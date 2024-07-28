@@ -387,7 +387,7 @@ describe("TokenLockup mint release schedues", () => {
       mintPubkey,
       testEnvironment.accessControlHelper.program.programId
     );
-    assert(timelockId === "Amount < min funding");
+    assert(timelockId === "Amount < min minting amount");
   });
 
   it("cannot specify non existent schedule id", async () => {

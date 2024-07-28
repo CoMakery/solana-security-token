@@ -11,8 +11,8 @@ pub enum TokenlockErrors {
     #[msg("Min timelock amount must be greater or equal to 1")]
     MinTimelockAmountLessThanOne,
 
-    #[msg("Amount < min funding")]
-    AmountLessThanMinFunding,
+    #[msg("Amount < min minting amount")]
+    AmountLessThanMinMintingAmount,
 
     #[msg("Insufficient data space, Tokenlock account is full")]
     InsufficientTokenLockDataSpace,

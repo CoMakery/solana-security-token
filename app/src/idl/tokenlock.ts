@@ -596,8 +596,8 @@ export type Tokenlock = {
     },
     {
       "code": 6003,
-      "name": "amountLessThanMinFunding",
-      "msg": "Amount < min funding"
+      "name": "amountLessThanMinMintingAmount",
+      "msg": "Amount < min minting amount"
     },
     {
       "code": 6004,
