@@ -47,7 +47,6 @@ describe("token lockup", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
-    minWalletBalance: 0,
   };
   const testEnvironment = new TestEnvironment(testEnvironmentParams);
   const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;

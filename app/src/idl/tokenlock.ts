@@ -973,10 +973,6 @@ export type Tokenlock = {
             "type": "bool"
           },
           {
-            "name": "minWalletBalance",
-            "type": "u64"
-          },
-          {
             "name": "lockupEscrowAccount",
             "type": {
               "option": "pubkey"

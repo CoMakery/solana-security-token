@@ -34,7 +34,6 @@ describe("Transfer Negative cases", async () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
-    minWalletBalance: 0,
   };
   let testEnvironment: TestEnvironment;
   const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;

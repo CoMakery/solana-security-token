@@ -6,7 +6,6 @@ use crate::{errors::TransferRestrictionsError, InitializeTransferRestrictionData
 pub fn initialize_data(
     ctx: Context<InitializeTransferRestrictionData>,
     max_holders: u64,
-    min_wallet_balance: u64,
 ) -> Result<()> {
     if !ctx.accounts.authority_wallet_role.has_role(Roles::ContractAdmin) {
         return Err(TransferRestrictionsError::Unauthorized.into());
@@ -19,7 +18,6 @@ pub fn initialize_data(
     transfer_restriction_data.current_holders_count = 0;
     transfer_restriction_data.holder_ids = 0;
     transfer_restriction_data.max_holders = max_holders;
-    transfer_restriction_data.min_wallet_balance = min_wallet_balance;
     transfer_restriction_data.paused = false;
     transfer_restriction_data.lockup_escrow_account = None;
 

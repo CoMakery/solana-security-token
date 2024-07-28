@@ -99,14 +99,3 @@ pub fn verify_pda(address: &Pubkey, seeds: &[&[u8]], program_id: &Pubkey) -> Res
     }
     Ok(())
 }
-
-pub fn validate_min_wallet_balance(
-    min_wallet_balance: u64,
-    account_balance: u64,
-) -> Result<()> {
-    if min_wallet_balance > 0 && account_balance > 0 && account_balance < min_wallet_balance  {
-        return Err(TransferRestrictionsError::BalanceIsTooLow.into());
-    }
-
-    Ok(())
-}
