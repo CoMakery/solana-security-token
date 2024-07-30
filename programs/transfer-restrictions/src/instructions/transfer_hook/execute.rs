@@ -6,7 +6,7 @@ use anchor_spl::{
 };
 
 use crate::{
-    errors::TransferRestrictionsError, validate_min_wallet_balance, verify_pda,
+    errors::TransferRestrictionsError, verify_pda,
     ExecuteTransferHook, SecurityAssociatedAccount, TransferRestrictionData, TransferRule,
     SECURITY_ASSOCIATED_ACCOUNT_PREFIX, TRANSFER_RESTRICTION_DATA_PREFIX, TRANSFER_RULE_PREFIX,
 };
@@ -81,11 +81,6 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
     if transfer_rule.locked_until > Clock::get()?.unix_timestamp as u64 {
         return Err(TransferRestrictionsError::TransferRuleLocked.into());
     }
-
-    validate_min_wallet_balance(
-        transfer_restriction_data.min_wallet_balance,
-        ctx.accounts.source_account.amount,
-    )?;
 
     Ok(())
 }

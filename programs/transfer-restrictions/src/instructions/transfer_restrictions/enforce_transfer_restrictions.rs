@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    errors::TransferRestrictionsError, validate_min_wallet_balance, EnforceTransferRestrictions,
+    errors::TransferRestrictionsError, EnforceTransferRestrictions,
 };
 
 pub fn enforce_transfer_restrictions(ctx: Context<EnforceTransferRestrictions>) -> Result<()> {
@@ -24,11 +24,6 @@ pub fn enforce_transfer_restrictions(ctx: Context<EnforceTransferRestrictions>) 
     if transfer_rule.locked_until > Clock::get()?.unix_timestamp as u64 {
         return Err(TransferRestrictionsError::TransferRuleLocked.into());
     }
-
-    validate_min_wallet_balance(
-        transfer_restriction_data.min_wallet_balance,
-        ctx.accounts.source_account.amount,
-    )?;
 
     Ok(())
 }

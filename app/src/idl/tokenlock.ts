@@ -596,8 +596,8 @@ export type Tokenlock = {
     },
     {
       "code": 6003,
-      "name": "amountLessThanMinFunding",
-      "msg": "Amount < min funding"
+      "name": "amountLessThanMinMintingAmount",
+      "msg": "Amount < min minting amount"
     },
     {
       "code": 6004,
@@ -971,10 +971,6 @@ export type Tokenlock = {
           {
             "name": "paused",
             "type": "bool"
-          },
-          {
-            "name": "minWalletBalance",
-            "type": "u64"
           },
           {
             "name": "lockupEscrowAccount",

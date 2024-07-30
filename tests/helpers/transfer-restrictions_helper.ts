@@ -167,13 +167,12 @@ export class TransferRestrictionsHelper {
 
   initializeTransferRestrictionData(
     maxHolders: BN,
-    minWalletBalance: BN,
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): any {
     const [groupPDA] = this.groupPDA(new BN(0));
     return this.program.methods
-      .initializeTransferRestrictionsData(maxHolders, minWalletBalance)
+      .initializeTransferRestrictionsData(maxHolders)
       .accountsStrict({
         transferRestrictionData: this.transferRestrictionDataPubkey,
         accessControlAccount: this.accessControlPubkey,
@@ -340,24 +339,6 @@ export class TransferRestrictionsHelper {
         userAssociatedTokenAccount: userTokenAccountPubkey,
         payer: payer.publicKey,
         systemProgram: SystemProgram.programId,
-      })
-      .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
-  }
-
-  async setMinWalletBalance(
-    minWalletBalance: BN,
-    authorityWalletRolePubkey: PublicKey,
-    payer: Keypair
-  ): Promise<string> {
-    return this.program.methods
-      .setMinWalletBalance(minWalletBalance)
-      .accountsStrict({
-        transferRestrictionData: this.transferRestrictionDataPubkey,
-        accessControlAccount: this.accessControlPubkey,
-        mint: this.mintPubkey,
-        payer: payer.publicKey,
-        authorityWalletRole: authorityWalletRolePubkey,
       })
       .signers([payer])
       .rpc({ commitment: this.confirmOptions });

@@ -30,7 +30,6 @@ describe("TokenLockup calculate unlocked", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
-    minWalletBalance: 0,
   };
   let testEnvironment: TestEnvironment;
 

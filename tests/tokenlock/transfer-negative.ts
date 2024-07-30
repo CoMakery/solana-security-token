@@ -34,7 +34,6 @@ describe("Transfer Negative cases", async () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
-    minWalletBalance: 0,
   };
   let testEnvironment: TestEnvironment;
   const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;
@@ -297,7 +296,7 @@ describe("Transfer Negative cases", async () => {
     assert(accInfo !== null);
 
     const amount = 51;
-    const funderPretenderBalanceBeforeTransfer = (
+    const walletPretenderBalanceBeforeTransfer = (
       await testEnvironment.mintHelper.getAccount(walletPretenderAcc)
     ).amount;
     const authorityAccount =
@@ -351,12 +350,12 @@ describe("Transfer Negative cases", async () => {
           `Error: unknown signer: ${walletPretender.publicKey.toBase58()}`
       );
     }
-    const funderPretenderBalanceAfterTransfer = (
+    const walletPretenderBalanceAfterTransfer = (
       await testEnvironment.mintHelper.getAccount(walletPretenderAcc)
     ).amount;
     assert(
-      funderPretenderBalanceBeforeTransfer ===
-        funderPretenderBalanceAfterTransfer
+      walletPretenderBalanceBeforeTransfer ===
+        walletPretenderBalanceAfterTransfer
     );
 
     const balanceEscrowAfterTransfer = (
@@ -395,7 +394,7 @@ describe("Transfer Negative cases", async () => {
     assert(accInfo !== null);
 
     const amount = 51;
-    const funderPretenderBalanceBeforeTransfer = (
+    const walletPretenderBalanceBeforeTransfer = (
       await testEnvironment.mintHelper.getAccount(walletPretenderAcc)
     ).amount;
     const authorityAccount =
@@ -447,12 +446,12 @@ describe("Transfer Negative cases", async () => {
           `Error: unknown signer: ${walletPretender.publicKey.toBase58()}`
       );
     }
-    const funderPretenderBalanceAfterTransfer = (
+    const walletPretenderBalanceAfterTransfer = (
       await testEnvironment.mintHelper.getAccount(walletPretenderAcc)
     ).amount;
     assert(
-      funderPretenderBalanceBeforeTransfer ===
-        funderPretenderBalanceAfterTransfer
+      walletPretenderBalanceBeforeTransfer ===
+        walletPretenderBalanceAfterTransfer
     );
 
     const balanceEscrowAfterTransfer = (

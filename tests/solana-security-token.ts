@@ -39,7 +39,6 @@ describe("solana-security-token", () => {
 
   const superAdmin = Keypair.generate();
 
-  const minWalletBalance = new anchor.BN(0);
   const decimals = 6;
   const setupAccessControlArgs = {
     decimals,
@@ -49,7 +48,6 @@ describe("solana-security-token", () => {
     uri: "https://e.com",
     symbol: "XYZ",
     delegate: superAdmin.publicKey,
-    minWalletBalance,
     maxTotalSupply: new anchor.BN(1_000_000_000),
     hookProgramId: transferRestrictionsProgram.programId,
   };
@@ -338,7 +336,6 @@ describe("solana-security-token", () => {
     const initTransferRestrictionDataTx =
       await transferRestrictionsHelper.initializeTransferRestrictionData(
         maxHolders,
-        minWalletBalance,
         authorityWalletRolePubkey,
         superAdmin
       );
@@ -1234,27 +1231,6 @@ describe("solana-security-token", () => {
     );
     assert.deepEqual(senderAccountInfo.amount, BigInt(297000));
     assert.equal(recipientAccountInfo.amount.toString(), "3000");
-  });
-
-  it("sets min wallet balance by transfer admin", async () => {
-    const newMinWalletBalance = new anchor.BN(1000);
-    const setMinWalletBalanceTx =
-      await transferRestrictionsHelper.setMinWalletBalance(
-        newMinWalletBalance,
-        accessControlHelper.walletRolePDA(transferAdmin.publicKey)[0],
-        transferAdmin
-      );
-    console.log(
-      "Set Min Wallet Balance Transaction Signature",
-      setMinWalletBalanceTx
-    );
-
-    const transferRestrictionData =
-      await transferRestrictionsHelper.transferRestrictionData();
-    assert.equal(
-      transferRestrictionData.minWalletBalance.toString(),
-      newMinWalletBalance.toString()
-    );
   });
 
   it("sets holder max count by transfer admin", async () => {

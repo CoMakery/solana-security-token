@@ -117,7 +117,7 @@ pub fn mint_release_schedule<'info>(
 
     //check params
     if amount < TokenLockDataWrapper::min_timelock_amount(&tokenlock_account_data) {
-        return Err(TokenlockErrors::AmountLessThanMinFunding.into());
+        return Err(TokenlockErrors::AmountLessThanMinMintingAmount.into());
     }
 
     if schedule_id >= TokenLockDataWrapper::schedule_count(&tokenlock_account_data) {

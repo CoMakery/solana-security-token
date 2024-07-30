@@ -26,7 +26,7 @@ import {
 import { getNowTs } from "../helpers/clock_helper";
 import { fromDaysToSeconds } from "../helpers/datetime";
 
-describe("TokenLockup fund release schedues", () => {
+describe("TokenLockup mint release schedues", () => {
   const testEnvironmentParams: TestEnvironmentParams = {
     mint: {
       decimals: 6,
@@ -36,7 +36,6 @@ describe("TokenLockup fund release schedues", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
-    minWalletBalance: 0,
   };
   let testEnvironment: TestEnvironment;
 
@@ -51,7 +50,7 @@ describe("TokenLockup fund release schedues", () => {
   let reserveAdmin: anchor.web3.Keypair;
   let reserveAdminWalletRolePubkey: anchor.web3.PublicKey;
 
-  beforeEach(async () => {
+  before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
     await testEnvironment.setup();
 
@@ -126,6 +125,8 @@ describe("TokenLockup fund release schedues", () => {
     );
   });
 
+  let currentScheduleId = 0;
+  let walletATimelockCount = 0;
   it("mintReleaseSchedule emits a ScheduleFunded event", async () => {
     const totalBatches = 3;
     const firstDelay = 0;
@@ -153,7 +154,8 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
-    assert(scheduleId === 0);
+    assert(scheduleId === currentScheduleId);
+    currentScheduleId++;
 
     nowTs = await getNowTs(testEnvironment.connection);
     let timelockId = await mintReleaseSchedule(
@@ -173,7 +175,8 @@ describe("TokenLockup fund release schedues", () => {
       mintPubkey,
       testEnvironment.accessControlHelper.program.programId
     );
-    assert(timelockId === 0);
+    assert(timelockId === walletATimelockCount);
+    walletATimelockCount++;
 
     timelockId = await mintReleaseSchedule(
       testEnvironment.connection,
@@ -192,7 +195,8 @@ describe("TokenLockup fund release schedues", () => {
       mintPubkey,
       testEnvironment.accessControlHelper.program.programId
     );
-    assert(timelockId === 1);
+    assert(timelockId === walletATimelockCount);
+    walletATimelockCount++;
 
     const timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
@@ -210,6 +214,7 @@ describe("TokenLockup fund release schedues", () => {
     const firstBatchBips = 800; // 8%
     const batchDelay = fromDaysToSeconds(4);
     const commence = 0;
+    const mintRecipient = Keypair.generate();
 
     let nowTs = await getNowTs(testEnvironment.connection);
     let account = await getTokenlockAccount(
@@ -218,7 +223,7 @@ describe("TokenLockup fund release schedues", () => {
     );
 
     const scheduleCount = getScheduleCount(account);
-    assert(scheduleCount === 0);
+    assert(scheduleCount === currentScheduleId);
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
@@ -231,6 +236,7 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    currentScheduleId++;
 
     nowTs = await getNowTs(testEnvironment.connection);
     await mintReleaseSchedule(
@@ -243,7 +249,7 @@ describe("TokenLockup fund release schedues", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      mintRecipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -257,7 +263,7 @@ describe("TokenLockup fund release schedues", () => {
     const timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      mintRecipient.publicKey
     );
     let unlocked = unlockedBalanceOf(account, timelockAccount, nowTs);
     assert(unlocked.toNumber() === 8);
@@ -277,7 +283,7 @@ describe("TokenLockup fund release schedues", () => {
     unlocked = lockedBalanceOf(account, timelockAccount, nowTs);
     assert(
       Math.trunc(unlocked.toNumber()) === 45 ||
-        Math.trunc(unlocked.toNumber()) === 46
+      Math.trunc(unlocked.toNumber()) === 46
     );
 
     unlocked = balanceOf(account, timelockAccount, nowTs);
@@ -287,12 +293,12 @@ describe("TokenLockup fund release schedues", () => {
     nowTs += 4 * 3600 * 24; // +4 days
     assert(
       unlockedBalanceOf(account, timelockAccount, nowTs).toNumber() ===
-        totalRecipientAmount
+      totalRecipientAmount
     );
     assert(lockedBalanceOf(account, timelockAccount, nowTs).toNumber() === 0);
     assert(
       balanceOf(account, timelockAccount, nowTs).toNumber() ===
-        totalRecipientAmount
+      totalRecipientAmount
     );
   });
 
@@ -303,6 +309,7 @@ describe("TokenLockup fund release schedues", () => {
     const firstBatchBips = 0; // 8%
     const batchDelay = 1;
     const commence = 0;
+    const mintRecipient = Keypair.generate();
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
@@ -315,6 +322,7 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    currentScheduleId++;
 
     const nowTs = await getNowTs(testEnvironment.connection);
     const timelockId = await mintReleaseSchedule(
@@ -327,7 +335,7 @@ describe("TokenLockup fund release schedues", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      mintRecipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -345,6 +353,7 @@ describe("TokenLockup fund release schedues", () => {
     const firstBatchBips = 100 * 100;
     const batchDelay = 1;
     const commence = 0;
+    const mintRecipient = Keypair.generate();
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
@@ -357,6 +366,7 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    currentScheduleId++;
 
     const nowTs = await getNowTs(testEnvironment.connection);
     const timelockId = await mintReleaseSchedule(
@@ -369,14 +379,14 @@ describe("TokenLockup fund release schedues", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      mintRecipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
       mintPubkey,
       testEnvironment.accessControlHelper.program.programId
     );
-    assert(timelockId === "Amount < min funding");
+    assert(timelockId === "Amount < min minting amount");
   });
 
   it("cannot specify non existent schedule id", async () => {
@@ -387,6 +397,7 @@ describe("TokenLockup fund release schedues", () => {
     const firstBatchBips = 100 * 100;
     const batchDelay = 1;
     const commence = 0;
+    const mintRecipient = Keypair.generate();
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
       tokenlockDataPubkey,
@@ -398,6 +409,7 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    currentScheduleId++;
 
     const nowTs = await getNowTs(testEnvironment.connection);
     const timelockId = await mintReleaseSchedule(
@@ -410,7 +422,7 @@ describe("TokenLockup fund release schedues", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      mintRecipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -420,9 +432,9 @@ describe("TokenLockup fund release schedues", () => {
     assert(timelockId === "Invalid scheduleId");
   });
 
-  it("returns true after fundReleaseSchdule is called", async () => {
-    // const commence = await exactlyMoreThanOneDayAgo()
+  it("returns true after mintReleaseSchdule is called", async () => {
     const commence = -3600 * 24;
+    const mintRecipient = Keypair.generate();
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
       tokenlockDataPubkey,
@@ -434,6 +446,7 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    currentScheduleId++;
 
     const nowTs = await getNowTs(testEnvironment.connection);
     const timelockId = await mintReleaseSchedule(
@@ -446,7 +459,7 @@ describe("TokenLockup fund release schedues", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      mintRecipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -463,6 +476,7 @@ describe("TokenLockup fund release schedues", () => {
     const firstDelay = 0;
     const firstBatchBips = 100 * 100;
     const batchDelay = 1;
+    const mintRecipient = Keypair.generate();
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
@@ -475,6 +489,7 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    currentScheduleId++;
 
     const nowTs = await getNowTs(testEnvironment.connection);
     const timelockId = await mintReleaseSchedule(
@@ -487,7 +502,7 @@ describe("TokenLockup fund release schedues", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      mintRecipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -500,7 +515,7 @@ describe("TokenLockup fund release schedues", () => {
       await getTimelockAccountData(
         tokenlockProgram,
         tokenlockDataPubkey,
-        walletA.publicKey
+        mintRecipient.publicKey
       )
     );
     assert(timelockCount === 0);
@@ -534,7 +549,8 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
-    assert(scheduleId === 0);
+    assert(scheduleId === currentScheduleId);
+    currentScheduleId++;
   });
 
   it("cannot mint release schedule after the allowed range", async () => {
@@ -551,6 +567,7 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    currentScheduleId++;
 
     const nowTs = await getNowTs(testEnvironment.connection);
     const timelockId = await mintReleaseSchedule(
@@ -579,9 +596,10 @@ describe("TokenLockup fund release schedues", () => {
       tokenlockProgram,
       tokenlockDataPubkey
     );
+    const mintRecipient = Keypair.generate();
 
     const scheduleCount = getScheduleCount(account);
-    assert(scheduleCount === 0);
+    assert(scheduleCount === currentScheduleId);
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
@@ -594,6 +612,7 @@ describe("TokenLockup fund release schedues", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    currentScheduleId++;
 
     await mintReleaseSchedule(
       testEnvironment.connection,
@@ -605,7 +624,7 @@ describe("TokenLockup fund release schedues", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      mintRecipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -619,7 +638,7 @@ describe("TokenLockup fund release schedues", () => {
     const timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      mintRecipient.publicKey
     );
 
     const unlocked = unlockedBalanceOf(account, timelockAccount, nowTs);

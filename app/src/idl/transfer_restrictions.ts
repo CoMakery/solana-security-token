@@ -759,10 +759,6 @@ export type TransferRestrictions = {
         {
           "name": "maxHolders",
           "type": "u64"
-        },
-        {
-          "name": "minWalletBalance",
-          "type": "u64"
         }
       ]
     },
@@ -1513,61 +1509,6 @@ export type TransferRestrictions = {
       "args": []
     },
     {
-      "name": "setMinWalletBalance",
-      "discriminator": [
-        219,
-        92,
-        124,
-        22,
-        205,
-        109,
-        146,
-        13
-      ],
-      "accounts": [
-        {
-          "name": "transferRestrictionData",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  100
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "mint"
-        },
-        {
-          "name": "accessControlAccount"
-        },
-        {
-          "name": "authorityWalletRole"
-        },
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        }
-      ],
-      "args": [
-        {
-          "name": "minWalletBalance",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "updateWalletGroup",
       "discriminator": [
         225,
@@ -2074,10 +2015,6 @@ export type TransferRestrictions = {
           {
             "name": "paused",
             "type": "bool"
-          },
-          {
-            "name": "minWalletBalance",
-            "type": "u64"
           },
           {
             "name": "lockupEscrowAccount",

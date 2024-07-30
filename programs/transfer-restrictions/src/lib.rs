@@ -29,9 +29,8 @@ pub mod transfer_restrictions {
     pub fn initialize_transfer_restrictions_data(
         ctx: Context<InitializeTransferRestrictionData>,
         max_holders: u64,
-        min_wallet_balance: u64,
     ) -> Result<()> {
-        instructions::transfer_restrictions::initialize_data(ctx, max_holders, min_wallet_balance)
+        instructions::transfer_restrictions::initialize_data(ctx, max_holders)
     }
 
     pub fn initialize_transfer_restriction_group(
@@ -71,13 +70,6 @@ pub mod transfer_restrictions {
 
     pub fn initialize_holder_group(ctx: Context<InitializeHolderGroup>) -> Result<()> {
         instructions::transfer_restrictions::initialize_holder_group(ctx)
-    }
-
-    pub fn set_min_wallet_balance(
-        ctx: Context<SetMinWalletBalance>,
-        min_wallet_balance: u64,
-    ) -> Result<()> {
-        instructions::transfer_restrictions::set_min_wallet_balance(ctx, min_wallet_balance)
     }
 
     pub fn set_holder_max(ctx: Context<SetHolderMax>, holder_max: u64) -> Result<()> {

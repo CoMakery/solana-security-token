@@ -277,7 +277,6 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | burn()                     | no             | **yes**       | no             | no            |
 | forceTransferBetween()     | no             | **yes**       | no             | no            |
 | pause() or unpause (ie pause(false)) | no   | no            |  **yes**       | no            |           
-| setMinWalletBalance()      | no             | no            | **yes**        | no            |
 | setAllowGroupTransfer()    | no             | no            | **yes**        | no            |
 | setHolderMax()             | no             | no            | **yes**        | no            |
 | setHolderGroupMax()        | no             | no            | **yes**        | no            |
@@ -423,15 +422,9 @@ A single Holder may have unlimited Wallet addresses. This cannot be altered. The
 
 Transfer Admin can configure the maximum number of allowed Holders **per group** by calling `setHolderGroupMax`. By default, the `holderGroupMax` for each group is set to 0, meaning that it won't be applied as a restriction.
 
-Group 0 (the default Holder group) is the only group for which the holder group max variable cannot be applied (an unlimited number of Group 0 Holders are allowed in perpetuity). It is also the only group for which `minWalletBalance` cannot be applied (Holders with zero balance are allowed to remain in the group).
+Group 0 (the default Holder group) is the only group for which the holder group max variable cannot be applied (an unlimited number of Group 0 Holders are allowed in perpetuity).
 
 `setHolderGroupMax(groupID, amount)`
-
-## Minimum Allowed Wallet Balance (TODO: to be developed)
-
-Transfer Admin can configure global minimum wallet balances by calling `setMinWalletBalance`. This prevents wallets from ending up with a negligible number of tokens that unnecessarily occupies Holder allocations by reverting transactions that do so.
-
-`setMinWalletBalance(amount)`
 
 ## `initializeTransferRestrictionGroup`
 
@@ -456,7 +449,6 @@ To allow trading in a group:
 - A token transfer for an allowed group will succeed if:
   - the recipient of a token transfer does not result in a total holder count in a given group that exceeds the defined `holderGroupMax` (if configured, ie `holderGroupMax` set to > 0)
   - the recipient of a token transfer does not result in a total global holder count that exceeds the defined `holderMax`
-  - the recipient and sender both do not end up with a balance in their wallet less than the defined `minWalletBalance` (if configured, ie `minWalletBalance` set to > 0), unless it is 0 (wallets are allowed to be empty).
 
 ### Example: Avoiding Flowback of Reg S "Foreign" Assets
 

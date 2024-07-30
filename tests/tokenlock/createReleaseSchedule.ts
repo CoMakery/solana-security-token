@@ -32,7 +32,6 @@ describe("TokenLockup create release schedule", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
-    minWalletBalance: 0,
   };
   let testEnvironment: TestEnvironment;
 
@@ -218,7 +217,7 @@ describe("TokenLockup create release schedule", () => {
     assert(timelock != null && timelock.cancelableByCount === 0);
   });
 
-  it("funder cannot cancel a non existent timelock", async () => {
+  it("mint authority cannot cancel a non existent timelock", async () => {
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
       tokenlockDataPubkey,

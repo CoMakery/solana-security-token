@@ -8,14 +8,7 @@ pub fn update_wallet_group(ctx: Context<UpdateWalletGroup>) -> Result<()> {
         return Err(TransferRestrictionsError::Unauthorized.into());
     }
 
-    let transfer_restriction_data = &ctx.accounts.transfer_restriction_data;
-    let associated_token_account = &ctx.accounts.user_associated_token_account;
-
     let group_new = &mut ctx.accounts.transfer_restriction_group_new;
-    if !transfer_restriction_data.can_leave_group(group_new.id, associated_token_account.amount) {
-        return Err(TransferRestrictionsError::BalanceIsTooLow.into());
-    }
-
     let holder_group_current = &mut ctx.accounts.holder_group_current;
     let holder_group_new = &mut ctx.accounts.holder_group_new;
 

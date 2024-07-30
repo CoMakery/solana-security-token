@@ -23,7 +23,7 @@ import { fromDaysToSeconds } from "../helpers/datetime";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { getNowTs } from "../helpers/clock_helper";
 
-describe("TokenLockup fund release schedues", () => {
+describe("TokenLockup tokenlock discriminator tests", () => {
   const testEnvironmentParams: TestEnvironmentParams = {
     mint: {
       decimals: 6,
@@ -33,7 +33,6 @@ describe("TokenLockup fund release schedues", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
-    minWalletBalance: 0,
   };
   let testEnvironment: TestEnvironment;
 
@@ -216,7 +215,7 @@ describe("TokenLockup fund release schedues", () => {
     }
   });
 
-  it("fund release schedule with wrong tokenlock account", async () => {
+  it("mint release schedule with wrong tokenlock account", async () => {
     const recipient1 = anchor.web3.Keypair.generate();
     const recipient2 = anchor.web3.Keypair.generate();
     const timelockPK1 = await getOrCreateTimelockAccount(
