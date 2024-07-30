@@ -9,6 +9,9 @@ pub fn initialize_wallet_role(ctx: Context<InitializeWalletRole>, role: u8) -> R
     {
         return Err(AccessControlError::Unauthorized.into());
     }
+    if role > Roles::All as u8 {
+        return Err(AccessControlError::InvalidRole.into());
+    }
 
     let wallet_role = &mut ctx.accounts.wallet_role;
     wallet_role.role = role;
