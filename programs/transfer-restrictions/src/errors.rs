@@ -20,4 +20,6 @@ pub enum TransferRestrictionsError {
     CurrentWalletsCountMustBeZero,
     #[msg("Escrow accounts mismatch")]
     EscrowAccountsMismatch,
+    #[msg("Invalid transfer restriction holder index")]
+    InvalidHolderIndex,
 }
