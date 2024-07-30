@@ -236,6 +236,28 @@ export class AccessControlHelper {
       .rpc({ commitment: this.confirmOptions });
   }
 
+  async thawWallet(
+    walletPubkey: PublicKey,
+    userWalletAssociatedAccountPubkey: PublicKey,
+    signer: Keypair
+  ): Promise<string> {
+    const authorityWalletRolePubkey = this.walletRolePDA(signer.publicKey)[0];
+
+    return this.program.methods
+      .thawWallet()
+      .accountsStrict({
+        authority: signer.publicKey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: this.accessControlPubkey,
+        securityMint: this.mintPubkey,
+        targetAccount: userWalletAssociatedAccountPubkey,
+        targetAuthority: walletPubkey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+      })
+      .signers([signer])
+      .rpc({ commitment: this.confirmOptions });
+  }
+
   async forceTransferBetween(
     amount: number | bigint,
     fromOwnerPubkey: PublicKey,

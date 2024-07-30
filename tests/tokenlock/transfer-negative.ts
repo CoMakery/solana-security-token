@@ -343,8 +343,6 @@ describe("Transfer Negative cases", async () => {
         signers: [walletPretender],
       });
     } catch (e) {
-      console.log("error: ", e);
-
       assert(
         e.toString() ===
           `Error: unknown signer: ${walletPretender.publicKey.toBase58()}`
