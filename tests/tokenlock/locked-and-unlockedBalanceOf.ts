@@ -68,7 +68,7 @@ describe("TokenLockup timelock balances", () => {
     await topUpWallet(
       testEnvironment.connection,
       testEnvironment.contractAdmin.publicKey,
-      solToLamports(100)
+      solToLamports(10)
     );
     const space = 1 * 1024 * 1024; // 1MB
 
@@ -214,7 +214,7 @@ describe("TokenLockup timelock balances", () => {
     nowTs = nowTs + fromDaysToSeconds(6) + 1;
     assert(
       unlockedBalanceOf(account, timelockAccount, nowTs).toNumber() ===
-      totalRecipientAmount
+        totalRecipientAmount
     );
     assert(lockedBalanceOf(account, timelockAccount, nowTs).toNumber() === 0);
     assert(balanceOf(account, timelockAccount, nowTs).toNumber() === 100);
@@ -337,31 +337,31 @@ describe("TokenLockup timelock balances", () => {
     assert(lockedBalanceOf(account, timelockAccount, nowTs).toNumber() === 276);
     assert(
       lockedBalanceOfTimelock(account, timelockAccount, 0, nowTs).toNumber() ===
-      92
+        92
     );
     assert(
       lockedBalanceOfTimelock(account, timelockAccount, 1, nowTs).toNumber() ===
-      184
+        184
     );
 
     assert(lockedBalanceOf(account, timelockAccount, nowTs).toNumber() === 276);
     assert(
       lockedBalanceOfTimelock(account, timelockAccount, 0, nowTs).toNumber() ===
-      92
+        92
     );
     assert(
       lockedBalanceOfTimelock(account, timelockAccount, 1, nowTs).toNumber() ===
-      184
+        184
     );
 
     assert(balanceOf(account, timelockAccount, nowTs).toNumber() === 300);
     assert(
       balanceOfTimelock(account, timelockAccount, 0, nowTs).toNumber() ===
-      8 + 92
+        8 + 92
     );
     assert(
       balanceOfTimelock(account, timelockAccount, 1, nowTs).toNumber() ===
-      16 + 184
+        16 + 184
     );
   });
 
@@ -692,9 +692,9 @@ describe("TokenLockup timelock balances", () => {
   it("it can set a schedule to a balance in the future within the maxCommencementTimeInSeconds", async () => {
     const recipient = Keypair.generate();
     await testEnvironment.mintHelper.createAssociatedTokenAccount(
-        recipient.publicKey,
-        testEnvironment.contractAdmin
-      );
+      recipient.publicKey,
+      testEnvironment.contractAdmin
+    );
     await topUpWallet(
       testEnvironment.connection,
       recipient.publicKey,

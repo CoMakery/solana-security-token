@@ -9,6 +9,7 @@ import {
   sendAndConfirmTransaction,
   Transaction,
   Connection,
+  Commitment,
 } from "@solana/web3.js";
 import { BN, Program } from "@coral-xyz/anchor";
 import { Tokenlock } from "../../target/types/tokenlock";
@@ -405,10 +406,12 @@ export async function initializeTokenlock(
   mintPubkey: PublicKey,
   authorityWalletRolePubkey: PublicKey,
   accessControlPubkey: PublicKey,
-  signer: Keypair
+  signer: Keypair,
+  commitment: Commitment = "confirmed"
 ): Promise<string> {
-  return program.rpc.initializeTokenlock(maxReleaseDelay, minTimelockAmount, {
-    accounts: {
+  return program.methods
+    .initializeTokenlock(maxReleaseDelay, minTimelockAmount)
+    .accountsStrict({
       tokenlockAccount,
       transferRestrictionsData: transferRestrictionsPubkey,
       escrowAccount: escrow,
@@ -417,9 +420,9 @@ export async function initializeTokenlock(
       accessControl: accessControlPubkey,
       authority: signer.publicKey,
       tokenProgram: TOKEN_2022_PROGRAM_ID,
-    },
-    signers: [signer],
-  });
+    })
+    .signers([signer])
+    .rpc({ commitment });
 }
 
 export async function createReleaseSchedule(
