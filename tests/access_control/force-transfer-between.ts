@@ -1,9 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { assert } from "chai";
-import {
-  Keypair,
-  PublicKey
-} from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import {
   TestEnvironment,
@@ -35,17 +32,28 @@ describe("Access Control force transfer between", () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
     await testEnvironment.setup();
 
-    [reserveAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.reserveAdmin.publicKey);
-    [walletsAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.walletsAdmin.publicKey);
-    [transferAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey);
-    recipientTokenAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-      recipient.publicKey,
-      testEnvironment.contractAdmin,
-    );
-    targetTokenAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-      target.publicKey,
-      testEnvironment.contractAdmin,
-    );
+    [reserveAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.reserveAdmin.publicKey
+      );
+    [walletsAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      );
+    [transferAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      );
+    recipientTokenAccount =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        recipient.publicKey,
+        testEnvironment.contractAdmin
+      );
+    targetTokenAccount =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        target.publicKey,
+        testEnvironment.contractAdmin
+      );
   });
 
   // it("fails to mint more than maxTotalSupply", async () => {
@@ -76,7 +84,7 @@ describe("Access Control force transfer between", () => {
         recipient.publicKey,
         recipientTokenAccount,
         testEnvironment.contractAdmin,
-        testEnvironment.connection,
+        testEnvironment.connection
       );
       assert.fail("Expected an error");
     } catch (error) {
@@ -96,36 +104,51 @@ describe("Access Control force transfer between", () => {
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       new anchor.BN(targetHolderId),
       walletsAdminWalletRole,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       new anchor.BN(recipientHolderId),
       walletsAdminWalletRole,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
       new anchor.BN(groupId),
       transferAdminWalletRole,
-      testEnvironment.transferAdmin,
+      testEnvironment.transferAdmin
     );
-    [targetHolderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(new anchor.BN(targetHolderId));
-    [recipientHolderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(new anchor.BN(recipientHolderId));
-    [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(new anchor.BN(groupId));
-    [targetHolderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(targetHolderPubkey, new anchor.BN(groupId));
+    [targetHolderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(targetHolderId)
+    );
+    [recipientHolderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(
+        new anchor.BN(recipientHolderId)
+      );
+    [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(
+      new anchor.BN(groupId)
+    );
+    [targetHolderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        targetHolderPubkey,
+        new anchor.BN(groupId)
+      );
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
       targetHolderGroupPubkey,
       targetHolderPubkey,
       groupPubkey,
       walletsAdminWalletRole,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
-    [recipientHolderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(recipientHolderPubkey, new anchor.BN(groupId));
+    [recipientHolderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        recipientHolderPubkey,
+        new anchor.BN(groupId)
+      );
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
       recipientHolderGroupPubkey,
       recipientHolderPubkey,
       groupPubkey,
       walletsAdminWalletRole,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
       groupPubkey,
@@ -134,7 +157,7 @@ describe("Access Control force transfer between", () => {
       target.publicKey,
       targetTokenAccount,
       walletsAdminWalletRole,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
       groupPubkey,
@@ -143,11 +166,12 @@ describe("Access Control force transfer between", () => {
       recipient.publicKey,
       recipientTokenAccount,
       walletsAdminWalletRole,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
   });
 
-  const unauthorizedErrorMsg = "Program log: AnchorError occurred. Error Code: Unauthorized. Error Number: 6000. Error Message: Unauthorized.";
+  const unauthorizedErrorMsg =
+    "Program log: AnchorError occurred. Error Code: Unauthorized. Error Number: 6000. Error Message: Unauthorized.";
   const amount = 1_000_000;
   it("does not allow forceTransferBetween for contract admin", async () => {
     try {
@@ -158,7 +182,7 @@ describe("Access Control force transfer between", () => {
         recipient.publicKey,
         recipientTokenAccount,
         testEnvironment.contractAdmin,
-        testEnvironment.connection,
+        testEnvironment.connection
       );
       assert.fail("Expected an error");
     } catch (error) {
@@ -175,7 +199,7 @@ describe("Access Control force transfer between", () => {
         recipient.publicKey,
         recipientTokenAccount,
         testEnvironment.walletsAdmin,
-        testEnvironment.connection,
+        testEnvironment.connection
       );
       assert.fail("Expected an error");
     } catch (error) {
@@ -192,7 +216,7 @@ describe("Access Control force transfer between", () => {
         recipient.publicKey,
         recipientTokenAccount,
         testEnvironment.transferAdmin,
-        testEnvironment.connection,
+        testEnvironment.connection
       );
       assert.fail("Expected an error");
     } catch (error) {
@@ -209,11 +233,14 @@ describe("Access Control force transfer between", () => {
         recipient.publicKey,
         recipientTokenAccount,
         testEnvironment.reserveAdmin,
-        testEnvironment.connection,
+        testEnvironment.connection
       );
       assert.fail("Expected an error");
     } catch (error) {
-      assert.equal(error, "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 1: custom program error: 0x1");
+      assert.equal(
+        error,
+        "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 1: custom program error: 0x1"
+      );
     }
   });
 
@@ -224,12 +251,10 @@ describe("Access Control force transfer between", () => {
       targetTokenAccount,
       testEnvironment.reserveAdmin
     );
-    let {
-      amount: targetAmountBefore
-    } = await testEnvironment.mintHelper.getAccount(targetTokenAccount);
-    let {
-      amount: recipientAmountBefore
-    } = await testEnvironment.mintHelper.getAccount(recipientTokenAccount);
+    let { amount: targetAmountBefore } =
+      await testEnvironment.mintHelper.getAccount(targetTokenAccount);
+    let { amount: recipientAmountBefore } =
+      await testEnvironment.mintHelper.getAccount(recipientTokenAccount);
     await testEnvironment.accessControlHelper.forceTransferBetween(
       1_000_000,
       target.publicKey,
@@ -237,14 +262,12 @@ describe("Access Control force transfer between", () => {
       recipient.publicKey,
       recipientTokenAccount,
       testEnvironment.reserveAdmin,
-      testEnvironment.connection,
+      testEnvironment.connection
     );
-    let { 
-      amount: targetAmountAfter
-    } = await testEnvironment.mintHelper.getAccount(targetTokenAccount);
-    let { 
-      amount: recipientAmountAfter
-    } = await testEnvironment.mintHelper.getAccount(recipientTokenAccount);
+    let { amount: targetAmountAfter } =
+      await testEnvironment.mintHelper.getAccount(targetTokenAccount);
+    let { amount: recipientAmountAfter } =
+      await testEnvironment.mintHelper.getAccount(recipientTokenAccount);
     assert.equal(targetAmountBefore - targetAmountAfter, BigInt(amount));
     assert.equal(recipientAmountAfter - recipientAmountBefore, BigInt(amount));
   });

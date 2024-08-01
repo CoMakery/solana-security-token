@@ -1,9 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { assert } from "chai";
-import {
-  Keypair,
-  PublicKey
-} from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import {
   TestEnvironment,
@@ -30,31 +27,41 @@ describe("Access Control mint securities", () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
     await testEnvironment.setup();
 
-    [reserveAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.reserveAdmin.publicKey);
+    [reserveAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.reserveAdmin.publicKey
+      );
   });
 
   const mintRecipient = new Keypair();
   let mintRecipientTokenAccount: PublicKey;
   it("fails to mint more than maxTotalSupply", async () => {
-    mintRecipientTokenAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-      mintRecipient.publicKey,
-      testEnvironment.contractAdmin,
-    );
+    mintRecipientTokenAccount =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        mintRecipient.publicKey,
+        testEnvironment.contractAdmin
+      );
 
-    const { maxTotalSupply: maxTotalSupply } = await testEnvironment.accessControlHelper.accessControlData();
+    const { maxTotalSupply: maxTotalSupply } =
+      await testEnvironment.accessControlHelper.accessControlData();
 
-    const amount = maxTotalSupply.sub(new anchor.BN(testEnvironmentParams.initialSupply)).addn(1);
+    const amount = maxTotalSupply
+      .sub(new anchor.BN(testEnvironmentParams.initialSupply))
+      .addn(1);
     try {
       await testEnvironment.accessControlHelper.mintSecurities(
         amount,
         mintRecipient.publicKey,
         mintRecipientTokenAccount,
-        testEnvironment.reserveAdmin,
+        testEnvironment.reserveAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
       assert.equal(error.errorCode.code, "MintExceedsMaxTotalSupply");
-      assert.equal(error.errorMessage, "Cannot mint more than max total supply");
+      assert.equal(
+        error.errorMessage,
+        "Cannot mint more than max total supply"
+      );
     }
   });
 
@@ -65,7 +72,7 @@ describe("Access Control mint securities", () => {
         amount,
         mintRecipient.publicKey,
         mintRecipientTokenAccount,
-        testEnvironment.walletsAdmin,
+        testEnvironment.walletsAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -77,7 +84,11 @@ describe("Access Control mint securities", () => {
   it("fails when signer is not the authority", async () => {
     const amount = new anchor.BN(1_000_000);
     const reserveAdminPretender = new Keypair();
-    await topUpWallet(testEnvironment.connection, reserveAdminPretender.publicKey, solToLamports(1));
+    await topUpWallet(
+      testEnvironment.connection,
+      reserveAdminPretender.publicKey,
+      solToLamports(1)
+    );
 
     try {
       await testEnvironment.accessControlHelper.program.methods
@@ -85,7 +96,8 @@ describe("Access Control mint securities", () => {
         .accountsStrict({
           authority: testEnvironment.reserveAdmin.publicKey,
           authorityWalletRole: reserveAdminWalletRole,
-          accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           securityMint: testEnvironment.mintKeypair.publicKey,
           destinationAccount: mintRecipientTokenAccount,
           destinationAuthority: mintRecipient.publicKey,
@@ -117,14 +129,18 @@ describe("Access Control mint securities", () => {
     attackerEnvironment = new TestEnvironment(attackerTestEnvironmentParams);
     await attackerEnvironment.setup();
     const amount = new anchor.BN(1_000_000);
-    const [attackerReserveAdminWalletRole] = attackerEnvironment.accessControlHelper.walletRolePDA(attackerEnvironment.reserveAdmin.publicKey);
+    const [attackerReserveAdminWalletRole] =
+      attackerEnvironment.accessControlHelper.walletRolePDA(
+        attackerEnvironment.reserveAdmin.publicKey
+      );
     try {
       await testEnvironment.accessControlHelper.program.methods
         .mintSecurities(amount)
         .accountsStrict({
           authority: attackerEnvironment.reserveAdmin.publicKey,
           authorityWalletRole: attackerReserveAdminWalletRole,
-          accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           securityMint: testEnvironment.mintKeypair.publicKey,
           destinationAccount: mintRecipientTokenAccount,
           destinationAuthority: mintRecipient.publicKey,
@@ -141,17 +157,26 @@ describe("Access Control mint securities", () => {
 
   it("mints securities", async () => {
     const amount = new anchor.BN(1_000_000);
-    const { supply: supplyBeforeMint } = await testEnvironment.mintHelper.getMint();
+    const { supply: supplyBeforeMint } =
+      await testEnvironment.mintHelper.getMint();
     await testEnvironment.accessControlHelper.mintSecurities(
       amount,
       mintRecipient.publicKey,
       mintRecipientTokenAccount,
-      testEnvironment.reserveAdmin,
+      testEnvironment.reserveAdmin
     );
 
-    const { supply: supplyAfterMint } = await testEnvironment.mintHelper.getMint();
-    const mintRecipientTokenAccountInfo = await testEnvironment.mintHelper.getAccount(mintRecipientTokenAccount);
-    assert.equal(mintRecipientTokenAccountInfo.amount.toString(), amount.toString());
-    assert.equal((supplyAfterMint - supplyBeforeMint).toString(), amount.toString());
+    const { supply: supplyAfterMint } =
+      await testEnvironment.mintHelper.getMint();
+    const mintRecipientTokenAccountInfo =
+      await testEnvironment.mintHelper.getAccount(mintRecipientTokenAccount);
+    assert.equal(
+      mintRecipientTokenAccountInfo.amount.toString(),
+      amount.toString()
+    );
+    assert.equal(
+      (supplyAfterMint - supplyBeforeMint).toString(),
+      amount.toString()
+    );
   });
 });

@@ -1,9 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { assert } from "chai";
-import {
-  Keypair,
-  PublicKey
-} from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import {
   TestEnvironment,
@@ -33,15 +30,16 @@ describe("Access Control freeze wallet", () => {
   const target = new Keypair();
   let targetTokenAccount: PublicKey;
   it("does not allow freezing by contract admin", async () => {
-    targetTokenAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-      target.publicKey,
-      testEnvironment.contractAdmin,
-    )
+    targetTokenAccount =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        target.publicKey,
+        testEnvironment.contractAdmin
+      );
     try {
       await testEnvironment.accessControlHelper.freezeWallet(
         target.publicKey,
         targetTokenAccount,
-        testEnvironment.contractAdmin,
+        testEnvironment.contractAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -55,7 +53,7 @@ describe("Access Control freeze wallet", () => {
       await testEnvironment.accessControlHelper.freezeWallet(
         target.publicKey,
         targetTokenAccount,
-        testEnvironment.reserveAdmin,
+        testEnvironment.reserveAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -68,9 +66,11 @@ describe("Access Control freeze wallet", () => {
     await testEnvironment.accessControlHelper.freezeWallet(
       target.publicKey,
       targetTokenAccount,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
-    const targetTokenAccountData = await testEnvironment.mintHelper.getAccount(targetTokenAccount);
+    const targetTokenAccountData = await testEnvironment.mintHelper.getAccount(
+      targetTokenAccount
+    );
     assert.isTrue(targetTokenAccountData.isFrozen);
   });
 
@@ -79,7 +79,7 @@ describe("Access Control freeze wallet", () => {
       await testEnvironment.accessControlHelper.thawWallet(
         target.publicKey,
         targetTokenAccount,
-        testEnvironment.contractAdmin,
+        testEnvironment.contractAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -93,7 +93,7 @@ describe("Access Control freeze wallet", () => {
       await testEnvironment.accessControlHelper.thawWallet(
         target.publicKey,
         targetTokenAccount,
-        testEnvironment.reserveAdmin,
+        testEnvironment.reserveAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -105,16 +105,19 @@ describe("Access Control freeze wallet", () => {
   const target2 = new Keypair();
   let target2TokenAccount: PublicKey;
   it("freezes wallet by transfer admin", async () => {
-    target2TokenAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-      target2.publicKey,
-      testEnvironment.contractAdmin,
-    );
+    target2TokenAccount =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        target2.publicKey,
+        testEnvironment.contractAdmin
+      );
     await testEnvironment.accessControlHelper.freezeWallet(
       target2.publicKey,
       target2TokenAccount,
-      testEnvironment.transferAdmin,
+      testEnvironment.transferAdmin
     );
-    const targetTokenAccountData = await testEnvironment.mintHelper.getAccount(target2TokenAccount);
+    const targetTokenAccountData = await testEnvironment.mintHelper.getAccount(
+      target2TokenAccount
+    );
     assert.isTrue(targetTokenAccountData.isFrozen);
   });
 
@@ -122,9 +125,11 @@ describe("Access Control freeze wallet", () => {
     await testEnvironment.accessControlHelper.thawWallet(
       target.publicKey,
       targetTokenAccount,
-      testEnvironment.walletsAdmin,
+      testEnvironment.walletsAdmin
     );
-    const targetTokenAccountData = await testEnvironment.mintHelper.getAccount(targetTokenAccount);
+    const targetTokenAccountData = await testEnvironment.mintHelper.getAccount(
+      targetTokenAccount
+    );
     assert.isFalse(targetTokenAccountData.isFrozen);
   });
 
@@ -132,9 +137,11 @@ describe("Access Control freeze wallet", () => {
     await testEnvironment.accessControlHelper.thawWallet(
       target2.publicKey,
       target2TokenAccount,
-      testEnvironment.transferAdmin,
+      testEnvironment.transferAdmin
     );
-    const targetTokenAccountData = await testEnvironment.mintHelper.getAccount(target2TokenAccount);
+    const targetTokenAccountData = await testEnvironment.mintHelper.getAccount(
+      target2TokenAccount
+    );
     assert.isFalse(targetTokenAccountData.isFrozen);
   });
 });

@@ -151,7 +151,6 @@ describe("TokenLockup check cancelables", () => {
       testEnvironment.contractAdmin
     );
 
-
     const groupId = new anchor.BN(0);
     const [groupPubkey] =
       testEnvironment.transferRestrictionsHelper.groupPDA(groupId);

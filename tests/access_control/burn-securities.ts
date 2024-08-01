@@ -1,9 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { assert } from "chai";
-import {
-  Keypair,
-  PublicKey
-} from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import {
   TestEnvironment,
@@ -31,24 +28,31 @@ describe("Access Control burn securities", () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
     await testEnvironment.setup();
 
-    [reserveAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.reserveAdmin.publicKey);
-    reserveAdminTokenAccountPubkey = testEnvironment.mintHelper.getAssocciatedTokenAddress(testEnvironment.reserveAdmin.publicKey);
+    [reserveAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.reserveAdmin.publicKey
+      );
+    reserveAdminTokenAccountPubkey =
+      testEnvironment.mintHelper.getAssocciatedTokenAddress(
+        testEnvironment.reserveAdmin.publicKey
+      );
   });
 
   it("fails to burn more than maxTotalSupply", async () => {
-    const { supply: currentSupply } = await testEnvironment.mintHelper.getMint();
+    const { supply: currentSupply } =
+      await testEnvironment.mintHelper.getMint();
     const amount = new anchor.BN(currentSupply.toString()).addn(1);
     try {
       await testEnvironment.accessControlHelper.burnSecurities(
         amount,
         testEnvironment.reserveAdmin.publicKey,
         reserveAdminTokenAccountPubkey,
-        testEnvironment.reserveAdmin,
+        testEnvironment.reserveAdmin
       );
       assert.fail("Expected an error");
     } catch (error) {
-      const res = error.logs.some((log: string) =>
-        log === "Program log: Error: insufficient funds"
+      const res = error.logs.some(
+        (log: string) => log === "Program log: Error: insufficient funds"
       );
       assert.isTrue(res);
     }
@@ -61,7 +65,7 @@ describe("Access Control burn securities", () => {
         amount,
         testEnvironment.reserveAdmin.publicKey,
         reserveAdminTokenAccountPubkey,
-        testEnvironment.walletsAdmin,
+        testEnvironment.walletsAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -73,7 +77,11 @@ describe("Access Control burn securities", () => {
   it("fails when signer is not the authority", async () => {
     const amount = new anchor.BN(1_000_000);
     const reserveAdminPretender = new Keypair();
-    await topUpWallet(testEnvironment.connection, reserveAdminPretender.publicKey, solToLamports(1));
+    await topUpWallet(
+      testEnvironment.connection,
+      reserveAdminPretender.publicKey,
+      solToLamports(1)
+    );
 
     try {
       await testEnvironment.accessControlHelper.program.methods
@@ -81,7 +89,8 @@ describe("Access Control burn securities", () => {
         .accountsStrict({
           authority: testEnvironment.reserveAdmin.publicKey,
           authorityWalletRole: reserveAdminWalletRole,
-          accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           securityMint: testEnvironment.mintKeypair.publicKey,
           targetAccount: reserveAdminTokenAccountPubkey,
           targetAuthority: testEnvironment.reserveAdmin.publicKey,
@@ -113,14 +122,18 @@ describe("Access Control burn securities", () => {
     attackerEnvironment = new TestEnvironment(attackerTestEnvironmentParams);
     await attackerEnvironment.setup();
     const amount = new anchor.BN(1_000_000);
-    const [attackerReserveAdminWalletRole] = attackerEnvironment.accessControlHelper.walletRolePDA(attackerEnvironment.reserveAdmin.publicKey);
+    const [attackerReserveAdminWalletRole] =
+      attackerEnvironment.accessControlHelper.walletRolePDA(
+        attackerEnvironment.reserveAdmin.publicKey
+      );
     try {
       await testEnvironment.accessControlHelper.program.methods
         .burnSecurities(amount)
         .accountsStrict({
           authority: attackerEnvironment.reserveAdmin.publicKey,
           authorityWalletRole: attackerReserveAdminWalletRole,
-          accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           securityMint: testEnvironment.mintKeypair.publicKey,
           targetAccount: reserveAdminTokenAccountPubkey,
           targetAuthority: testEnvironment.reserveAdmin.publicKey,
@@ -137,18 +150,29 @@ describe("Access Control burn securities", () => {
 
   it("burn securities", async () => {
     const amount = new anchor.BN(1_000_000);
-    const { supply: supplyBeforeBurn } = await testEnvironment.mintHelper.getMint();
-    const { amount: reserveAdminAmountBefore } = await testEnvironment.mintHelper.getAccount(reserveAdminTokenAccountPubkey);
+    const { supply: supplyBeforeBurn } =
+      await testEnvironment.mintHelper.getMint();
+    const { amount: reserveAdminAmountBefore } =
+      await testEnvironment.mintHelper.getAccount(
+        reserveAdminTokenAccountPubkey
+      );
     await testEnvironment.accessControlHelper.burnSecurities(
       amount,
       testEnvironment.reserveAdmin.publicKey,
       reserveAdminTokenAccountPubkey,
-      testEnvironment.reserveAdmin,
+      testEnvironment.reserveAdmin
     );
 
-    const { supply: supplyAfterBurn } = await testEnvironment.mintHelper.getMint();
-    const { amount: reserveAdminAmountAfter } = await testEnvironment.mintHelper.getAccount(reserveAdminTokenAccountPubkey);
-    assert.equal(reserveAdminAmountAfter, reserveAdminAmountBefore - BigInt(amount.toString()));
+    const { supply: supplyAfterBurn } =
+      await testEnvironment.mintHelper.getMint();
+    const { amount: reserveAdminAmountAfter } =
+      await testEnvironment.mintHelper.getAccount(
+        reserveAdminTokenAccountPubkey
+      );
+    assert.equal(
+      reserveAdminAmountAfter,
+      reserveAdminAmountBefore - BigInt(amount.toString())
+    );
     assert.equal(supplyAfterBurn, supplyBeforeBurn - BigInt(amount.toString()));
   });
 });

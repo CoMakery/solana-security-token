@@ -1,9 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { assert } from "chai";
-import {
-  Keypair,
-  PublicKey
-} from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import {
   TestEnvironment,
@@ -31,7 +28,10 @@ describe("Access Control wallet role", () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
     await testEnvironment.setup();
 
-    [reserveAdminWalletRole] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.reserveAdmin.publicKey);
+    [reserveAdminWalletRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.reserveAdmin.publicKey
+      );
   });
 
   const investor = new Keypair();
@@ -40,7 +40,7 @@ describe("Access Control wallet role", () => {
       await testEnvironment.accessControlHelper.initializeWalletRole(
         investor.publicKey,
         Roles.WalletsAdmin,
-        testEnvironment.reserveAdmin,
+        testEnvironment.reserveAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -54,7 +54,7 @@ describe("Access Control wallet role", () => {
       await testEnvironment.accessControlHelper.initializeWalletRole(
         investor.publicKey,
         Roles.WalletsAdmin,
-        testEnvironment.walletsAdmin,
+        testEnvironment.walletsAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -68,7 +68,7 @@ describe("Access Control wallet role", () => {
       await testEnvironment.accessControlHelper.initializeWalletRole(
         investor.publicKey,
         Roles.WalletsAdmin,
-        testEnvironment.transferAdmin,
+        testEnvironment.transferAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -82,7 +82,7 @@ describe("Access Control wallet role", () => {
       await testEnvironment.accessControlHelper.initializeWalletRole(
         investor.publicKey,
         Roles.All + 1,
-        testEnvironment.contractAdmin,
+        testEnvironment.contractAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -95,15 +95,24 @@ describe("Access Control wallet role", () => {
     await testEnvironment.accessControlHelper.initializeWalletRole(
       investor.publicKey,
       Roles.WalletsAdmin,
-      testEnvironment.contractAdmin,
+      testEnvironment.contractAdmin
     );
 
-    const [walletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(investor.publicKey);
-    const walletRoleData = await testEnvironment.accessControlHelper.walletRoleData(walletRolePubkey);
+    const [walletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(investor.publicKey);
+    const walletRoleData =
+      await testEnvironment.accessControlHelper.walletRoleData(
+        walletRolePubkey
+      );
     assert.equal(walletRoleData.role, Roles.WalletsAdmin);
-    assert.strictEqual(walletRoleData.owner.toString(), investor.publicKey.toString());
-    assert.strictEqual(walletRoleData.accessControl.toString(), testEnvironment.accessControlHelper.accessControlPubkey.toString());
-
+    assert.strictEqual(
+      walletRoleData.owner.toString(),
+      investor.publicKey.toString()
+    );
+    assert.strictEqual(
+      walletRoleData.accessControl.toString(),
+      testEnvironment.accessControlHelper.accessControlPubkey.toString()
+    );
   });
 
   it("fails to update wallet role by reserve admin", async () => {
@@ -111,7 +120,7 @@ describe("Access Control wallet role", () => {
       await testEnvironment.accessControlHelper.updateWalletRole(
         investor.publicKey,
         Roles.TransferAdmin,
-        testEnvironment.reserveAdmin,
+        testEnvironment.reserveAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -125,7 +134,7 @@ describe("Access Control wallet role", () => {
       await testEnvironment.accessControlHelper.updateWalletRole(
         investor.publicKey,
         Roles.TransferAdmin,
-        testEnvironment.walletsAdmin,
+        testEnvironment.walletsAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -139,7 +148,7 @@ describe("Access Control wallet role", () => {
       await testEnvironment.accessControlHelper.updateWalletRole(
         investor.publicKey,
         Roles.TransferAdmin,
-        testEnvironment.transferAdmin,
+        testEnvironment.transferAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
@@ -152,14 +161,24 @@ describe("Access Control wallet role", () => {
     await testEnvironment.accessControlHelper.updateWalletRole(
       investor.publicKey,
       Roles.TransferAdmin,
-      testEnvironment.contractAdmin,
+      testEnvironment.contractAdmin
     );
 
-    const [walletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(investor.publicKey);
-    const walletRoleData = await testEnvironment.accessControlHelper.walletRoleData(walletRolePubkey);
+    const [walletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(investor.publicKey);
+    const walletRoleData =
+      await testEnvironment.accessControlHelper.walletRoleData(
+        walletRolePubkey
+      );
     assert.equal(walletRoleData.role, Roles.TransferAdmin);
-    assert.strictEqual(walletRoleData.owner.toString(), investor.publicKey.toString());
-    assert.strictEqual(walletRoleData.accessControl.toString(), testEnvironment.accessControlHelper.accessControlPubkey.toString());
+    assert.strictEqual(
+      walletRoleData.owner.toString(),
+      investor.publicKey.toString()
+    );
+    assert.strictEqual(
+      walletRoleData.accessControl.toString(),
+      testEnvironment.accessControlHelper.accessControlPubkey.toString()
+    );
   });
 
   it("fails to update wallet role to invalid one", async () => {
@@ -167,7 +186,7 @@ describe("Access Control wallet role", () => {
       await testEnvironment.accessControlHelper.updateWalletRole(
         investor.publicKey,
         Roles.All + 1,
-        testEnvironment.contractAdmin,
+        testEnvironment.contractAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
