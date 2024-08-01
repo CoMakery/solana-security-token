@@ -55,6 +55,7 @@ describe("TokenLockup check cancelables", () => {
   let reserveAdminWalletRolePubkey: anchor.web3.PublicKey;
   let reserveAdminTokenAccountPubkey: anchor.web3.PublicKey;
   let transferAdminWalletRole: anchor.web3.PublicKey;
+  const holderId = new anchor.BN(0);
 
   beforeEach(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
@@ -154,7 +155,6 @@ describe("TokenLockup check cancelables", () => {
     const groupId = new anchor.BN(0);
     const [groupPubkey] =
       testEnvironment.transferRestrictionsHelper.groupPDA(groupId);
-    const holderId = new anchor.BN(1);
     const [holderPubkey] =
       testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
     const [holderGroupPubkey] =
@@ -488,7 +488,6 @@ describe("TokenLockup check cancelables", () => {
       const groupId = new anchor.BN(0);
       const [groupPubkey] =
         testEnvironment.transferRestrictionsHelper.groupPDA(groupId);
-      const holderId = new anchor.BN(1);
       const [holderPubkey] =
         testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
       const [holderGroupPubkey] =

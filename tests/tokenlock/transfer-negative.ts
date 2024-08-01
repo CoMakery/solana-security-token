@@ -233,7 +233,7 @@ describe("Transfer Negative cases", async () => {
 
     const transferRestrictionData =
       await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
-    holderId = transferRestrictionData.holderIds.addn(1);
+    holderId = transferRestrictionData.holderIds;
     [walletsAdminWalletRole] =
       testEnvironment.accessControlHelper.walletRolePDA(
         testEnvironment.walletsAdmin.publicKey

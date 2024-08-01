@@ -546,7 +546,7 @@ describe("TokenLockup timelock balances", () => {
     const group0 = new anchor.BN(0);
     const transferRestrictionData =
       await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
-    const holderId = transferRestrictionData.holderIds.addn(1);
+    const holderId = transferRestrictionData.holderIds;
     const [authorityWalletRole] =
       testEnvironment.accessControlHelper.walletRolePDA(
         testEnvironment.walletsAdmin.publicKey
