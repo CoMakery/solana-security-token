@@ -56,23 +56,23 @@ describe("Access Control force transfer between", () => {
       );
   });
 
-  // it("fails to mint more than maxTotalSupply", async () => {
-  //   const { maxTotalSupply: maxTotalSupply } = await testEnvironment.accessControlHelper.accessControlData();
+  it("fails to mint more than maxTotalSupply", async () => {
+    const { maxTotalSupply: maxTotalSupply } = await testEnvironment.accessControlHelper.accessControlData();
 
-  //   const amount = maxTotalSupply.sub(new anchor.BN(testEnvironmentParams.initialSupply)).addn(1);
-  //   try {
-  //     await testEnvironment.accessControlHelper.mintSecurities(
-  //       amount,
-  //       recipient.publicKey,
-  //       recipientTokenAccount,
-  //       testEnvironment.reserveAdmin,
-  //     );
-  //     assert.fail("Expected an error");
-  //   } catch ({ error }) {
-  //     assert.equal(error.errorCode.code, "MintExceedsMaxTotalSupply");
-  //     assert.equal(error.errorMessage, "Cannot mint more than max total supply");
-  //   }
-  // });
+    const amount = maxTotalSupply.sub(new anchor.BN(testEnvironmentParams.initialSupply)).addn(1);
+    try {
+      await testEnvironment.accessControlHelper.mintSecurities(
+        amount,
+        recipient.publicKey,
+        recipientTokenAccount,
+        testEnvironment.reserveAdmin,
+      );
+      assert.fail("Expected an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "MintExceedsMaxTotalSupply");
+      assert.equal(error.errorMessage, "Cannot mint more than max total supply");
+    }
+  });
 
   it("fails when transfer hook data is not initialized", async () => {
     const amount = 1_000_000;
