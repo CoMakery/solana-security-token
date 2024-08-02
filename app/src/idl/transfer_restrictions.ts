@@ -1926,6 +1926,11 @@ export type TransferRestrictions = {
       "code": 6008,
       "name": "escrowAccountsMismatch",
       "msg": "Escrow accounts mismatch"
+    },
+    {
+      "code": 6009,
+      "name": "invalidHolderIndex",
+      "msg": "Invalid transfer restriction holder index"
     }
   ],
   "types": [

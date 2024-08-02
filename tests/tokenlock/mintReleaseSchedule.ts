@@ -283,7 +283,7 @@ describe("TokenLockup mint release schedues", () => {
     unlocked = lockedBalanceOf(account, timelockAccount, nowTs);
     assert(
       Math.trunc(unlocked.toNumber()) === 45 ||
-      Math.trunc(unlocked.toNumber()) === 46
+        Math.trunc(unlocked.toNumber()) === 46
     );
 
     unlocked = balanceOf(account, timelockAccount, nowTs);
@@ -293,12 +293,12 @@ describe("TokenLockup mint release schedues", () => {
     nowTs += 4 * 3600 * 24; // +4 days
     assert(
       unlockedBalanceOf(account, timelockAccount, nowTs).toNumber() ===
-      totalRecipientAmount
+        totalRecipientAmount
     );
     assert(lockedBalanceOf(account, timelockAccount, nowTs).toNumber() === 0);
     assert(
       balanceOf(account, timelockAccount, nowTs).toNumber() ===
-      totalRecipientAmount
+        totalRecipientAmount
     );
   });
 

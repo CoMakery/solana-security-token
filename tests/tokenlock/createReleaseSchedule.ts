@@ -260,7 +260,7 @@ describe("TokenLockup create release schedule", () => {
     const groupId = new anchor.BN(0);
     const [groupPubkey] =
       testEnvironment.transferRestrictionsHelper.groupPDA(groupId);
-    const holderId = new anchor.BN(1);
+    const holderId = new anchor.BN(0);
     const [holderPubkey] =
       testEnvironment.transferRestrictionsHelper.holderPDA(holderId);
     const [holderGroupPubkey] =

@@ -435,13 +435,13 @@ describe("token lockup", () => {
         testEnvironment.transferAdmin.publicKey
       );
     // Initialize holders
-    const reserveAdminHolderId = new anchor.BN(1);
+    const reserveAdminHolderId = new anchor.BN(0);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       reserveAdminHolderId,
       transferAdminWalletRole,
       testEnvironment.transferAdmin
     );
-    const recipientHolderId = new anchor.BN(2);
+    const recipientHolderId = new anchor.BN(1);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       recipientHolderId,
       transferAdminWalletRole,
@@ -534,7 +534,7 @@ describe("token lockup", () => {
 
   let transferAmount: anchor.BN;
   const investorGroupId = new anchor.BN(3);
-  const investorHolderId = new anchor.BN(3);
+  const investorHolderId = new anchor.BN(2);
   const investorHolderPubkey =
     testEnvironment.transferRestrictionsHelper.holderPDA(investorHolderId)[0];
   const investorGroupPubkey =

@@ -13,12 +13,15 @@ pub fn initialize_holder(ctx: Context<InitializeTransferRestrictionHolder>, id: 
         return Err(TransferRestrictionsError::Unauthorized.into());
     }
 
-    let transfer_restriction_holder = &mut ctx.accounts.transfer_restriction_holder;
     let transfer_restriction_data = &mut ctx.accounts.transfer_restriction_data;
     if transfer_restriction_data.current_holders_count == transfer_restriction_data.max_holders {
         return Err(TransferRestrictionsError::MaxHoldersReached.into());
     }
+    if transfer_restriction_data.holder_ids < id {
+        return Err(TransferRestrictionsError::InvalidHolderIndex.into());
+    }
 
+    let transfer_restriction_holder = &mut ctx.accounts.transfer_restriction_holder;
     transfer_restriction_holder.transfer_restriction_data = transfer_restriction_data.key();
     transfer_restriction_holder.id = id;
     transfer_restriction_holder.current_wallets_count = 0;

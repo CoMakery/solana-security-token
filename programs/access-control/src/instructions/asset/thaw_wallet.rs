@@ -7,7 +7,7 @@ pub fn thaw_wallet(ctx: Context<ThawWallet>) -> Result<()> {
     if !ctx
         .accounts
         .authority_wallet_role
-        .has_role(crate::Roles::TransferAdmin)
+        .has_any_role(crate::Roles::TransferAdmin as u8 | crate ::Roles::WalletsAdmin as u8)
     {
         return Err(AccessControlError::Unauthorized.into());
     }

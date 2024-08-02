@@ -80,14 +80,14 @@ describe("solana-security-token", () => {
   const transferGroup1 = new anchor.BN(1);
   const [transferRestrictionGroup1Pubkey] =
     transferRestrictionsHelper.groupPDA(transferGroup1);
-  const senderHolderId = new anchor.BN(1);
+  const senderHolderId = new anchor.BN(0);
   const [holderSenderPubkey] =
     transferRestrictionsHelper.holderPDA(senderHolderId);
   const userWalletRecipient = Keypair.generate();
   const userWalletRecipientPubkey = userWalletRecipient.publicKey;
   const userWalletRecipientAssociatedTokenAccountPubkey =
     mintHelper.getAssocciatedTokenAddress(userWalletRecipientPubkey);
-  const recipientHolderId = new anchor.BN(2);
+  const recipientHolderId = new anchor.BN(1);
   const [holderRecipientPubkey] =
     transferRestrictionsHelper.holderPDA(recipientHolderId);
 

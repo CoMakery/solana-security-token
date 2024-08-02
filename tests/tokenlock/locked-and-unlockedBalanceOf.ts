@@ -46,8 +46,6 @@ describe("TokenLockup timelock balances", () => {
   const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;
 
   let mintPubkey: anchor.web3.PublicKey;
-  let walletA: anchor.web3.Keypair;
-  let walletATokenAcc: anchor.web3.PublicKey;
   let escrowAccount: anchor.web3.PublicKey;
   let escrowOwnerPubkey: anchor.web3.PublicKey;
   let tokenlockWallet: anchor.web3.Keypair;
@@ -55,21 +53,9 @@ describe("TokenLockup timelock balances", () => {
   let reserveAdmin: anchor.web3.Keypair;
   let reserveAdminWalletRolePubkey: anchor.web3.PublicKey;
 
-  beforeEach(async () => {
+  before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
     await testEnvironment.setup();
-
-    walletA = Keypair.generate();
-    walletATokenAcc =
-      await testEnvironment.mintHelper.createAssociatedTokenAccount(
-        walletA.publicKey,
-        testEnvironment.contractAdmin
-      );
-    await topUpWallet(
-      testEnvironment.connection,
-      walletA.publicKey,
-      solToLamports(1)
-    );
 
     mintPubkey = testEnvironment.mintKeypair.publicKey;
     reserveAdmin = testEnvironment.reserveAdmin;
@@ -82,7 +68,7 @@ describe("TokenLockup timelock balances", () => {
     await topUpWallet(
       testEnvironment.connection,
       testEnvironment.contractAdmin.publicKey,
-      solToLamports(100)
+      solToLamports(10)
     );
     const space = 1 * 1024 * 1024; // 1MB
 
@@ -136,6 +122,16 @@ describe("TokenLockup timelock balances", () => {
   });
 
   it("timelock creation with immediately unlocked tokens", async () => {
+    const recipient = Keypair.generate();
+    await testEnvironment.mintHelper.createAssociatedTokenAccount(
+      recipient.publicKey,
+      testEnvironment.contractAdmin
+    );
+    await topUpWallet(
+      testEnvironment.connection,
+      recipient.publicKey,
+      solToLamports(1)
+    );
     const totalRecipientAmount = 100;
     const totalBatches = 3;
     const firstDelay = 0;
@@ -175,7 +171,7 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -188,7 +184,7 @@ describe("TokenLockup timelock balances", () => {
     const timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
 
     nowTs += fromDaysToSeconds(1) + 1;
@@ -225,6 +221,16 @@ describe("TokenLockup timelock balances", () => {
   });
 
   it("can return all balance types of locked and unlocked tokens in multiple release schedules", async () => {
+    const recipient = Keypair.generate();
+    await testEnvironment.mintHelper.createAssociatedTokenAccount(
+      recipient.publicKey,
+      testEnvironment.contractAdmin
+    );
+    await topUpWallet(
+      testEnvironment.connection,
+      recipient.publicKey,
+      solToLamports(1)
+    );
     const totalBatches = 3;
     const firstDelay = 0;
     const firstBatchBips = 800; // 8%
@@ -237,9 +243,6 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey
     );
 
-    const scheduleCount = getScheduleCount(account);
-    assert(scheduleCount === 0);
-
     await createReleaseSchedule(
       tokenlockProgram,
       tokenlockDataPubkey,
@@ -251,6 +254,7 @@ describe("TokenLockup timelock balances", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    const firstSchedule = getScheduleCount(account);
     await createReleaseSchedule(
       tokenlockProgram,
       tokenlockDataPubkey,
@@ -262,6 +266,7 @@ describe("TokenLockup timelock balances", () => {
       reserveAdminWalletRolePubkey,
       reserveAdmin
     );
+    const secondSchedule = getScheduleCount(account);
 
     nowTs = await getNowTs(testEnvironment.connection);
     await mintReleaseSchedule(
@@ -269,12 +274,12 @@ describe("TokenLockup timelock balances", () => {
       tokenlockProgram,
       new anchor.BN(100),
       new anchor.BN(nowTs + commence),
-      0,
+      firstSchedule,
       [],
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -287,12 +292,12 @@ describe("TokenLockup timelock balances", () => {
       tokenlockProgram,
       new anchor.BN(200),
       new anchor.BN(nowTs + commence),
-      1,
+      secondSchedule,
       [],
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -305,7 +310,7 @@ describe("TokenLockup timelock balances", () => {
     const timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
     nowTs = nowTs + fromDaysToSeconds(2) + 1;
 
@@ -361,6 +366,16 @@ describe("TokenLockup timelock balances", () => {
   });
 
   it("it can set a schedule to a balance in the past", async () => {
+    const recipient = Keypair.generate();
+    await testEnvironment.mintHelper.createAssociatedTokenAccount(
+      recipient.publicKey,
+      testEnvironment.contractAdmin
+    );
+    await topUpWallet(
+      testEnvironment.connection,
+      recipient.publicKey,
+      solToLamports(1)
+    );
     const totalRecipientAmount = 100;
     const totalBatches = 3;
     const firstDelay = 0;
@@ -373,9 +388,6 @@ describe("TokenLockup timelock balances", () => {
       tokenlockProgram,
       tokenlockDataPubkey
     );
-
-    const scheduleCount = getScheduleCount(account);
-    assert(scheduleCount === 0);
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
@@ -400,7 +412,7 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -414,7 +426,7 @@ describe("TokenLockup timelock balances", () => {
     let timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
 
     let unlocked = unlockedBalanceOf(account, timelockAccount, nowTs);
@@ -435,7 +447,7 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -449,7 +461,7 @@ describe("TokenLockup timelock balances", () => {
     timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
 
     unlocked = unlockedBalanceOf(account, timelockAccount, nowTs);
@@ -475,6 +487,17 @@ describe("TokenLockup timelock balances", () => {
   });
 
   it("creating a timelock increases the totalSupply and transferring decreases it", async () => {
+    const recipient = Keypair.generate();
+    const recipientTokenAcc =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        recipient.publicKey,
+        testEnvironment.contractAdmin
+      );
+    await topUpWallet(
+      testEnvironment.connection,
+      recipient.publicKey,
+      solToLamports(1)
+    );
     const releaseCount = 2;
     const firstDelay = 0;
     const firstBatchBips = 5000;
@@ -504,7 +527,7 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -530,12 +553,12 @@ describe("TokenLockup timelock balances", () => {
       tokenlockProgram,
       new anchor.BN(100),
       new anchor.BN(nowTs + commence),
-      1,
+      Number(scheduleId),
       [],
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -546,7 +569,7 @@ describe("TokenLockup timelock balances", () => {
     const group0 = new anchor.BN(0);
     const transferRestrictionData =
       await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
-    const holderId = transferRestrictionData.holderIds.addn(1);
+    const holderId = transferRestrictionData.holderIds;
     const [authorityWalletRole] =
       testEnvironment.accessControlHelper.walletRolePDA(
         testEnvironment.walletsAdmin.publicKey
@@ -578,8 +601,8 @@ describe("TokenLockup timelock balances", () => {
       groupPubkey,
       holderPubkey,
       holderGroupPubkey,
-      walletA.publicKey,
-      walletATokenAcc,
+      recipient.publicKey,
+      recipientTokenAcc,
       authorityWalletRole,
       testEnvironment.walletsAdmin
     );
@@ -591,7 +614,7 @@ describe("TokenLockup timelock balances", () => {
     const walletAtimelockAccount = getTimelockAccount(
       tokenlockProgram.programId,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
 
     await withdraw(
@@ -603,9 +626,9 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey,
       walletAtimelockAccount,
       escrowOwnerPubkey,
-      walletATokenAcc,
+      recipientTokenAcc,
       testEnvironment.transferRestrictionsHelper,
-      walletA
+      recipient
     );
 
     let balanceEscrowAfterTransfer = (
@@ -621,7 +644,7 @@ describe("TokenLockup timelock balances", () => {
     let timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
 
     let balance = balanceOfTimelock(account, timelockAccount, 0, nowTs);
@@ -641,9 +664,9 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey,
       walletAtimelockAccount,
       escrowOwnerPubkey,
-      walletATokenAcc,
+      recipientTokenAcc,
       testEnvironment.transferRestrictionsHelper,
-      walletA
+      recipient
     );
 
     nowTs = await getNowTs(testEnvironment.connection);
@@ -651,7 +674,7 @@ describe("TokenLockup timelock balances", () => {
     timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
 
     balance = balanceOfTimelock(account, timelockAccount, 0, nowTs);
@@ -667,6 +690,16 @@ describe("TokenLockup timelock balances", () => {
   });
 
   it("it can set a schedule to a balance in the future within the maxCommencementTimeInSeconds", async () => {
+    const recipient = Keypair.generate();
+    await testEnvironment.mintHelper.createAssociatedTokenAccount(
+      recipient.publicKey,
+      testEnvironment.contractAdmin
+    );
+    await topUpWallet(
+      testEnvironment.connection,
+      recipient.publicKey,
+      solToLamports(1)
+    );
     const totalBatches = 3;
     const firstDelay = 0;
     const firstBatchBips = 800;
@@ -678,9 +711,6 @@ describe("TokenLockup timelock balances", () => {
       tokenlockProgram,
       tokenlockDataPubkey
     );
-
-    const scheduleCount = getScheduleCount(account);
-    assert(scheduleCount === 0);
 
     const scheduleId = await createReleaseSchedule(
       tokenlockProgram,
@@ -705,7 +735,7 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -718,7 +748,7 @@ describe("TokenLockup timelock balances", () => {
     let timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
 
     let unlocked = unlockedBalanceOf(account, timelockAccount, nowTs);
@@ -739,7 +769,7 @@ describe("TokenLockup timelock balances", () => {
       tokenlockDataPubkey,
       escrowAccount,
       escrowOwnerPubkey,
-      walletA.publicKey,
+      recipient.publicKey,
       reserveAdmin,
       reserveAdminWalletRolePubkey,
       testEnvironment.accessControlHelper.accessControlPubkey,
@@ -752,7 +782,7 @@ describe("TokenLockup timelock balances", () => {
     timelockAccount = await getTimelockAccountData(
       tokenlockProgram,
       tokenlockDataPubkey,
-      walletA.publicKey
+      recipient.publicKey
     );
 
     unlocked = unlockedBalanceOf(account, timelockAccount, nowTs);
