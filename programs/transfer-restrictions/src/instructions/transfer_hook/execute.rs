@@ -77,9 +77,11 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
     let transfer_rule = TransferRule::deserialize(
         &mut &ctx.accounts.transfer_rule.data.borrow()[DISCRIMINATOR_LEN..],
     )?;
-    // TODO: add transfer restrictions checks here
+    if transfer_rule.locked_until == 0 {
+        return Err(TransferRestrictionsError::TransferGroupNotApproved.into());
+    }
     if transfer_rule.locked_until > Clock::get()?.unix_timestamp as u64 {
-        return Err(TransferRestrictionsError::TransferRuleLocked.into());
+        return Err(TransferRestrictionsError::TransferRuleNotAllowedUntilLater.into());
     }
 
     Ok(())

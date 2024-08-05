@@ -6,8 +6,8 @@ pub enum TransferRestrictionsError {
     Unauthorized,
     #[msg("Max holders reached")]
     MaxHoldersReached,
-    #[msg("Transfer rule locked")]
-    TransferRuleLocked,
+    #[msg("Transfer rule not allowed until later")]
+    TransferRuleNotAllowedUntilLater,
     #[msg("Invalid role")]
     InvalidRole,
     #[msg("All transfers are paused")]
@@ -24,4 +24,6 @@ pub enum TransferRestrictionsError {
     InvalidHolderIndex,
     #[msg("Max holders reached inside the group")]
     MaxHoldersReachedInsideTheGroup,
+    #[msg("Transfer group not approved")]
+    TransferGroupNotApproved,
 }
