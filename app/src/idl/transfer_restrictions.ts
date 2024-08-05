@@ -1931,6 +1931,11 @@ export type TransferRestrictions = {
       "code": 6009,
       "name": "invalidHolderIndex",
       "msg": "Invalid transfer restriction holder index"
+    },
+    {
+      "code": 6010,
+      "name": "maxHoldersReachedInsideTheGroup",
+      "msg": "Max holders reached inside the group"
     }
   ],
   "types": [

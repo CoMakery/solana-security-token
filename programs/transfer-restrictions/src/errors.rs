@@ -22,4 +22,6 @@ pub enum TransferRestrictionsError {
     EscrowAccountsMismatch,
     #[msg("Invalid transfer restriction holder index")]
     InvalidHolderIndex,
+    #[msg("Max holders reached inside the group")]
+    MaxHoldersReachedInsideTheGroup,
 }
