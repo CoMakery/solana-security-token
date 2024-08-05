@@ -49,8 +49,8 @@ describe("TokenLockup stress test", () => {
     try {
       testEnvironment = new TestEnvironment(testEnvironmentParams);
       await testEnvironment.setupAccessControl();
-    await testEnvironment.setupTransferRestrictions();
-    await testEnvironment.mintToReserveAdmin();
+      await testEnvironment.setupTransferRestrictions();
+      await testEnvironment.mintToReserveAdmin();
 
       walletB = Keypair.generate();
       walletC = Keypair.generate();

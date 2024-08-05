@@ -21,22 +21,30 @@ describe("Initialize transfer restriction data", () => {
   };
   let testEnvironment: TestEnvironment;
 
-
   before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
     await testEnvironment.setupAccessControl();
   });
 
   it("fails to initialize data with non-zero group", async () => {
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.contractAdmin.publicKey);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.contractAdmin.publicKey
+      );
     const groupIdx = new anchor.BN(1);
-    const [groupPDA] = testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
+    const [groupPDA] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
-        .initializeTransferRestrictionsData(new anchor.BN(testEnvironmentParams.maxHolders))
+        .initializeTransferRestrictionsData(
+          new anchor.BN(testEnvironmentParams.maxHolders)
+        )
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: testEnvironment.contractAdmin.publicKey,
@@ -54,9 +62,13 @@ describe("Initialize transfer restriction data", () => {
   });
 
   it("fails to initialize data with another mint then in accessControlData", async () => {
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.contractAdmin.publicKey);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.contractAdmin.publicKey
+      );
     const groupIdx = new anchor.BN(0);
-    const [groupPDA] = testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
+    const [groupPDA] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
     const newMint = Keypair.generate();
     await createMint(
       testEnvironment.connection,
@@ -70,10 +82,15 @@ describe("Initialize transfer restriction data", () => {
     );
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
-        .initializeTransferRestrictionsData(new anchor.BN(testEnvironmentParams.maxHolders))
+        .initializeTransferRestrictionsData(
+          new anchor.BN(testEnvironmentParams.maxHolders)
+        )
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: newMint.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: testEnvironment.contractAdmin.publicKey,
@@ -92,15 +109,22 @@ describe("Initialize transfer restriction data", () => {
 
   it("fails to initialize data with reserve admin", async () => {
     const signer = testEnvironment.reserveAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const groupIdx = new anchor.BN(0);
-    const [groupPDA] = testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
+    const [groupPDA] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
-        .initializeTransferRestrictionsData(new anchor.BN(testEnvironmentParams.maxHolders))
+        .initializeTransferRestrictionsData(
+          new anchor.BN(testEnvironmentParams.maxHolders)
+        )
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
@@ -119,15 +143,22 @@ describe("Initialize transfer restriction data", () => {
 
   it("fails to initialize data with wallets admin", async () => {
     const signer = testEnvironment.walletsAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const groupIdx = new anchor.BN(0);
-    const [groupPDA] = testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
+    const [groupPDA] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
-        .initializeTransferRestrictionsData(new anchor.BN(testEnvironmentParams.maxHolders))
+        .initializeTransferRestrictionsData(
+          new anchor.BN(testEnvironmentParams.maxHolders)
+        )
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
@@ -146,15 +177,22 @@ describe("Initialize transfer restriction data", () => {
 
   it("fails to initialize data with transfer admin", async () => {
     const signer = testEnvironment.transferAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const groupIdx = new anchor.BN(0);
-    const [groupPDA] = testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
+    const [groupPDA] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(groupIdx);
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
-        .initializeTransferRestrictionsData(new anchor.BN(testEnvironmentParams.maxHolders))
+        .initializeTransferRestrictionsData(
+          new anchor.BN(testEnvironmentParams.maxHolders)
+        )
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
@@ -172,13 +210,23 @@ describe("Initialize transfer restriction data", () => {
   });
 
   it("initializes transfer restrictions", async () => {
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.contractAdmin.publicKey);
-    const [groupPDA] = testEnvironment.transferRestrictionsHelper.groupPDA(new anchor.BN(0));
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.contractAdmin.publicKey
+      );
+    const [groupPDA] = testEnvironment.transferRestrictionsHelper.groupPDA(
+      new anchor.BN(0)
+    );
     await testEnvironment.transferRestrictionsHelper.program.methods
-      .initializeTransferRestrictionsData(new anchor.BN(testEnvironmentParams.maxHolders))
+      .initializeTransferRestrictionsData(
+        new anchor.BN(testEnvironmentParams.maxHolders)
+      )
       .accountsStrict({
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-        accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
+        accessControlAccount:
+          testEnvironment.accessControlHelper.accessControlPubkey,
         mint: testEnvironment.mintKeypair.publicKey,
         authorityWalletRole: authorityWalletRolePubkey,
         payer: testEnvironment.contractAdmin.publicKey,
@@ -188,19 +236,36 @@ describe("Initialize transfer restriction data", () => {
       })
       .signers([testEnvironment.contractAdmin])
       .rpc({ commitment: testEnvironment.commitment });
-    const trData = await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
-    assert.equal(trData.securityTokenMint.toString(), testEnvironment.mintKeypair.publicKey.toString());
-    assert.equal(trData.accessControlAccount.toString(), testEnvironment.accessControlHelper.accessControlPubkey.toString());
+    const trData =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(
+      trData.securityTokenMint.toString(),
+      testEnvironment.mintKeypair.publicKey.toString()
+    );
+    assert.equal(
+      trData.accessControlAccount.toString(),
+      testEnvironment.accessControlHelper.accessControlPubkey.toString()
+    );
     assert.equal(trData.currentHoldersCount.toNumber(), 0);
     assert.equal(trData.holderIds.toNumber(), 0);
-    assert.equal(trData.maxHolders.toNumber(), testEnvironmentParams.maxHolders);
+    assert.equal(
+      trData.maxHolders.toNumber(),
+      testEnvironmentParams.maxHolders
+    );
     assert.equal(trData.paused, false);
     assert.equal(trData.lockupEscrowAccount, undefined);
 
-    const groupData = await testEnvironment.transferRestrictionsHelper.groupData(groupPDA);
+    const groupData =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPDA);
     assert.equal(groupData.currentHoldersCount.toNumber(), 0);
     assert.equal(groupData.id.toNumber(), 0);
-    assert.equal(groupData.maxHolders.toNumber(), testEnvironmentParams.maxHolders);
-    assert.equal(groupData.transferRestrictionData.toString(), testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toString());
+    assert.equal(
+      groupData.maxHolders.toNumber(),
+      testEnvironmentParams.maxHolders
+    );
+    assert.equal(
+      groupData.transferRestrictionData.toString(),
+      testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toString()
+    );
   });
 });

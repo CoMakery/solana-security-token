@@ -27,30 +27,38 @@ describe("Initialize transfer restriction rule", () => {
     await testEnvironment.setupTransferRestrictions();
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
       firstGroupIdx,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
-      testEnvironment.transferAdmin,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
+      testEnvironment.transferAdmin
     );
   });
 
   it("fails to initialize transfer rule by contract admin", async () => {
     const signer = testEnvironment.contractAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const [groupFromPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [groupFromPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
     const groupToPubkey = groupFromPubkey;
     const lockedUntil = new anchor.BN(0);
-    const [transferRulePubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
-      firstGroupIdx,
-      firstGroupIdx
-    );
+    const [transferRulePubkey] =
+      testEnvironment.transferRestrictionsHelper.transferRulePDA(
+        firstGroupIdx,
+        firstGroupIdx
+      );
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .initializeTransferRule(lockedUntil)
         .accountsStrict({
           transferRule: transferRulePubkey,
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
           transferRestrictionGroupFrom: groupFromPubkey,
           transferRestrictionGroupTo: groupToPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
           systemProgram: SystemProgram.programId,
@@ -64,26 +72,31 @@ describe("Initialize transfer restriction rule", () => {
     }
   });
 
-
   it("fails to initialize transfer rule by reserve admin", async () => {
     const signer = testEnvironment.reserveAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const [groupFromPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [groupFromPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
     const groupToPubkey = groupFromPubkey;
     const lockedUntil = new anchor.BN(0);
-    const [transferRulePubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
-      firstGroupIdx,
-      firstGroupIdx
-    );
+    const [transferRulePubkey] =
+      testEnvironment.transferRestrictionsHelper.transferRulePDA(
+        firstGroupIdx,
+        firstGroupIdx
+      );
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .initializeTransferRule(lockedUntil)
         .accountsStrict({
           transferRule: transferRulePubkey,
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
           transferRestrictionGroupFrom: groupFromPubkey,
           transferRestrictionGroupTo: groupToPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
           systemProgram: SystemProgram.programId,
@@ -99,23 +112,29 @@ describe("Initialize transfer restriction rule", () => {
 
   it("fails to initialize transfer rule by wallets admin", async () => {
     const signer = testEnvironment.walletsAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const [groupFromPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [groupFromPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
     const groupToPubkey = groupFromPubkey;
     const lockedUntil = new anchor.BN(0);
-    const [transferRulePubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
-      firstGroupIdx,
-      firstGroupIdx
-    );
+    const [transferRulePubkey] =
+      testEnvironment.transferRestrictionsHelper.transferRulePDA(
+        firstGroupIdx,
+        firstGroupIdx
+      );
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .initializeTransferRule(lockedUntil)
         .accountsStrict({
           transferRule: transferRulePubkey,
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
           transferRestrictionGroupFrom: groupFromPubkey,
           transferRestrictionGroupTo: groupToPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
           systemProgram: SystemProgram.programId,
@@ -131,34 +150,50 @@ describe("Initialize transfer restriction rule", () => {
 
   it("initializes transfer rule by transfer admin", async () => {
     const signer = testEnvironment.transferAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const [groupFromPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [groupFromPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
     const groupToPubkey = groupFromPubkey;
     const lockedUntil = new anchor.BN(0);
-    const [transferRulePubkey] = testEnvironment.transferRestrictionsHelper.transferRulePDA(
-      firstGroupIdx,
-      firstGroupIdx
-    );
+    const [transferRulePubkey] =
+      testEnvironment.transferRestrictionsHelper.transferRulePDA(
+        firstGroupIdx,
+        firstGroupIdx
+      );
     await testEnvironment.transferRestrictionsHelper.program.methods
       .initializeTransferRule(lockedUntil)
       .accountsStrict({
         transferRule: transferRulePubkey,
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
         transferRestrictionGroupFrom: groupFromPubkey,
         transferRestrictionGroupTo: groupToPubkey,
-        accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+        accessControlAccount:
+          testEnvironment.accessControlHelper.accessControlPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
         payer: signer.publicKey,
         systemProgram: SystemProgram.programId,
       })
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
-    const transferRuleData = await testEnvironment.transferRestrictionsHelper.transferRuleData(
-      transferRulePubkey
+    const transferRuleData =
+      await testEnvironment.transferRestrictionsHelper.transferRuleData(
+        transferRulePubkey
+      );
+    assert.equal(
+      transferRuleData.lockedUntil.toNumber(),
+      lockedUntil.toNumber()
     );
-    assert.equal(transferRuleData.lockedUntil.toNumber(), lockedUntil.toNumber());
-    assert.equal(transferRuleData.transferGroupIdFrom.toNumber(), firstGroupIdx.toNumber());
-    assert.equal(transferRuleData.transferGroupIdTo.toNumber(), firstGroupIdx.toNumber());
+    assert.equal(
+      transferRuleData.transferGroupIdFrom.toNumber(),
+      firstGroupIdx.toNumber()
+    );
+    assert.equal(
+      transferRuleData.transferGroupIdTo.toNumber(),
+      firstGroupIdx.toNumber()
+    );
     assert.equal(
       transferRuleData.transferRestrictionData.toBase58(),
       testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toBase58()

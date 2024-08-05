@@ -169,7 +169,7 @@ export class TestEnvironment {
 
   async mintToReserveAdmin() {
     const reserveAdminAssociatedTokenAccount =
-    this.mintHelper.getAssocciatedTokenAddress(this.reserveAdmin.publicKey);
+      this.mintHelper.getAssocciatedTokenAddress(this.reserveAdmin.publicKey);
 
     await this.accessControlHelper.mintSecurities(
       new BN(this.params.initialSupply),

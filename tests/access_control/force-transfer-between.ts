@@ -59,20 +59,26 @@ describe("Access Control force transfer between", () => {
   });
 
   it("fails to mint more than maxTotalSupply", async () => {
-    const { maxTotalSupply: maxTotalSupply } = await testEnvironment.accessControlHelper.accessControlData();
+    const { maxTotalSupply: maxTotalSupply } =
+      await testEnvironment.accessControlHelper.accessControlData();
 
-    const amount = maxTotalSupply.sub(new anchor.BN(testEnvironmentParams.initialSupply)).addn(1);
+    const amount = maxTotalSupply
+      .sub(new anchor.BN(testEnvironmentParams.initialSupply))
+      .addn(1);
     try {
       await testEnvironment.accessControlHelper.mintSecurities(
         amount,
         recipient.publicKey,
         recipientTokenAccount,
-        testEnvironment.reserveAdmin,
+        testEnvironment.reserveAdmin
       );
       assert.fail("Expected an error");
     } catch ({ error }) {
       assert.equal(error.errorCode.code, "MintExceedsMaxTotalSupply");
-      assert.equal(error.errorMessage, "Cannot mint more than max total supply");
+      assert.equal(
+        error.errorMessage,
+        "Cannot mint more than max total supply"
+      );
     }
   });
 

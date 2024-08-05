@@ -29,50 +29,67 @@ describe("Initialize transfer restriction HolderGroup", () => {
     await testEnvironment.setupTransferRestrictions();
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       zeroIdx,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.walletsAdmin.publicKey)[0],
-      testEnvironment.walletsAdmin,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       new anchor.BN(1),
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.walletsAdmin.publicKey)[0],
-      testEnvironment.walletsAdmin,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       new anchor.BN(2),
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.walletsAdmin.publicKey)[0],
-      testEnvironment.walletsAdmin,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
     );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
       firstGroupIdx,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
-      testEnvironment.transferAdmin,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
+      testEnvironment.transferAdmin
     );
 
-    const [firstGroupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+    const [firstGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
     await testEnvironment.transferRestrictionsHelper.setHolderGroupMax(
       maxHoldersInGroup1,
       firstGroupPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
-      testEnvironment.transferAdmin,
-    )
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
+      testEnvironment.transferAdmin
+    );
   });
 
   it("fails to initialize holdergroup by contract admin", async () => {
     const signer = testEnvironment.contractAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(zeroIdx);
-    const [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(zeroIdx);
-    const [holderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      zeroIdx,
-    );
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(zeroIdx);
+    const [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(zeroIdx);
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        zeroIdx
+      );
 
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .initializeHolderGroup()
         .accountsStrict({
           holderGroup: holderGroupPubkey,
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
           group: groupPubkey,
           holder: holderPubkey,
           authorityWalletRole: authorityWalletRolePubkey,
@@ -90,20 +107,26 @@ describe("Initialize transfer restriction HolderGroup", () => {
 
   it("fails to initialize holdergroup by reserve admin", async () => {
     const signer = testEnvironment.reserveAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(zeroIdx);
-    const [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(zeroIdx);
-    const [holderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      zeroIdx,
-    );
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(zeroIdx);
+    const [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(zeroIdx);
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        zeroIdx
+      );
 
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .initializeHolderGroup()
         .accountsStrict({
           holderGroup: holderGroupPubkey,
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
           group: groupPubkey,
           holder: holderPubkey,
           authorityWalletRole: authorityWalletRolePubkey,
@@ -121,20 +144,27 @@ describe("Initialize transfer restriction HolderGroup", () => {
 
   it("initialize holdergroup by wallets admin", async () => {
     const signer = testEnvironment.walletsAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(zeroIdx);
-    const [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(zeroIdx);
-    const [holderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      zeroIdx,
-    );
-    const { currentHoldersCount: holderGroupCountBefore } = await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(zeroIdx);
+    const [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(zeroIdx);
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        zeroIdx
+      );
+    const { currentHoldersCount: holderGroupCountBefore } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
 
     await testEnvironment.transferRestrictionsHelper.program.methods
       .initializeHolderGroup()
       .accountsStrict({
         holderGroup: holderGroupPubkey,
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
         group: groupPubkey,
         holder: holderPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
@@ -144,33 +174,46 @@ describe("Initialize transfer restriction HolderGroup", () => {
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
 
-
-    const holderGroup = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupPubkey);
+    const holderGroup =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupPubkey
+      );
     assert.equal(holderGroup.holder.toString(), holderPubkey.toString());
     assert.equal(holderGroup.group.toString(), zeroIdx.toString());
     assert.equal(holderGroup.currentWalletsCount.toNumber(), 0);
 
-    const { currentHoldersCount: holderGroupCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
-    assert.equal(holderGroupCountAfter.toNumber(), holderGroupCountBefore.addn(1).toNumber());
+    const { currentHoldersCount: holderGroupCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    assert.equal(
+      holderGroupCountAfter.toNumber(),
+      holderGroupCountBefore.addn(1).toNumber()
+    );
   });
 
   it("initialize holdergroup by transfer admin", async () => {
     const signer = testEnvironment.transferAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const holderIdx = firstGroupIdx;
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(holderIdx);
-    const [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
-    const [holderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      firstGroupIdx,
-    );
-    const { currentHoldersCount: holderGroupCountBefore } = await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    const [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(holderIdx);
+    const [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
+    const { currentHoldersCount: holderGroupCountBefore } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
 
     await testEnvironment.transferRestrictionsHelper.program.methods
       .initializeHolderGroup()
       .accountsStrict({
         holderGroup: holderGroupPubkey,
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
         group: groupPubkey,
         holder: holderPubkey,
         authorityWalletRole: authorityWalletRolePubkey,
@@ -180,46 +223,64 @@ describe("Initialize transfer restriction HolderGroup", () => {
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
 
-    const holderGroup = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupPubkey);
+    const holderGroup =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupPubkey
+      );
     assert.equal(holderGroup.holder.toString(), holderPubkey.toString());
     assert.equal(holderGroup.group.toString(), firstGroupIdx.toString());
     assert.equal(holderGroup.currentWalletsCount.toNumber(), 0);
 
-    const { currentHoldersCount: holderGroupCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
-    assert.equal(holderGroupCountAfter.toNumber(), holderGroupCountBefore.addn(1).toNumber());
+    const { currentHoldersCount: holderGroupCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    assert.equal(
+      holderGroupCountAfter.toNumber(),
+      holderGroupCountBefore.addn(1).toNumber()
+    );
   });
 
   it("fails to initialize holdergroup when max holders reached inside the group", async () => {
     const signer = testEnvironment.transferAdmin;
-    const [authorityWalletRolePubkey] = testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const holderIdx = new anchor.BN(2);
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(holderIdx);
-    const [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
-    const [holderGroupPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      firstGroupIdx,
-    );
+    const [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(holderIdx);
+    const [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
 
-    const { currentHoldersCount: holderGroupCountBefore } = await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    const { currentHoldersCount: holderGroupCountBefore } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
-      .initializeHolderGroup()
-      .accountsStrict({
-        holderGroup: holderGroupPubkey,
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-        group: groupPubkey,
-        holder: holderPubkey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        payer: signer.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([signer])
-      .rpc({ commitment: testEnvironment.commitment });
+        .initializeHolderGroup()
+        .accountsStrict({
+          holderGroup: holderGroupPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          group: groupPubkey,
+          holder: holderPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
     } catch ({ error }) {
       assert.equal(error.errorCode.code, "MaxHoldersReachedInsideTheGroup");
       assert.equal(error.errorMessage, "Max holders reached inside the group");
     }
-    const { currentHoldersCount: holderGroupCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
-    assert.equal(holderGroupCountAfter.toNumber(), holderGroupCountBefore.toNumber());
+    const { currentHoldersCount: holderGroupCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    assert.equal(
+      holderGroupCountAfter.toNumber(),
+      holderGroupCountBefore.toNumber()
+    );
   });
 });
