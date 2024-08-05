@@ -52,7 +52,9 @@ describe("TokenLockup mint release schedues", () => {
 
   before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
 
     walletA = Keypair.generate();
     await topUpWallet(

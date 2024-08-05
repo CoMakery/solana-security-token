@@ -55,7 +55,9 @@ describe("TokenLockup timelock balances", () => {
 
   before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
 
     mintPubkey = testEnvironment.mintKeypair.publicKey;
     reserveAdmin = testEnvironment.reserveAdmin;

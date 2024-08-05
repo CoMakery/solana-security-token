@@ -192,12 +192,12 @@ export class TransferRestrictionsHelper {
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
   ): Promise<string> {
-    const [transferRestrictionGroup1Pubkey] = this.groupPDA(groupId);
+    const [groupPubkey] = this.groupPDA(groupId);
 
     return this.program.methods
       .initializeTransferRestrictionGroup(groupId)
       .accountsStrict({
-        transferRestrictionGroup: transferRestrictionGroup1Pubkey,
+        transferRestrictionGroup: groupPubkey,
         transferRestrictionData: this.transferRestrictionDataPubkey,
         payer: payer.publicKey,
         accessControlAccount: this.accessControlPubkey,

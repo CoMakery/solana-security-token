@@ -52,7 +52,9 @@ describe("token lockup", () => {
   const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;
 
   before("setups environment", async () => {
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
   });
 
   it("setups test environment", async () => {
@@ -328,7 +330,7 @@ describe("token lockup", () => {
           rent: SYSVAR_RENT_PUBKEY,
         })
         .signers([testEnvironment.reserveAdmin])
-        .rpc({ commitment: testEnvironment.confirmOptions });
+        .rpc({ commitment: testEnvironment.commitment });
       console.log("Initialize Timelock Transaction Signature", tx);
     }
 
@@ -372,7 +374,7 @@ describe("token lockup", () => {
       testEnvironment.connection,
       new Transaction().add(mintReleaseScheduleInstruction),
       [testEnvironment.reserveAdmin],
-      { commitment: testEnvironment.confirmOptions }
+      { commitment: testEnvironment.commitment }
     );
     console.log(
       "mintReleaseSchedule Transaction Signature",
@@ -674,14 +676,14 @@ describe("token lockup", () => {
       investorTokenAccountPubkey,
       escrowOwnerPubkey,
       transferAmount.toNumber(),
-      testEnvironment.confirmOptions
+      testEnvironment.commitment
     );
 
     const transferTxSignature = await sendAndConfirmTransaction(
       testEnvironment.connection,
       new Transaction().add(transferInstruction),
       [investor], // userWallet
-      { commitment: testEnvironment.confirmOptions }
+      { commitment: testEnvironment.commitment }
     );
     console.log("Transfer Transaction Signature", transferTxSignature);
 
@@ -772,14 +774,14 @@ describe("token lockup", () => {
       investorTokenAccountPubkey,
       escrowOwnerPubkey,
       transferTimelockAmount.toNumber(),
-      testEnvironment.confirmOptions
+      testEnvironment.commitment
     );
 
     const transferTxSignature = await sendAndConfirmTransaction(
       testEnvironment.connection,
       new Transaction().add(transferTimelockInstruction),
       [investor],
-      { commitment: testEnvironment.confirmOptions }
+      { commitment: testEnvironment.commitment }
     );
     console.log("Transfer Timelock Transaction Signature", transferTxSignature);
 
@@ -907,14 +909,14 @@ describe("token lockup", () => {
       newinvestorTokenAccountPubkey,
       escrowOwnerPubkey,
       transferTimelockAmount.toNumber(),
-      testEnvironment.confirmOptions
+      testEnvironment.commitment
     );
 
     const transferTxSignature = await sendAndConfirmTransaction(
       testEnvironment.connection,
       new Transaction().add(transferTimelockInstruction),
       [investor],
-      { commitment: testEnvironment.confirmOptions }
+      { commitment: testEnvironment.commitment }
     );
 
     console.log("Transfer Timelock Transaction Signature", transferTxSignature);

@@ -30,7 +30,9 @@ describe("Access Control force transfer between", () => {
 
   before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
 
     [reserveAdminWalletRole] =
       testEnvironment.accessControlHelper.walletRolePDA(

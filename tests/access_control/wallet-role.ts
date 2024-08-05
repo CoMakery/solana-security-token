@@ -26,7 +26,9 @@ describe("Access Control wallet role", () => {
 
   before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
 
     [reserveAdminWalletRole] =
       testEnvironment.accessControlHelper.walletRolePDA(

@@ -41,7 +41,7 @@ export class TestEnvironment {
     workspace.TransferRestrictions as Program<TransferRestrictions>;
   provider = AnchorProvider.env();
   connection = this.provider.connection;
-  confirmOptions: Commitment = "confirmed";
+  commitment: Commitment = "confirmed";
   mintKeypair = Keypair.generate();
   mintHelper = new MintHelper(this.connection, this.mintKeypair.publicKey);
   accessControlHelper = new AccessControlHelper(
@@ -130,7 +130,7 @@ export class TestEnvironment {
       this.connection,
       transaction,
       [this.contractAdmin, this.mintKeypair], // Signers
-      { commitment: this.confirmOptions }
+      { commitment: this.commitment }
     );
     console.log(
       "Setup Mint, AccessControl and TransferRestriction data Transaction Signature",
@@ -138,7 +138,7 @@ export class TestEnvironment {
     );
   }
 
-  async setup() {
+  async setupAccessControl() {
     await this.topupAdminsWallets();
     const setupAccessControlArgs = {
       decimals: this.params.mint.decimals,
@@ -157,15 +157,19 @@ export class TestEnvironment {
       this.superAdmin
     );
     await this.setupAdminRoles();
+  }
 
+  async setupTransferRestrictions() {
     await this.transferRestrictionsHelper.initializeTransferRestrictionData(
       new BN(this.params.maxHolders),
       this.accessControlHelper.walletRolePDA(this.contractAdmin.publicKey)[0],
       this.contractAdmin
     );
+  }
 
+  async mintToReserveAdmin() {
     const reserveAdminAssociatedTokenAccount =
-      this.mintHelper.getAssocciatedTokenAddress(this.reserveAdmin.publicKey);
+    this.mintHelper.getAssocciatedTokenAddress(this.reserveAdmin.publicKey);
 
     await this.accessControlHelper.mintSecurities(
       new BN(this.params.initialSupply),

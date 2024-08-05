@@ -51,7 +51,9 @@ describe("TokenLockup create release schedule", () => {
 
   beforeEach(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
 
     walletA = Keypair.generate();
     walletB = Keypair.generate();

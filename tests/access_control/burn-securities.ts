@@ -26,7 +26,9 @@ describe("Access Control burn securities", () => {
 
   before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
 
     [reserveAdminWalletRole] =
       testEnvironment.accessControlHelper.walletRolePDA(
@@ -97,7 +99,7 @@ describe("Access Control burn securities", () => {
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([reserveAdminPretender])
-        .rpc({ commitment: testEnvironment.confirmOptions });
+        .rpc({ commitment: testEnvironment.commitment });
       assert.fail("Expected an error");
     } catch (error) {
       assert.equal(
@@ -120,7 +122,7 @@ describe("Access Control burn securities", () => {
   let attackerEnvironment: TestEnvironment;
   it("fails when attacker subtitute authority, wallet role and signer", async () => {
     attackerEnvironment = new TestEnvironment(attackerTestEnvironmentParams);
-    await attackerEnvironment.setup();
+    await attackerEnvironment.setupAccessControl();
     const amount = new anchor.BN(1_000_000);
     const [attackerReserveAdminWalletRole] =
       attackerEnvironment.accessControlHelper.walletRolePDA(
@@ -140,7 +142,7 @@ describe("Access Control burn securities", () => {
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([attackerEnvironment.reserveAdmin])
-        .rpc({ commitment: testEnvironment.confirmOptions });
+        .rpc({ commitment: testEnvironment.commitment });
       assert.fail("Expected an error");
     } catch ({ error }) {
       assert.equal(error.errorCode.code, "ConstraintSeeds");
