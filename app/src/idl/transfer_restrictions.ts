@@ -1894,8 +1894,8 @@ export type TransferRestrictions = {
     },
     {
       "code": 6002,
-      "name": "transferRuleLocked",
-      "msg": "Transfer rule locked"
+      "name": "transferRuleNotAllowedUntilLater",
+      "msg": "Transfer rule not allowed until later"
     },
     {
       "code": 6003,
@@ -1936,6 +1936,11 @@ export type TransferRestrictions = {
       "code": 6010,
       "name": "maxHoldersReachedInsideTheGroup",
       "msg": "Max holders reached inside the group"
+    },
+    {
+      "code": 6011,
+      "name": "transferGroupNotApproved",
+      "msg": "Transfer group not approved"
     }
   ],
   "types": [
