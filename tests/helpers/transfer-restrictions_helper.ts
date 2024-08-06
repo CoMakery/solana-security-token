@@ -16,7 +16,7 @@ export class TransferRestrictionsHelper {
   mintPubkey: PublicKey;
   transferRestrictionDataPubkey: PublicKey;
   accessControlPubkey: PublicKey;
-  confirmOptions: Commitment = "confirmed";
+  commitment: Commitment = "confirmed";
 
   constructor(
     transferRestrictionsProgram: Program<TransferRestrictions>,
@@ -28,7 +28,7 @@ export class TransferRestrictionsHelper {
     this.mintPubkey = mintPubkey;
     this.transferRestrictionDataPubkey = this.transferRestrictionDataPDA()[0];
     this.accessControlPubkey = accessControlPubkey;
-    this.confirmOptions = confirmOptions;
+    this.commitment = confirmOptions;
   }
 
   transferRestrictionDataPDA(): [PublicKey, number] {
@@ -44,7 +44,7 @@ export class TransferRestrictionsHelper {
   async transferRestrictionData(): Promise<any> {
     return this.program.account.transferRestrictionData.fetch(
       this.transferRestrictionDataPubkey,
-      this.confirmOptions
+      this.commitment
     );
   }
 
@@ -62,7 +62,7 @@ export class TransferRestrictionsHelper {
   async groupData(groupPubkey: PublicKey): Promise<any> {
     return this.program.account.transferRestrictionGroup.fetch(
       groupPubkey,
-      this.confirmOptions
+      this.commitment
     );
   }
 
@@ -80,7 +80,7 @@ export class TransferRestrictionsHelper {
   async holderData(holderPubkey: PublicKey): Promise<any> {
     return this.program.account.transferRestrictionHolder.fetch(
       holderPubkey,
-      this.confirmOptions
+      this.commitment
     );
   }
 
@@ -98,7 +98,7 @@ export class TransferRestrictionsHelper {
   async holderGroupData(holderGroupPubkey: PublicKey): Promise<any> {
     return this.program.account.holderGroup.fetch(
       holderGroupPubkey,
-      this.confirmOptions
+      this.commitment
     );
   }
 
@@ -117,7 +117,7 @@ export class TransferRestrictionsHelper {
   async transferRuleData(transferRulePubkey: PublicKey): Promise<any> {
     return this.program.account.transferRule.fetch(
       transferRulePubkey,
-      this.confirmOptions
+      this.commitment
     );
   }
 
@@ -138,7 +138,7 @@ export class TransferRestrictionsHelper {
   ): Promise<any> {
     return this.program.account.securityAssociatedAccount.fetch(
       securityAssociatedAccountPubkey,
-      this.confirmOptions
+      this.commitment
     );
   }
 
@@ -184,7 +184,7 @@ export class TransferRestrictionsHelper {
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async initializeTransferRestrictionGroup(
@@ -205,7 +205,7 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async initializeTransferRule(
@@ -235,7 +235,7 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async initializeTransferRestrictionHolder(
@@ -256,7 +256,7 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async initializeSecurityAssociatedAccount(
@@ -288,7 +288,7 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async initializeHolderGroup(
@@ -310,7 +310,7 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async updateWalletGroup(
@@ -341,7 +341,7 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async setHolderMax(
@@ -359,7 +359,7 @@ export class TransferRestrictionsHelper {
         payer: payer.publicKey,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async setHolderGroupMax(
@@ -379,7 +379,7 @@ export class TransferRestrictionsHelper {
         payer: payer.publicKey,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async setAllowTransferRule(
@@ -402,7 +402,7 @@ export class TransferRestrictionsHelper {
         payer: payer.publicKey,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async revokeSecurityAssociatedAccount(
@@ -437,7 +437,7 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async revokeHolder(
@@ -461,7 +461,7 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async setLockupEscrowAccount(
@@ -486,6 +486,6 @@ export class TransferRestrictionsHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([payer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 }
