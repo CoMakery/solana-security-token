@@ -17,11 +17,6 @@ pub fn revoke_holder(ctx: Context<RevokeHolder>) -> Result<()> {
         holder.current_wallets_count == 0,
         TransferRestrictionsError::CurrentWalletsCountMustBeZero
     );
-    let holder_group = &mut ctx.accounts.holder_group;
-    require!(
-        holder_group.current_wallets_count == 0,
-        TransferRestrictionsError::CurrentWalletsCountMustBeZero
-    );
     
     let transfer_restriction_data = &mut ctx.accounts.transfer_restriction_data;
     transfer_restriction_data.current_holders_count = transfer_restriction_data.current_holders_count.checked_sub(1).unwrap();
