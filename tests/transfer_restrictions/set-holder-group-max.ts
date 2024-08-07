@@ -41,8 +41,8 @@ describe("Set holder group max", () => {
       )[0],
       testEnvironment.transferAdmin
     );
-    [groupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
-
+    [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
   });
 
   it("fails to set holder group max by contract admin", async () => {
@@ -54,8 +54,11 @@ describe("Set holder group max", () => {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .setHolderGroupMax(maxHolders)
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           group: groupPubkey,
@@ -79,8 +82,11 @@ describe("Set holder group max", () => {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .setHolderGroupMax(maxHolders)
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           group: groupPubkey,
@@ -104,8 +110,11 @@ describe("Set holder group max", () => {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .setHolderGroupMax(maxHolders)
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           group: groupPubkey,
@@ -128,8 +137,11 @@ describe("Set holder group max", () => {
     await testEnvironment.transferRestrictionsHelper.program.methods
       .setHolderGroupMax(maxHolders)
       .accountsStrict({
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-        accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
+        accessControlAccount:
+          testEnvironment.accessControlHelper.accessControlPubkey,
         mint: testEnvironment.mintKeypair.publicKey,
         authorityWalletRole: authorityWalletRolePubkey,
         group: groupPubkey,
@@ -137,7 +149,8 @@ describe("Set holder group max", () => {
       })
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
-    const groupData = await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    const groupData =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
     assert.equal(groupData.maxHolders.toNumber(), maxHolders.toNumber());
   });
 });

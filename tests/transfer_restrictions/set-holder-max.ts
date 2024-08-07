@@ -34,8 +34,11 @@ describe("Set holder max", () => {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .setHolderMax(maxHolders)
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
@@ -58,8 +61,11 @@ describe("Set holder max", () => {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .setHolderMax(maxHolders)
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
@@ -82,8 +88,11 @@ describe("Set holder max", () => {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .setHolderMax(maxHolders)
         .accountsStrict({
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-          accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           mint: testEnvironment.mintKeypair.publicKey,
           authorityWalletRole: authorityWalletRolePubkey,
           payer: signer.publicKey,
@@ -105,15 +114,19 @@ describe("Set holder max", () => {
     await testEnvironment.transferRestrictionsHelper.program.methods
       .setHolderMax(maxHolders)
       .accountsStrict({
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
-        accessControlAccount: testEnvironment.accessControlHelper.accessControlPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
+        accessControlAccount:
+          testEnvironment.accessControlHelper.accessControlPubkey,
         mint: testEnvironment.mintKeypair.publicKey,
         authorityWalletRole: authorityWalletRolePubkey,
         payer: signer.publicKey,
       })
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
-    const groupData = await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    const groupData =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
     assert.equal(groupData.maxHolders.toNumber(), maxHolders.toNumber());
   });
 });

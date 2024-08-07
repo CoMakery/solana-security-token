@@ -34,10 +34,9 @@ describe("Update wallet group", () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
     await testEnvironment.setupAccessControl();
     await testEnvironment.setupTransferRestrictions();
-    [transferAdminRole] =
-      testEnvironment.accessControlHelper.walletRolePDA(
-        testEnvironment.transferAdmin.publicKey
-      );
+    [transferAdminRole] = testEnvironment.accessControlHelper.walletRolePDA(
+      testEnvironment.transferAdmin.publicKey
+    );
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
       firstGroupIdx,
       transferAdminRole,
@@ -50,7 +49,9 @@ describe("Update wallet group", () => {
       transferAdminRole,
       testEnvironment.transferAdmin
     );
-    [secondGroupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(new anchor.BN(2));
+    [secondGroupPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(
+      new anchor.BN(2)
+    );
     let currentHolderIdx = new anchor.BN(0);
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       currentHolderIdx,
@@ -170,23 +171,30 @@ describe("Update wallet group", () => {
       testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const userWalletPubkey = investorWallet1.publicKey;
     const userTokenAccountPubkey = investorWallet1AssociatedAccount;
-    const [userWalletSecAssociatedAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      userTokenAccountPubkey
+    const [userWalletSecAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userTokenAccountPubkey
+      );
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(1)
     );
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(new anchor.BN(1));
-    const [holderGroupCurrentPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      firstGroupIdx
-    );
-    const [holderGroupNewPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      new anchor.BN(2)
-    );
+    const [holderGroupCurrentPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
+    const [holderGroupNewPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        new anchor.BN(2)
+      );
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
       holderGroupNewPubkey,
       holderPubkey,
       secondGroupPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
       testEnvironment.transferAdmin
     );
 
@@ -196,7 +204,9 @@ describe("Update wallet group", () => {
         .accountsStrict({
           securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
           securityToken: testEnvironment.mintKeypair.publicKey,
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
           transferRestrictionGroupCurrent: firstGroupPubkey,
           transferRestrictionGroupNew: secondGroupPubkey,
           holderGroupCurrent: holderGroupCurrentPubkey,
@@ -222,18 +232,23 @@ describe("Update wallet group", () => {
       testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const userWalletPubkey = investorWallet1.publicKey;
     const userTokenAccountPubkey = investorWallet1AssociatedAccount;
-    const [userWalletSecAssociatedAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      userTokenAccountPubkey
+    const [userWalletSecAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userTokenAccountPubkey
+      );
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(1)
     );
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(new anchor.BN(1));
-    const [holderGroupCurrentPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      firstGroupIdx
-    );
-    const [holderGroupNewPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      new anchor.BN(2)
-    );
+    const [holderGroupCurrentPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
+    const [holderGroupNewPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        new anchor.BN(2)
+      );
 
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
@@ -241,7 +256,9 @@ describe("Update wallet group", () => {
         .accountsStrict({
           securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
           securityToken: testEnvironment.mintKeypair.publicKey,
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
           transferRestrictionGroupCurrent: firstGroupPubkey,
           transferRestrictionGroupNew: secondGroupPubkey,
           holderGroupCurrent: holderGroupCurrentPubkey,
@@ -267,29 +284,48 @@ describe("Update wallet group", () => {
       testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const userWalletPubkey = investorWallet1.publicKey;
     const userTokenAccountPubkey = investorWallet1AssociatedAccount;
-    const [userWalletSecAssociatedAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      userTokenAccountPubkey
+    const [userWalletSecAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userTokenAccountPubkey
+      );
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(1)
     );
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(new anchor.BN(1));
-    const [holderGroupCurrentPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      firstGroupIdx
-    );
-    const [holderGroupNewPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      new anchor.BN(2)
-    );
+    const [holderGroupCurrentPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
+    const [holderGroupNewPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        new anchor.BN(2)
+      );
 
-    const { currentWalletsCount: holderGroupCurrentWalletsCount } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupCurrentPubkey);
-    const { currentWalletsCount: holderGroupNewWalletsCount } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupNewPubkey);
-    const { currentHoldersCount: firstGroupHoldersCount } = await testEnvironment.transferRestrictionsHelper.groupData(firstGroupPubkey);
-    const { currentHoldersCount: secondGroupHoldersCount } = await testEnvironment.transferRestrictionsHelper.groupData(secondGroupPubkey);
+    const { currentWalletsCount: holderGroupCurrentWalletsCount } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupCurrentPubkey
+      );
+    const { currentWalletsCount: holderGroupNewWalletsCount } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupNewPubkey
+      );
+    const { currentHoldersCount: firstGroupHoldersCount } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        firstGroupPubkey
+      );
+    const { currentHoldersCount: secondGroupHoldersCount } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        secondGroupPubkey
+      );
     await testEnvironment.transferRestrictionsHelper.program.methods
       .updateWalletGroup()
       .accountsStrict({
         securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
         securityToken: testEnvironment.mintKeypair.publicKey,
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
         transferRestrictionGroupCurrent: firstGroupPubkey,
         transferRestrictionGroupNew: secondGroupPubkey,
         holderGroupCurrent: holderGroupCurrentPubkey,
@@ -303,16 +339,43 @@ describe("Update wallet group", () => {
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
 
-    const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupCurrentPubkey);
-    const { currentWalletsCount: holderGroupNewWalletsCountAfter } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupNewPubkey);
-    const { currentHoldersCount: firstGroupHoldersCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(firstGroupPubkey);
-    const { currentHoldersCount: secondGroupHoldersCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(secondGroupPubkey);
-    const { group: newGroupIdx } = await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(userWalletSecAssociatedAccountPubkey);
+    const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupCurrentPubkey
+      );
+    const { currentWalletsCount: holderGroupNewWalletsCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupNewPubkey
+      );
+    const { currentHoldersCount: firstGroupHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        firstGroupPubkey
+      );
+    const { currentHoldersCount: secondGroupHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        secondGroupPubkey
+      );
+    const { group: newGroupIdx } =
+      await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
+        userWalletSecAssociatedAccountPubkey
+      );
     assert.equal(newGroupIdx.toNumber(), 2);
-    assert.equal(holderGroupCurrentWalletsCount.toNumber(), holderGroupCurrentWalletsCountAfter.toNumber() + 1);
-    assert.equal(holderGroupNewWalletsCount.toNumber(), holderGroupNewWalletsCountAfter.toNumber() - 1);
-    assert.equal(firstGroupHoldersCount.toNumber() - 1, firstGroupHoldersCountAfter.toNumber());
-    assert.equal(secondGroupHoldersCount.toNumber() + 1, secondGroupHoldersCountAfter.toNumber());
+    assert.equal(
+      holderGroupCurrentWalletsCount.toNumber(),
+      holderGroupCurrentWalletsCountAfter.toNumber() + 1
+    );
+    assert.equal(
+      holderGroupNewWalletsCount.toNumber(),
+      holderGroupNewWalletsCountAfter.toNumber() - 1
+    );
+    assert.equal(
+      firstGroupHoldersCount.toNumber() - 1,
+      firstGroupHoldersCountAfter.toNumber()
+    );
+    assert.equal(
+      secondGroupHoldersCount.toNumber() + 1,
+      secondGroupHoldersCountAfter.toNumber()
+    );
   });
 
   const investorWallet3 = Keypair.generate();
@@ -327,29 +390,37 @@ describe("Update wallet group", () => {
 
     const userWalletPubkey = investorWallet2.publicKey;
     const userTokenAccountPubkey = investorWallet2AssociatedAccount;
-    const [userWalletSecAssociatedAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      userTokenAccountPubkey
-    );
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(new anchor.BN(2));
-    const [holderGroupCurrentPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      firstGroupIdx
-    );
-    const [holderGroupNewPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
+    const [userWalletSecAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userTokenAccountPubkey
+      );
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
       new anchor.BN(2)
     );
+    const [holderGroupCurrentPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
+    const [holderGroupNewPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        new anchor.BN(2)
+      );
     await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
       holderGroupNewPubkey,
       holderPubkey,
       secondGroupPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
       testEnvironment.transferAdmin
     );
-    investorWallet3AssociatedAccount = await testEnvironment.mintHelper.createAssociatedTokenAccount(
-      investorWallet3.publicKey,
-      testEnvironment.transferAdmin
-    );
+    investorWallet3AssociatedAccount =
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        investorWallet3.publicKey,
+        testEnvironment.transferAdmin
+      );
     // Add investorWallet3 to the current group so that there are more than 1 wallets in the group
     await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
       firstGroupPubkey,
@@ -360,16 +431,30 @@ describe("Update wallet group", () => {
       transferAdminRole,
       testEnvironment.transferAdmin
     );
-    const { currentWalletsCount: holderGroupCurrentWalletsCount } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupCurrentPubkey);
-    const { currentWalletsCount: holderGroupNewWalletsCount } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupNewPubkey);
-    const { currentHoldersCount: firstGroupHoldersCount } = await testEnvironment.transferRestrictionsHelper.groupData(firstGroupPubkey);
-    const { currentHoldersCount: secondGroupHoldersCount } = await testEnvironment.transferRestrictionsHelper.groupData(secondGroupPubkey);
+    const { currentWalletsCount: holderGroupCurrentWalletsCount } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupCurrentPubkey
+      );
+    const { currentWalletsCount: holderGroupNewWalletsCount } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupNewPubkey
+      );
+    const { currentHoldersCount: firstGroupHoldersCount } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        firstGroupPubkey
+      );
+    const { currentHoldersCount: secondGroupHoldersCount } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        secondGroupPubkey
+      );
     await testEnvironment.transferRestrictionsHelper.program.methods
       .updateWalletGroup()
       .accountsStrict({
         securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
         securityToken: testEnvironment.mintKeypair.publicKey,
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
         transferRestrictionGroupCurrent: firstGroupPubkey,
         transferRestrictionGroupNew: secondGroupPubkey,
         holderGroupCurrent: holderGroupCurrentPubkey,
@@ -383,16 +468,43 @@ describe("Update wallet group", () => {
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
 
-    const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupCurrentPubkey);
-    const { currentWalletsCount: holderGroupNewWalletsCountAfter } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupNewPubkey);
-    const { currentHoldersCount: firstGroupHoldersCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(firstGroupPubkey);
-    const { currentHoldersCount: secondGroupHoldersCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(secondGroupPubkey);
-    const { group: newGroupIdx } = await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(userWalletSecAssociatedAccountPubkey);
+    const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupCurrentPubkey
+      );
+    const { currentWalletsCount: holderGroupNewWalletsCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupNewPubkey
+      );
+    const { currentHoldersCount: firstGroupHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        firstGroupPubkey
+      );
+    const { currentHoldersCount: secondGroupHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        secondGroupPubkey
+      );
+    const { group: newGroupIdx } =
+      await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
+        userWalletSecAssociatedAccountPubkey
+      );
     assert.equal(newGroupIdx.toNumber(), 2);
-    assert.equal(holderGroupCurrentWalletsCount.toNumber(), holderGroupCurrentWalletsCountAfter.toNumber() + 1);
-    assert.equal(holderGroupNewWalletsCount.toNumber(), holderGroupNewWalletsCountAfter.toNumber() - 1);
-    assert.equal(firstGroupHoldersCount.toNumber(), firstGroupHoldersCountAfter.toNumber());
-    assert.equal(secondGroupHoldersCount.toNumber() + 1, secondGroupHoldersCountAfter.toNumber());
+    assert.equal(
+      holderGroupCurrentWalletsCount.toNumber(),
+      holderGroupCurrentWalletsCountAfter.toNumber() + 1
+    );
+    assert.equal(
+      holderGroupNewWalletsCount.toNumber(),
+      holderGroupNewWalletsCountAfter.toNumber() - 1
+    );
+    assert.equal(
+      firstGroupHoldersCount.toNumber(),
+      firstGroupHoldersCountAfter.toNumber()
+    );
+    assert.equal(
+      secondGroupHoldersCount.toNumber() + 1,
+      secondGroupHoldersCountAfter.toNumber()
+    );
   });
 
   /// This test case is to update wallet group when there are 1 wallet in the current group
@@ -406,29 +518,48 @@ describe("Update wallet group", () => {
 
     const userWalletPubkey = investorWallet3.publicKey;
     const userTokenAccountPubkey = investorWallet3AssociatedAccount;
-    const [userWalletSecAssociatedAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      userTokenAccountPubkey
-    );
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(new anchor.BN(2));
-    const [holderGroupCurrentPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      firstGroupIdx
-    );
-    const [holderGroupNewPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
+    const [userWalletSecAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userTokenAccountPubkey
+      );
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
       new anchor.BN(2)
     );
+    const [holderGroupCurrentPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
+    const [holderGroupNewPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        new anchor.BN(2)
+      );
 
-    const { currentWalletsCount: holderGroupCurrentWalletsCount } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupCurrentPubkey);
-    const { currentWalletsCount: holderGroupNewWalletsCount } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupNewPubkey);
-    const { currentHoldersCount: firstGroupHoldersCount } = await testEnvironment.transferRestrictionsHelper.groupData(firstGroupPubkey);
-    const { currentHoldersCount: secondGroupHoldersCount } = await testEnvironment.transferRestrictionsHelper.groupData(secondGroupPubkey);
+    const { currentWalletsCount: holderGroupCurrentWalletsCount } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupCurrentPubkey
+      );
+    const { currentWalletsCount: holderGroupNewWalletsCount } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupNewPubkey
+      );
+    const { currentHoldersCount: firstGroupHoldersCount } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        firstGroupPubkey
+      );
+    const { currentHoldersCount: secondGroupHoldersCount } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        secondGroupPubkey
+      );
     await testEnvironment.transferRestrictionsHelper.program.methods
       .updateWalletGroup()
       .accountsStrict({
         securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
         securityToken: testEnvironment.mintKeypair.publicKey,
-        transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
         transferRestrictionGroupCurrent: firstGroupPubkey,
         transferRestrictionGroupNew: secondGroupPubkey,
         holderGroupCurrent: holderGroupCurrentPubkey,
@@ -442,16 +573,43 @@ describe("Update wallet group", () => {
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
 
-    const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupCurrentPubkey);
-    const { currentWalletsCount: holderGroupNewWalletsCountAfter } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupNewPubkey);
-    const { currentHoldersCount: firstGroupHoldersCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(firstGroupPubkey);
-    const { currentHoldersCount: secondGroupHoldersCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(secondGroupPubkey);
-    const { group: newGroupIdx } = await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(userWalletSecAssociatedAccountPubkey);
+    const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupCurrentPubkey
+      );
+    const { currentWalletsCount: holderGroupNewWalletsCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupNewPubkey
+      );
+    const { currentHoldersCount: firstGroupHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        firstGroupPubkey
+      );
+    const { currentHoldersCount: secondGroupHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        secondGroupPubkey
+      );
+    const { group: newGroupIdx } =
+      await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
+        userWalletSecAssociatedAccountPubkey
+      );
     assert.equal(newGroupIdx.toNumber(), 2);
-    assert.equal(holderGroupCurrentWalletsCount.toNumber(), holderGroupCurrentWalletsCountAfter.toNumber() + 1);
-    assert.equal(holderGroupNewWalletsCount.toNumber(), holderGroupNewWalletsCountAfter.toNumber() - 1);
-    assert.equal(firstGroupHoldersCount.toNumber() - 1, firstGroupHoldersCountAfter.toNumber());
-    assert.equal(secondGroupHoldersCount.toNumber(), secondGroupHoldersCountAfter.toNumber());
+    assert.equal(
+      holderGroupCurrentWalletsCount.toNumber(),
+      holderGroupCurrentWalletsCountAfter.toNumber() + 1
+    );
+    assert.equal(
+      holderGroupNewWalletsCount.toNumber(),
+      holderGroupNewWalletsCountAfter.toNumber() - 1
+    );
+    assert.equal(
+      firstGroupHoldersCount.toNumber() - 1,
+      firstGroupHoldersCountAfter.toNumber()
+    );
+    assert.equal(
+      secondGroupHoldersCount.toNumber(),
+      secondGroupHoldersCountAfter.toNumber()
+    );
   });
 
   it("updates wallet group when more than 1 wallet in current group and it is already in new group", async () => {
@@ -460,18 +618,23 @@ describe("Update wallet group", () => {
       testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const userWalletPubkey = investorWallet0.publicKey;
     const userTokenAccountPubkey = investorWallet0AssociatedAccount;
-    const [userWalletSecAssociatedAccountPubkey] = testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
-      userTokenAccountPubkey
+    const [userWalletSecAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userTokenAccountPubkey
+      );
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(0)
     );
-    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(new anchor.BN(0));
-    const [holderGroupCurrentPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      firstGroupIdx
-    );
-    const [holderGroupNewPubkey] = testEnvironment.transferRestrictionsHelper.holderGroupPDA(
-      holderPubkey,
-      new anchor.BN(2)
-    );
+    const [holderGroupCurrentPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
+    const [holderGroupNewPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        new anchor.BN(2)
+      );
     await testEnvironment.transferRestrictionsHelper.setHolderGroupMax(
       new anchor.BN(2),
       secondGroupPubkey,
@@ -483,21 +646,37 @@ describe("Update wallet group", () => {
       holderGroupNewPubkey,
       holderPubkey,
       secondGroupPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
       testEnvironment.transferAdmin
     );
 
-    const { currentWalletsCount: holderGroupCurrentWalletsCount } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupCurrentPubkey);
-    const { currentWalletsCount: holderGroupNewWalletsCount } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupNewPubkey);
-    const { currentHoldersCount: firstGroupHoldersCount } = await testEnvironment.transferRestrictionsHelper.groupData(firstGroupPubkey);
-    const { currentHoldersCount: secondGroupHoldersCount } = await testEnvironment.transferRestrictionsHelper.groupData(secondGroupPubkey);
+    const { currentWalletsCount: holderGroupCurrentWalletsCount } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupCurrentPubkey
+      );
+    const { currentWalletsCount: holderGroupNewWalletsCount } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupNewPubkey
+      );
+    const { currentHoldersCount: firstGroupHoldersCount } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        firstGroupPubkey
+      );
+    const { currentHoldersCount: secondGroupHoldersCount } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        secondGroupPubkey
+      );
     try {
       await testEnvironment.transferRestrictionsHelper.program.methods
         .updateWalletGroup()
         .accountsStrict({
           securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
           securityToken: testEnvironment.mintKeypair.publicKey,
-          transferRestrictionData: testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
           transferRestrictionGroupCurrent: firstGroupPubkey,
           transferRestrictionGroupNew: secondGroupPubkey,
           holderGroupCurrent: holderGroupCurrentPubkey,
@@ -516,15 +695,42 @@ describe("Update wallet group", () => {
       assert.equal(error.errorMessage, "Max holders reached");
     }
 
-    const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupCurrentPubkey);
-    const { currentWalletsCount: holderGroupNewWalletsCountAfter } = await testEnvironment.transferRestrictionsHelper.holderGroupData(holderGroupNewPubkey);
-    const { currentHoldersCount: firstGroupHoldersCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(firstGroupPubkey);
-    const { currentHoldersCount: secondGroupHoldersCountAfter } = await testEnvironment.transferRestrictionsHelper.groupData(secondGroupPubkey);
-    const { group: newGroupIdx } = await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(userWalletSecAssociatedAccountPubkey);
+    const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupCurrentPubkey
+      );
+    const { currentWalletsCount: holderGroupNewWalletsCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.holderGroupData(
+        holderGroupNewPubkey
+      );
+    const { currentHoldersCount: firstGroupHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        firstGroupPubkey
+      );
+    const { currentHoldersCount: secondGroupHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(
+        secondGroupPubkey
+      );
+    const { group: newGroupIdx } =
+      await testEnvironment.transferRestrictionsHelper.securityAssociatedAccountData(
+        userWalletSecAssociatedAccountPubkey
+      );
     assert.equal(newGroupIdx.toNumber(), 1);
-    assert.equal(holderGroupCurrentWalletsCount.toNumber(), holderGroupCurrentWalletsCountAfter.toNumber());
-    assert.equal(holderGroupNewWalletsCount.toNumber(), holderGroupNewWalletsCountAfter.toNumber());
-    assert.equal(firstGroupHoldersCount.toNumber(), firstGroupHoldersCountAfter.toNumber());
-    assert.equal(secondGroupHoldersCount.toNumber(), secondGroupHoldersCountAfter.toNumber());
+    assert.equal(
+      holderGroupCurrentWalletsCount.toNumber(),
+      holderGroupCurrentWalletsCountAfter.toNumber()
+    );
+    assert.equal(
+      holderGroupNewWalletsCount.toNumber(),
+      holderGroupNewWalletsCountAfter.toNumber()
+    );
+    assert.equal(
+      firstGroupHoldersCount.toNumber(),
+      firstGroupHoldersCountAfter.toNumber()
+    );
+    assert.equal(
+      secondGroupHoldersCount.toNumber(),
+      secondGroupHoldersCountAfter.toNumber()
+    );
   });
 });

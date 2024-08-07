@@ -22,7 +22,9 @@ describe("Set allow transfer rule", () => {
   let testEnvironment: TestEnvironment;
   const firstGroupIdx = new anchor.BN(1);
   let lockedUntil: number;
-  let groupFromPubkey: PublicKey, groupToPubkey: PublicKey, transferRulePubkey: PublicKey;
+  let groupFromPubkey: PublicKey,
+    groupToPubkey: PublicKey,
+    transferRulePubkey: PublicKey;
 
   before(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
@@ -40,10 +42,13 @@ describe("Set allow transfer rule", () => {
       new anchor.BN(lockedUntil),
       firstGroupIdx,
       firstGroupIdx,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.transferAdmin.publicKey)[0],
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
       testEnvironment.transferAdmin
     );
-    [groupFromPubkey] = testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+    [groupFromPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
     groupToPubkey = groupFromPubkey;
     [transferRulePubkey] =
       testEnvironment.transferRestrictionsHelper.transferRulePDA(
@@ -139,7 +144,6 @@ describe("Set allow transfer rule", () => {
     }
   });
 
-
   it("sets allow transfer rule by transfer admin", async () => {
     const signer = testEnvironment.transferAdmin;
     const [authorityWalletRolePubkey] =
@@ -161,7 +165,10 @@ describe("Set allow transfer rule", () => {
       })
       .signers([signer])
       .rpc({ commitment: testEnvironment.commitment });
-    const transferRuleData = await testEnvironment.transferRestrictionsHelper.transferRuleData(transferRulePubkey);
+    const transferRuleData =
+      await testEnvironment.transferRestrictionsHelper.transferRuleData(
+        transferRulePubkey
+      );
     assert.equal(transferRuleData.lockedUntil.toNumber(), 0);
   });
 });

@@ -5,7 +5,11 @@ import {
   TestEnvironment,
   TestEnvironmentParams,
 } from "../helpers/test_environment";
-import { getOrCreateTimelockAccount, initializeTokenlock, MAX_RELEASE_DELAY } from "../helpers/tokenlock_helper";
+import {
+  getOrCreateTimelockAccount,
+  initializeTokenlock,
+  MAX_RELEASE_DELAY,
+} from "../helpers/tokenlock_helper";
 import { Tokenlock } from "../../target/types/tokenlock";
 import { createAccount, solToLamports, topUpWallet } from "../utils";
 
@@ -21,7 +25,8 @@ describe("Set lockup escrow account", () => {
     maxHolders: 3,
   };
   let testEnvironment: TestEnvironment;
-  const tokenlockProgram = anchor.workspace.Tokenlock as anchor.Program<Tokenlock>;
+  const tokenlockProgram = anchor.workspace
+    .Tokenlock as anchor.Program<Tokenlock>;
   let tokenlockDataPubkey: anchor.web3.PublicKey;
   let tokenlockWallet: anchor.web3.Keypair;
   let escrowAccount: anchor.web3.PublicKey;
@@ -138,7 +143,8 @@ describe("Set lockup escrow account", () => {
     const signer = testEnvironment.contractAdmin;
     const [authorityWalletRolePubkey] =
       testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const [escrowOwnerReplacedPubkey] = anchor.web3.PublicKey.findProgramAddressSync(
+    const [escrowOwnerReplacedPubkey] =
+      anchor.web3.PublicKey.findProgramAddressSync(
         [
           Buffer.from("tokenlock1"),
           testEnvironment.mintKeypair.publicKey.toBuffer(),
@@ -175,7 +181,9 @@ describe("Set lockup escrow account", () => {
       tokenlockDataPubkey,
       recipient.publicKey,
       testEnvironment.accessControlHelper.accessControlPubkey,
-      testEnvironment.accessControlHelper.walletRolePDA(testEnvironment.reserveAdmin.publicKey)[0],
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.reserveAdmin.publicKey
+      )[0],
       testEnvironment.reserveAdmin
     );
     const [authorityWalletRolePubkey] =
@@ -199,9 +207,8 @@ describe("Set lockup escrow account", () => {
     const signer = testEnvironment.contractAdmin;
     const [authorityWalletRolePubkey] =
       testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const { 
-      lockupEscrowAccount
-    } = await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    const { lockupEscrowAccount } =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
     assert.equal(lockupEscrowAccount, null);
 
     await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
@@ -210,9 +217,8 @@ describe("Set lockup escrow account", () => {
       authorityWalletRolePubkey,
       signer
     );
-    const {
-      lockupEscrowAccount: lockupEscrowAccountAfter
-    } = await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    const { lockupEscrowAccount: lockupEscrowAccountAfter } =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
     assert.equal(lockupEscrowAccountAfter.toString(), escrowAccount.toString());
   });
 });
