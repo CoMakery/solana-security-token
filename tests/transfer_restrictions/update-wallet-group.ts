@@ -321,7 +321,10 @@ describe("Update wallet group", () => {
       assert.fail("Expect an error");
     } catch ({ error }) {
       assert.equal(error.errorCode.code, "NewGroupIsTheSameAsTheCurrentGroup");
-      assert.equal(error.errorMessage, "New group is the same as the current group");
+      assert.equal(
+        error.errorMessage,
+        "New group is the same as the current group"
+      );
     }
   });
 

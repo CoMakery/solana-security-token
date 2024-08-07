@@ -947,6 +947,80 @@ export type TransferRestrictions = {
           }
         },
         {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transfer_restriction_data.security_token_mint",
+                "account": "transferRestrictionData"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authorityWalletRole",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "revokeHolderGroup",
+      "discriminator": [
+        33,
+        153,
+        183,
+        187,
+        204,
+        120,
+        164,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "holder",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "holder.id",
+                "account": "transferRestrictionHolder"
+              }
+            ]
+          }
+        },
+        {
           "name": "holderGroup",
           "writable": true,
           "pda": {
@@ -1961,6 +2035,16 @@ export type TransferRestrictions = {
       "code": 6015,
       "name": "transferRestrictionsAccountDataIsEmtpy",
       "msg": "Transfer restrictions account data is empty"
+    },
+    {
+      "code": 6016,
+      "name": "noWalletsInGroup",
+      "msg": "No wallets in group"
+    },
+    {
+      "code": 6017,
+      "name": "newGroupIsTheSameAsTheCurrentGroup",
+      "msg": "New group is the same as the current group"
     }
   ],
   "types": [
