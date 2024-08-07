@@ -28,4 +28,10 @@ pub enum TransferRestrictionsError {
     TransferGroupNotApproved,
     #[msg("Wrong tokenlock account")]
     IncorrectTokenlockAccount,
+    #[msg("Transfer rule account data is empty")]
+    TransferRuleAccountDataIsEmtpy,
+    #[msg("Security associated account data is empty")]
+    SecurityAssociatedAccountDataIsEmtpy,
+    #[msg("Transfer restrictions account data is empty")]
+    TransferRestrictionsAccountDataIsEmtpy,
 }

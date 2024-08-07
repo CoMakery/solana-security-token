@@ -30,6 +30,9 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         ],
         &ctx.program_id,
     )?;
+    if ctx.accounts.transfer_restriction_data.data_is_empty() {
+        return Err(TransferRestrictionsError::TransferRestrictionsAccountDataIsEmtpy.into());
+    }
     let transfer_restriction_data = TransferRestrictionData::deserialize(
         &mut &ctx.accounts.transfer_restriction_data.data.borrow()[DISCRIMINATOR_LEN..],
     )?;
@@ -49,6 +52,9 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         ],
         &ctx.program_id,
     )?;
+    if ctx.accounts.security_associated_account_from.data_is_empty() {
+        return Err(TransferRestrictionsError::SecurityAssociatedAccountDataIsEmtpy.into());
+    }
     let security_associated_account_from = SecurityAssociatedAccount::deserialize(
         &mut &ctx.accounts.security_associated_account_from.data.borrow()[DISCRIMINATOR_LEN..],
     )?;
@@ -60,6 +66,9 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         ],
         &ctx.program_id,
     )?;
+    if ctx.accounts.security_associated_account_to.data_is_empty() {
+        return Err(TransferRestrictionsError::SecurityAssociatedAccountDataIsEmtpy.into());
+    }
     let security_associated_account_to = SecurityAssociatedAccount::deserialize(
         &mut &ctx.accounts.security_associated_account_to.data.borrow()[DISCRIMINATOR_LEN..],
     )?;
@@ -74,6 +83,9 @@ pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
         ],
         &ctx.program_id,
     )?;
+    if ctx.accounts.transfer_rule.data_is_empty() {
+        return Err(TransferRestrictionsError::TransferRuleAccountDataIsEmtpy.into());
+    }
     let transfer_rule = TransferRule::deserialize(
         &mut &ctx.accounts.transfer_rule.data.borrow()[DISCRIMINATOR_LEN..],
     )?;

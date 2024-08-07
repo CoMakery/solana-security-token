@@ -1946,6 +1946,21 @@ export type TransferRestrictions = {
       "code": 6012,
       "name": "incorrectTokenlockAccount",
       "msg": "Wrong tokenlock account"
+    },
+    {
+      "code": 6013,
+      "name": "transferRuleAccountDataIsEmtpy",
+      "msg": "Transfer rule account data is empty"
+    },
+    {
+      "code": 6014,
+      "name": "securityAssociatedAccountDataIsEmtpy",
+      "msg": "Security associated account data is empty"
+    },
+    {
+      "code": 6015,
+      "name": "transferRestrictionsAccountDataIsEmtpy",
+      "msg": "Transfer restrictions account data is empty"
     }
   ],
   "types": [
