@@ -290,7 +290,6 @@ export type TransferRestrictions = {
         },
         {
           "name": "group",
-          "writable": true,
           "pda": {
             "seeds": [
               {
