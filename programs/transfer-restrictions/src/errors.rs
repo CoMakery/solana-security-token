@@ -26,4 +26,6 @@ pub enum TransferRestrictionsError {
     MaxHoldersReachedInsideTheGroup,
     #[msg("Transfer group not approved")]
     TransferGroupNotApproved,
+    #[msg("Wrong tokenlock account")]
+    IncorrectTokenlockAccount,
 }
