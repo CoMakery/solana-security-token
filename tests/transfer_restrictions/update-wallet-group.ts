@@ -278,6 +278,53 @@ describe("Update wallet group", () => {
     }
   });
 
+  it("fails to update wallet to the same group", async () => {
+    const signer = testEnvironment.transferAdmin;
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const userWalletPubkey = investorWallet1.publicKey;
+    const userTokenAccountPubkey = investorWallet1AssociatedAccount;
+    const [userWalletSecAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        userTokenAccountPubkey
+      );
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(1)
+    );
+    const [holderGroupCurrentPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        firstGroupIdx
+      );
+
+    try {
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .updateWalletGroup()
+        .accountsStrict({
+          securityAssociatedAccount: userWalletSecAssociatedAccountPubkey,
+          securityToken: testEnvironment.mintKeypair.publicKey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          transferRestrictionGroupCurrent: firstGroupPubkey,
+          transferRestrictionGroupNew: firstGroupPubkey,
+          holderGroupCurrent: holderGroupCurrentPubkey,
+          holderGroupNew: holderGroupCurrentPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          userWallet: userWalletPubkey,
+          userAssociatedTokenAccount: userTokenAccountPubkey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+      assert.fail("Expect an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "NewGroupIsTheSameAsTheCurrentGroup");
+      assert.equal(error.errorMessage, "New group is the same as the current group");
+    }
+  });
+
   it("updates wallet group by wallets admin when last wallet in current group", async () => {
     const signer = testEnvironment.walletsAdmin;
     const [authorityWalletRolePubkey] =

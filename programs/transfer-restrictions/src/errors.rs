@@ -36,4 +36,6 @@ pub enum TransferRestrictionsError {
     TransferRestrictionsAccountDataIsEmtpy,
     #[msg("No wallets in group")]
     NoWalletsInGroup,
+    #[msg("New group is the same as the current group")]
+    NewGroupIsTheSameAsTheCurrentGroup,
 }
