@@ -365,7 +365,8 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "group"
+          "name": "group",
+          "writable": true
         },
         {
           "name": "holder",
@@ -1941,6 +1942,11 @@ export type TransferRestrictions = {
       "code": 6011,
       "name": "transferGroupNotApproved",
       "msg": "Transfer group not approved"
+    },
+    {
+      "code": 6012,
+      "name": "incorrectTokenlockAccount",
+      "msg": "Wrong tokenlock account"
     }
   ],
   "types": [
