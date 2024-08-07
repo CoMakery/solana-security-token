@@ -1,0 +1,405 @@
+import * as anchor from "@coral-xyz/anchor";
+import { assert } from "chai";
+import { SystemProgram, Keypair } from "@solana/web3.js";
+
+import {
+  TestEnvironment,
+  TestEnvironmentParams,
+} from "../helpers/test_environment";
+
+describe("Revoke security associated account", () => {
+  const testEnvironmentParams: TestEnvironmentParams = {
+    mint: {
+      decimals: 6,
+      name: "XYZ Token",
+      symbol: "XYZ",
+      uri: "https://e.com",
+    },
+    initialSupply: 1_000_000_000_000,
+    maxHolders: 10,
+  };
+  let testEnvironment: TestEnvironment;
+  const groupId = new anchor.BN(1);
+  let groupPubkey: anchor.web3.PublicKey;
+  const investors = [
+    Keypair.generate(),
+    Keypair.generate(),
+    Keypair.generate(),
+  ];
+  const investorsTokenAccounts: anchor.web3.PublicKey[] = [];
+
+  before(async () => {
+    testEnvironment = new TestEnvironment(testEnvironmentParams);
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+
+    const [transferAdminRole] =
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      );
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
+      groupId,
+      transferAdminRole,
+      testEnvironment.transferAdmin
+    );
+    [groupPubkey] =
+      testEnvironment.transferRestrictionsHelper.groupPDA(groupId);
+    let holderIdx = new anchor.BN(0);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
+      holderIdx,
+      transferAdminRole,
+      testEnvironment.transferAdmin
+    );
+    let [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(holderIdx);
+    let [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        groupId
+      );
+    await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+      holderGroupPubkey,
+      holderPubkey,
+      groupPubkey,
+      transferAdminRole,
+      testEnvironment.transferAdmin
+    );
+    investorsTokenAccounts.push(
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        investors[0].publicKey,
+        testEnvironment.transferAdmin
+      )
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      investors[0].publicKey,
+      investorsTokenAccounts[0],
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
+    );
+
+    holderIdx = holderIdx.addn(1);
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
+      holderIdx,
+      transferAdminRole,
+      testEnvironment.transferAdmin
+    );
+    [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(holderIdx);
+    [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        groupId
+      );
+    await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+      holderGroupPubkey,
+      holderPubkey,
+      groupPubkey,
+      transferAdminRole,
+      testEnvironment.transferAdmin
+    );
+    investorsTokenAccounts.push(
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        investors[1].publicKey,
+        testEnvironment.transferAdmin
+      )
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      investors[1].publicKey,
+      investorsTokenAccounts[1],
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
+    );
+
+    // same holder in the same group with new wallet
+    [holderPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderPDA(holderIdx);
+    [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        groupId
+      );
+    investorsTokenAccounts.push(
+      await testEnvironment.mintHelper.createAssociatedTokenAccount(
+        investors[2].publicKey,
+        testEnvironment.transferAdmin
+      )
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+      groupPubkey,
+      holderPubkey,
+      holderGroupPubkey,
+      investors[2].publicKey,
+      investorsTokenAccounts[2],
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.walletsAdmin.publicKey
+      )[0],
+      testEnvironment.walletsAdmin
+    );
+  });
+
+  it("fails to revoke security associated account by contract admin", async () => {
+    const signer = testEnvironment.contractAdmin;
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const holderIdx = 0;
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(holderIdx)
+    );
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        groupId
+      );
+    const [securityAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        investorsTokenAccounts[holderIdx]
+      );
+
+    try {
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .revokeSecurityAssociatedAccount()
+        .accountsStrict({
+          securityAssociatedAccount: securityAssociatedAccountPubkey,
+          group: groupPubkey,
+          holder: holderPubkey,
+          holderGroup: holderGroupPubkey,
+          securityToken: testEnvironment.mintKeypair.publicKey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          userWallet: investors[holderIdx].publicKey,
+          associatedTokenAccount: investorsTokenAccounts[holderIdx],
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+      assert.fail("Expect an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "Unauthorized");
+      assert.equal(error.errorMessage, "Unauthorized");
+    }
+  });
+
+  it("fails to revoke security associated account by reserve admin", async () => {
+    const signer = testEnvironment.contractAdmin;
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const holderIdx = 0;
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(holderIdx)
+    );
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        groupId
+      );
+    const [securityAssociatedAccountPubkey] =
+      testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+        investorsTokenAccounts[holderIdx]
+      );
+
+    try {
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .revokeSecurityAssociatedAccount()
+        .accountsStrict({
+          securityAssociatedAccount: securityAssociatedAccountPubkey,
+          group: groupPubkey,
+          holder: holderPubkey,
+          holderGroup: holderGroupPubkey,
+          securityToken: testEnvironment.mintKeypair.publicKey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          userWallet: investors[holderIdx].publicKey,
+          associatedTokenAccount: investorsTokenAccounts[holderIdx],
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+      assert.fail("Expect an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "Unauthorized");
+      assert.equal(error.errorMessage, "Unauthorized");
+    }
+  });
+
+  describe("when only one holder wallet is linked with group", () => {
+    it("revokes security associated account by transfer admin and leaves the group", async () => {
+      const signer = testEnvironment.transferAdmin;
+      const [authorityWalletRolePubkey] =
+        testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+      const holderIdx = 0;
+      const [holderPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderPDA(
+          new anchor.BN(holderIdx)
+        );
+      const [holderGroupPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+          holderPubkey,
+          groupId
+        );
+      const [securityAssociatedAccountPubkey] =
+        testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+          investorsTokenAccounts[0]
+        );
+      const { currentWalletsCount: holderCurrentWalletsCountBefore } =
+        await testEnvironment.transferRestrictionsHelper.holderData(
+          holderPubkey
+        );
+      const { currentWalletsCount: holderGroupCurrentWalletsCountBefore } =
+        await testEnvironment.transferRestrictionsHelper.holderGroupData(
+          holderGroupPubkey
+        );
+      const { currentHoldersCount: groupCurrentHoldersCountBefore } =
+        await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+      let accountInfo = await testEnvironment.connection.getAccountInfo(
+        securityAssociatedAccountPubkey
+      );
+      assert.isNotNull(accountInfo);
+
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .revokeSecurityAssociatedAccount()
+        .accountsStrict({
+          securityAssociatedAccount: securityAssociatedAccountPubkey,
+          group: groupPubkey,
+          holder: holderPubkey,
+          holderGroup: holderGroupPubkey,
+          securityToken: testEnvironment.mintKeypair.publicKey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          userWallet: investors[0].publicKey,
+          associatedTokenAccount: investorsTokenAccounts[0],
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+
+      accountInfo = await testEnvironment.connection.getAccountInfo(
+        securityAssociatedAccountPubkey
+      );
+      assert.isNull(accountInfo);
+      const { currentWalletsCount: holderCurrentWalletsCountAfter } =
+        await testEnvironment.transferRestrictionsHelper.holderData(
+          holderPubkey
+        );
+      const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } =
+        await testEnvironment.transferRestrictionsHelper.holderGroupData(
+          holderGroupPubkey
+        );
+      const { currentHoldersCount: groupCurrentHoldersCountAfter } =
+        await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+      assert.equal(
+        holderCurrentWalletsCountAfter.toNumber(),
+        holderCurrentWalletsCountBefore.toNumber() - 1
+      );
+      assert.equal(
+        holderGroupCurrentWalletsCountAfter.toNumber(),
+        holderGroupCurrentWalletsCountBefore.toNumber() - 1
+      );
+      assert.equal(
+        groupCurrentHoldersCountAfter.toNumber(),
+        groupCurrentHoldersCountBefore.toNumber() - 1
+      );
+    });
+  });
+
+  describe("when more than one holder wallets are linked with group", () => {
+    it("revokes security associated account by wallets admin and keeps holder inside the group", async () => {
+      const signer = testEnvironment.walletsAdmin;
+      const [authorityWalletRolePubkey] =
+        testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+      const holderIdx = 1;
+      const [holderPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderPDA(
+          new anchor.BN(holderIdx)
+        );
+      const [holderGroupPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+          holderPubkey,
+          groupId
+        );
+      const [securityAssociatedAccountPubkey] =
+        testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+          investorsTokenAccounts[1]
+        );
+      const { currentWalletsCount: holderCurrentWalletsCountBefore } =
+        await testEnvironment.transferRestrictionsHelper.holderData(
+          holderPubkey
+        );
+      const { currentWalletsCount: holderGroupCurrentWalletsCountBefore } =
+        await testEnvironment.transferRestrictionsHelper.holderGroupData(
+          holderGroupPubkey
+        );
+      const { currentHoldersCount: groupCurrentHoldersCountBefore } =
+        await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+      let accountInfo = await testEnvironment.connection.getAccountInfo(
+        securityAssociatedAccountPubkey
+      );
+      assert.isNotNull(accountInfo);
+
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .revokeSecurityAssociatedAccount()
+        .accountsStrict({
+          securityAssociatedAccount: securityAssociatedAccountPubkey,
+          group: groupPubkey,
+          holder: holderPubkey,
+          holderGroup: holderGroupPubkey,
+          securityToken: testEnvironment.mintKeypair.publicKey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          userWallet: investors[1].publicKey,
+          associatedTokenAccount: investorsTokenAccounts[1],
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+
+      accountInfo = await testEnvironment.connection.getAccountInfo(
+        securityAssociatedAccountPubkey
+      );
+      assert.isNull(accountInfo);
+      const { currentWalletsCount: holderCurrentWalletsCountAfter } =
+        await testEnvironment.transferRestrictionsHelper.holderData(
+          holderPubkey
+        );
+      const { currentWalletsCount: holderGroupCurrentWalletsCountAfter } =
+        await testEnvironment.transferRestrictionsHelper.holderGroupData(
+          holderGroupPubkey
+        );
+      const { currentHoldersCount: groupCurrentHoldersCountAfter } =
+        await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+      assert.equal(
+        holderCurrentWalletsCountAfter.toNumber(),
+        holderCurrentWalletsCountBefore.toNumber() - 1
+      );
+      assert.equal(
+        holderGroupCurrentWalletsCountAfter.toNumber(),
+        holderGroupCurrentWalletsCountBefore.toNumber() - 1
+      );
+      assert.equal(
+        groupCurrentHoldersCountAfter.toNumber(),
+        groupCurrentHoldersCountBefore.toNumber()
+      );
+    });
+  });
+});

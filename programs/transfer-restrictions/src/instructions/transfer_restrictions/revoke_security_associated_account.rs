@@ -13,6 +13,7 @@ pub fn revoke_security_associated_account(
 
     let holder_group = &mut ctx.accounts.holder_group;
     let holder = &mut ctx.accounts.holder;
+    // It is mostly not possible to have a holder or holder group with no wallets, but just in case
     if holder_group.current_wallets_count == 0 || holder.current_wallets_count == 0 {
         return Err(TransferRestrictionsError::NoWalletsInGroup.into());
     }
