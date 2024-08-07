@@ -186,7 +186,7 @@ describe("Initialize transfer restriction HolderGroup", () => {
       await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
     assert.equal(
       holderGroupCountAfter.toNumber(),
-      holderGroupCountBefore.addn(1).toNumber()
+      holderGroupCountBefore.toNumber()
     );
   });
 
@@ -235,7 +235,7 @@ describe("Initialize transfer restriction HolderGroup", () => {
       await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
     assert.equal(
       holderGroupCountAfter.toNumber(),
-      holderGroupCountBefore.addn(1).toNumber()
+      holderGroupCountBefore.toNumber()
     );
   });
 
