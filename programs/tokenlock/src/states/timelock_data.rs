@@ -1,5 +1,4 @@
-use anchor_lang::prelude::*;
-use solana_program::program_memory::sol_memcmp;
+use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcmp};
 
 use crate::{common::PUBKEY_SIZE, ReleaseSchedule, TokenLockDataWrapper};
 

@@ -1,6 +1,5 @@
-use anchor_lang::{prelude::*, Discriminator};
+use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcmp, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
-use solana_program::program_memory::sol_memcmp;
 use transfer_restrictions::program::TransferRestrictions;
 
 use crate::{
@@ -127,7 +126,7 @@ pub fn transfer<'info>(
 
     let to = &ctx.accounts.to;
     // if recipient owner is a signer we skip enforcing transfer restrictions
-    if ctx.accounts.authority.key() != to.owner {  
+    if ctx.accounts.authority.key() != to.owner {
         if ctx.remaining_accounts.len() == 0
             || ctx.remaining_accounts[0].key()
                 != TokenLockDataWrapper::transfer_restriction_data(&tokenlock_account_data)

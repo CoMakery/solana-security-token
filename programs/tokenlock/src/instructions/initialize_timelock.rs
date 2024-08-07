@@ -1,6 +1,7 @@
-use access_control::{program::AccessControl as AccessControlProgram, AccessControl, WalletRole, ADMIN_ROLES};
-use anchor_lang::{prelude::*, Discriminator};
-use solana_program::program_memory::sol_memcmp;
+use access_control::{
+    program::AccessControl as AccessControlProgram, AccessControl, WalletRole, ADMIN_ROLES,
+};
+use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcmp, Discriminator};
 
 use crate::{TimelockData, TokenLockData, TokenLockDataWrapper, TokenlockErrors};
 
