@@ -34,4 +34,6 @@ pub enum TransferRestrictionsError {
     SecurityAssociatedAccountDataIsEmtpy,
     #[msg("Transfer restrictions account data is empty")]
     TransferRestrictionsAccountDataIsEmtpy,
+    #[msg("No wallets in group")]
+    NoWalletsInGroup,
 }

@@ -45,6 +45,9 @@ pub use revoke_security_associated_account::*;
 pub mod revoke_holder;
 pub use revoke_holder::*;
 
+pub mod revoke_holder_group;
+pub use revoke_holder_group::*;
+
 pub mod set_lockup_escrow_account;
 pub use set_lockup_escrow_account::*;
 
