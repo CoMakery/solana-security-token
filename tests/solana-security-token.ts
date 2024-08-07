@@ -1343,29 +1343,42 @@ describe("solana-security-token", () => {
     const transferRestrictionHoldersCount =
       transferRestrictionData.currentHoldersCount.toNumber();
 
-    const revokeHolderGroupTx = await transferRestrictionsHelper.revokeHolder(
-      holderRecipientPubkey,
-      transferGroup1,
-      transferAdminRolePubkey,
-      transferAdmin
-    );
+    const revokeHolderGroupTx =
+      await transferRestrictionsHelper.revokeHolderGroup(
+        holderRecipientPubkey,
+        transferGroup1,
+        transferAdminRolePubkey,
+        transferAdmin
+      );
     console.log(
       "Revoke Holder Group Transaction Signature",
       revokeHolderGroupTx
     );
+    const [holderGroupPubkey] = transferRestrictionsHelper.holderGroupPDA(
+      holderRecipientPubkey,
+      transferGroup1
+    );
+    const holderGroupAccountInfo = await connection.getAccountInfo(
+      holderGroupPubkey
+    );
+    assert.isNull(holderGroupAccountInfo);
 
-    const [userWalletCurrentHolderGroupPubkey] =
-      transferRestrictionsHelper.holderGroupPDA(
-        holderRecipientPubkey,
-        transferGroup1
-      );
+    const revokeHolderTx = await transferRestrictionsHelper.revokeHolder(
+      holderRecipientPubkey,
+      transferAdminRolePubkey,
+      transferAdmin
+    );
+    console.log("Revoke Holder Transaction Signature", revokeHolderTx);
+    const holderAccountInfo = await connection.getAccountInfo(
+      holderRecipientPubkey
+    );
+    assert.isNull(holderAccountInfo);
+
     try {
-      await transferRestrictionsHelper.holderGroupData(
-        userWalletCurrentHolderGroupPubkey
-      );
+      await transferRestrictionsHelper.holderGroupData(holderGroupPubkey);
       assert.fail("Expected error not thrown");
     } catch (error) {
-      const errorMessage = `Error: Account does not exist or has no data ${userWalletCurrentHolderGroupPubkey.toBase58()}`;
+      const errorMessage = `Error: Account does not exist or has no data ${holderGroupPubkey.toBase58()}`;
       assert.equal(error, errorMessage);
     }
 

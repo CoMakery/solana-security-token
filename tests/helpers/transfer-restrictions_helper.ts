@@ -442,6 +442,24 @@ export class TransferRestrictionsHelper {
 
   async revokeHolder(
     holderPubkey: PublicKey,
+    authorityWalletRolePubkey: PublicKey,
+    payer: Keypair
+  ): Promise<string> {
+    return this.program.methods
+      .revokeHolder()
+      .accountsStrict({
+        holder: holderPubkey,
+        transferRestrictionData: this.transferRestrictionDataPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: payer.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc({ commitment: this.commitment });
+  }
+
+  async revokeHolderGroup(
+    holderPubkey: PublicKey,
     groupId: BN,
     authorityWalletRolePubkey: PublicKey,
     payer: Keypair
@@ -450,7 +468,7 @@ export class TransferRestrictionsHelper {
     const [groupPubkey] = this.groupPDA(groupId);
 
     return this.program.methods
-      .revokeHolder()
+      .revokeHolderGroup()
       .accountsStrict({
         holder: holderPubkey,
         holderGroup: holderGroupPubkey,
