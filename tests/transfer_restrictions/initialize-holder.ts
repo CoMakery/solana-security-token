@@ -224,4 +224,95 @@ describe("Initialize transfer restriction Holder", () => {
       assert.equal(error.errorMessage, "Max holders reached");
     }
   });
+
+  describe("when initializes holder with already revoked holder index", () => {
+    it("does not increment holder ids but increments holders count", async () => {
+      const [holderPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderPDA(zeroHolderIdx);
+      const [authorityWalletRolePubkey] =
+        testEnvironment.accessControlHelper.walletRolePDA(
+          testEnvironment.transferAdmin.publicKey
+        );
+      const signer = testEnvironment.transferAdmin;
+      let {
+        holderIds: holderIdsBeforeRevoke,
+        currentHoldersCount: currentHoldersCountBeforeRevoke,
+      } =
+        await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .revokeHolder()
+        .accountsStrict({
+          holder: holderPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+      let accountInfo =
+        await testEnvironment.provider.connection.getAccountInfo(holderPubkey);
+      assert.isNull(accountInfo);
+
+      let {
+        holderIds: holderIdsBeforeInitialize,
+        currentHoldersCount: currentHoldersCountBeforeInitialize,
+      } =
+        await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+      assert.equal(
+        holderIdsBeforeRevoke.toNumber(),
+        holderIdsBeforeInitialize.toNumber()
+      );
+      assert.equal(
+        currentHoldersCountBeforeRevoke.toNumber() - 1,
+        currentHoldersCountBeforeInitialize.toNumber()
+      );
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .initializeTransferRestrictionHolder(zeroHolderIdx)
+        .accountsStrict({
+          transferRestrictionHolder: holderPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          payer: signer.publicKey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+
+      accountInfo = await testEnvironment.provider.connection.getAccountInfo(
+        holderPubkey
+      );
+      assert.isNotNull(accountInfo);
+      const holderData =
+        await testEnvironment.transferRestrictionsHelper.holderData(
+          holderPubkey
+        );
+      assert.isTrue(holderData.active);
+      assert.equal(holderData.id.toString(), zeroHolderIdx.toString());
+      assert.equal(holderData.currentWalletsCount.toNumber(), 0);
+      assert.equal(
+        holderData.transferRestrictionData.toString(),
+        testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toString()
+      );
+      let {
+        holderIds: holderIdsAfterInitialize,
+        currentHoldersCount: currentHoldersCountAfterInitialize,
+      } =
+        await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+      assert.equal(
+        holderIdsBeforeInitialize.toNumber(),
+        holderIdsAfterInitialize.toNumber()
+      );
+      assert.equal(
+        currentHoldersCountBeforeInitialize.toNumber() + 1,
+        currentHoldersCountAfterInitialize.toNumber()
+      );
+    });
+  });
 });

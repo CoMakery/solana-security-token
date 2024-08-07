@@ -30,8 +30,10 @@ pub fn initialize_holder(ctx: Context<InitializeTransferRestrictionHolder>, id: 
         .current_holders_count
         .checked_add(1)
         .unwrap();
-    transfer_restriction_data.holder_ids =
-        transfer_restriction_data.holder_ids.checked_add(1).unwrap();
+    if transfer_restriction_data.holder_ids == id {
+        transfer_restriction_data.holder_ids =
+            transfer_restriction_data.holder_ids.checked_add(1).unwrap();
+    }
 
     Ok(())
 }
