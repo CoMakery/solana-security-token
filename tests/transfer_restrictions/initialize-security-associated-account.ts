@@ -236,6 +236,9 @@ describe("Initialize security associated account", () => {
       );
     const { currentWalletsCount: currWalletsCountBeforePerHolder } =
       await testEnvironment.transferRestrictionsHelper.holderData(holderPubkey);
+    const { currentHoldersCount: holderGroupCountBefore } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+
     await testEnvironment.transferRestrictionsHelper.program.methods
       .initializeSecurityAssociatedAccount()
       .accountsStrict({
@@ -282,6 +285,12 @@ describe("Initialize security associated account", () => {
       currWalletsCountAfterPerHolder.toNumber(),
       currWalletsCountBeforePerHolder.toNumber() + 1
     );
+    const { currentHoldersCount: holderGroupCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    assert.equal(
+      holderGroupCountAfter.toNumber(),
+      holderGroupCountBefore.addn(1).toNumber()
+    );
   });
 
   it("initializes security associated account by wallets admin", async () => {
@@ -308,6 +317,9 @@ describe("Initialize security associated account", () => {
       );
     const { currentWalletsCount: currWalletsCountBeforePerHolder } =
       await testEnvironment.transferRestrictionsHelper.holderData(holderPubkey);
+    const { currentHoldersCount: holderGroupCountBefore } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+
     await testEnvironment.transferRestrictionsHelper.program.methods
       .initializeSecurityAssociatedAccount()
       .accountsStrict({
@@ -353,6 +365,12 @@ describe("Initialize security associated account", () => {
     assert.equal(
       currWalletsCountAfterPerHolder.toNumber(),
       currWalletsCountBeforePerHolder.toNumber() + 1
+    );
+    const { currentHoldersCount: holderGroupCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+    assert.equal(
+      holderGroupCountAfter.toNumber(),
+      holderGroupCountBefore.addn(1).toNumber()
     );
   });
 });
