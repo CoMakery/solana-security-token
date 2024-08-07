@@ -34,7 +34,7 @@ pub struct InitializeHolderGroup<'info> {
     )]
     pub transfer_restriction_data: Account<'info, TransferRestrictionData>,
 
-    #[account(mut,
+    #[account(
       seeds = [
         TRANSFER_RESTRICTION_GROUP_PREFIX.as_bytes(),
         &transfer_restriction_data.key().to_bytes(),

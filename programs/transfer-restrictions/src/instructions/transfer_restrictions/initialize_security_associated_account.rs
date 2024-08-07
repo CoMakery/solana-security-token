@@ -16,8 +16,15 @@ pub fn initialize_security_associated_account(
     security_associated_account.group = ctx.accounts.group.id;
     security_associated_account.holder = Some(ctx.accounts.holder.key());
 
+    let group = &mut ctx.accounts.group;
     let holder_group = &mut ctx.accounts.holder_group;
+    if group.current_holders_count > group.max_holders {
+        return Err(TransferRestrictionsError::MaxHoldersReachedInsideTheGroup.into());
+    }
     holder_group.current_wallets_count = holder_group.current_wallets_count.checked_add(1).unwrap();
+    if holder_group.current_wallets_count == 1 {
+        group.current_holders_count = group.current_holders_count.checked_add(1).unwrap();
+    }
 
     let holder = &mut ctx.accounts.holder;
     holder.current_wallets_count = holder.current_wallets_count.checked_add(1).unwrap();
