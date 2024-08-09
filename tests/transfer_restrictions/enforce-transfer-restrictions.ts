@@ -22,6 +22,7 @@ describe("Enforce transfer restrictions", () => {
   let testEnvironment: TestEnvironment;
   const firstGroupIdx = new anchor.BN(1);
   let firstGroupPubkey: PublicKey;
+  let secondGroupPubkey: PublicKey;
   const investorWallet0 = Keypair.generate();
   let investorWallet0AssociatedAccount: PublicKey;
   const investorWallet1 = Keypair.generate();
