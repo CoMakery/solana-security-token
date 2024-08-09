@@ -4,7 +4,7 @@ use access_control::{
 use access_control::cpi::accounts::MintSecurities;
 use anchor_lang::{prelude::*, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
-use solana_program::program_memory::{sol_memcmp, sol_memcpy};
+use anchor_lang::solana_program::program_memory::{sol_memcmp, sol_memcpy};
 
 use crate::TOKENLOCK_PDA_SEED;
 use crate::{

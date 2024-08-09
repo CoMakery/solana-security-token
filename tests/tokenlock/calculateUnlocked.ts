@@ -46,7 +46,9 @@ describe("TokenLockup calculate unlocked", () => {
 
   beforeEach(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
 
     // create wallet A
     walletA = Keypair.generate();

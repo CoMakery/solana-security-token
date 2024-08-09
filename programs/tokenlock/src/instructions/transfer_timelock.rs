@@ -1,6 +1,5 @@
-use anchor_lang::{prelude::*, Discriminator};
+use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcmp, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
-use solana_program::program_memory::sol_memcmp;
 use transfer_restrictions::program::TransferRestrictions;
 
 use crate::{

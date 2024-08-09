@@ -45,7 +45,9 @@ describe("TokenLockup batch mint testing", () => {
 
   beforeEach(async () => {
     testEnvironment = new TestEnvironment(testEnvironmentParams);
-    await testEnvironment.setup();
+    await testEnvironment.setupAccessControl();
+    await testEnvironment.setupTransferRestrictions();
+    await testEnvironment.mintToReserveAdmin();
     startTs = await getNowTs(testEnvironment.connection);
 
     // create wallet A

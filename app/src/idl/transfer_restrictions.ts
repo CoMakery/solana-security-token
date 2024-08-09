@@ -290,7 +290,6 @@ export type TransferRestrictions = {
         },
         {
           "name": "group",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -365,7 +364,8 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "group"
+          "name": "group",
+          "writable": true
         },
         {
           "name": "holder",
@@ -924,6 +924,80 @@ export type TransferRestrictions = {
         {
           "name": "holder",
           "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transferRestrictionData"
+              },
+              {
+                "kind": "account",
+                "path": "holder.id",
+                "account": "transferRestrictionHolder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "transferRestrictionData",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "transfer_restriction_data.security_token_mint",
+                "account": "transferRestrictionData"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authorityWalletRole",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "revokeHolderGroup",
+      "discriminator": [
+        33,
+        153,
+        183,
+        187,
+        204,
+        120,
+        164,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "holder",
           "pda": {
             "seeds": [
               {
@@ -1894,8 +1968,8 @@ export type TransferRestrictions = {
     },
     {
       "code": 6002,
-      "name": "transferRuleLocked",
-      "msg": "Transfer rule locked"
+      "name": "transferRuleNotAllowedUntilLater",
+      "msg": "Transfer rule not allowed until later"
     },
     {
       "code": 6003,
@@ -1931,6 +2005,46 @@ export type TransferRestrictions = {
       "code": 6009,
       "name": "invalidHolderIndex",
       "msg": "Invalid transfer restriction holder index"
+    },
+    {
+      "code": 6010,
+      "name": "maxHoldersReachedInsideTheGroup",
+      "msg": "Max holders reached inside the group"
+    },
+    {
+      "code": 6011,
+      "name": "transferGroupNotApproved",
+      "msg": "Transfer group not approved"
+    },
+    {
+      "code": 6012,
+      "name": "incorrectTokenlockAccount",
+      "msg": "Wrong tokenlock account"
+    },
+    {
+      "code": 6013,
+      "name": "transferRuleAccountDataIsEmtpy",
+      "msg": "Transfer rule account data is empty"
+    },
+    {
+      "code": 6014,
+      "name": "securityAssociatedAccountDataIsEmtpy",
+      "msg": "Security associated account data is empty"
+    },
+    {
+      "code": 6015,
+      "name": "transferRestrictionsAccountDataIsEmtpy",
+      "msg": "Transfer restrictions account data is empty"
+    },
+    {
+      "code": 6016,
+      "name": "noWalletsInGroup",
+      "msg": "No wallets in group"
+    },
+    {
+      "code": 6017,
+      "name": "newGroupIsTheSameAsTheCurrentGroup",
+      "msg": "New group is the same as the current group"
     }
   ],
   "types": [

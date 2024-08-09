@@ -947,7 +947,7 @@ export async function cancelTimelock(
     const mintInfo = await getMint(
       program.provider.connection,
       mintPubkey,
-      transferRestrictionsHelper.confirmOptions,
+      transferRestrictionsHelper.commitment,
       TOKEN_2022_PROGRAM_ID
     );
     const transferHook = getTransferHook(mintInfo);
@@ -961,7 +961,7 @@ export async function cancelTimelock(
       reclaimerTokenAccountPubkey,
       escrowOwnerPubkey,
       10,
-      transferRestrictionsHelper.confirmOptions
+      transferRestrictionsHelper.commitment
     );
 
     await addExtraAccountMetasForExecute(
@@ -973,7 +973,7 @@ export async function cancelTimelock(
       targetAssoc,
       escrowOwnerPubkey,
       10,
-      transferRestrictionsHelper.confirmOptions
+      transferRestrictionsHelper.commitment
     );
 
     const modifyComputeUnitsInstruction =

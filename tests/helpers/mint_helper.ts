@@ -95,7 +95,7 @@ export class MintHelper {
     const transactionCreateAssocAccRecipient = new Transaction().add(
       associatedTokenAccountInstruction
     );
-    const txCreateRecipientAssTokenAccount = await sendAndConfirmTransaction(
+    await sendAndConfirmTransaction(
       this.connection,
       transactionCreateAssocAccRecipient,
       [payer],

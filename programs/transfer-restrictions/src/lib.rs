@@ -100,6 +100,10 @@ pub mod transfer_restrictions {
         instructions::transfer_restrictions::revoke_holder(ctx)
     }
 
+    pub fn revoke_holder_group(ctx: Context<RevokeHolderGroup>) -> Result<()> {
+        instructions::transfer_restrictions::revoke_holder_group(ctx)
+    }
+
     pub fn set_lockup_escrow_account(ctx: Context<SetLockupEscrowAccount>) -> Result<()> {
         instructions::transfer_restrictions::set_lockup_escrow_account(ctx)
     }
