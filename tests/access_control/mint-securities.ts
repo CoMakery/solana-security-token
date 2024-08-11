@@ -19,6 +19,7 @@ describe("Access Control mint securities", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
+    maxTotalSupply: 100_000_000_000_000,
   };
   let testEnvironment: TestEnvironment;
   let reserveAdminWalletRole: PublicKey;
@@ -125,6 +126,7 @@ describe("Access Control mint securities", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
+    maxTotalSupply: 100_000_000_000_000,
   };
   let attackerEnvironment: TestEnvironment;
   it("fails when attacker subtitute authority, wallet role and signer", async () => {

@@ -20,6 +20,7 @@ describe("Access Control wallet role", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
+    maxTotalSupply: 100_000_000_000_000,
   };
   let testEnvironment: TestEnvironment;
   let reserveAdminWalletRole: PublicKey;

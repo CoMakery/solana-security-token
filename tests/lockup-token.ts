@@ -13,7 +13,6 @@ import {
   SystemProgram,
   sendAndConfirmTransaction,
   Transaction,
-  ComputeBudgetProgram,
 } from "@solana/web3.js";
 
 import { Roles } from "./helpers/access-control_helper";
@@ -47,6 +46,7 @@ describe("token lockup", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10000,
+    maxTotalSupply: 100_000_000_000_000,
   };
   const testEnvironment = new TestEnvironment(testEnvironmentParams);
   const tokenlockProgram = anchor.workspace.Tokenlock as Program<Tokenlock>;

@@ -45,17 +45,17 @@ export class AccessControlHelper {
   program: Program<AccessControl>;
   mintPubkey: PublicKey;
   accessControlPubkey: PublicKey;
-  confirmOptions: Commitment = "confirmed";
+  commitment: Commitment = "confirmed";
 
   constructor(
     accessControlProgram: Program<AccessControl>,
     mintPubkey: PublicKey,
-    confirmOptions: Commitment = "confirmed"
+    commitment: Commitment = "confirmed"
   ) {
     this.program = accessControlProgram;
     this.mintPubkey = mintPubkey;
     this.accessControlPubkey = this.accessControlPDA()[0];
-    this.confirmOptions = confirmOptions;
+    this.commitment = commitment;
   }
 
   walletRolePDA(walletPubkey: PublicKey): [PublicKey, number] {
@@ -112,14 +112,14 @@ export class AccessControlHelper {
   async accessControlData(): Promise<any> {
     return this.program.account.accessControl.fetch(
       this.accessControlPubkey,
-      this.confirmOptions
+      this.commitment
     );
   }
 
   async walletRoleData(walletRolePubkey: PublicKey): Promise<any> {
     return this.program.account.walletRole.fetch(
       walletRolePubkey,
-      this.confirmOptions
+      this.commitment
     );
   }
 
@@ -143,7 +143,7 @@ export class AccessControlHelper {
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
       .signers([signer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async burnSecurities(
@@ -166,7 +166,7 @@ export class AccessControlHelper {
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
       .signers([signer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async initializeWalletRole(
@@ -189,7 +189,7 @@ export class AccessControlHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([signer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async updateWalletRole(
@@ -211,7 +211,7 @@ export class AccessControlHelper {
         systemProgram: SystemProgram.programId,
       })
       .signers([signer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async freezeWallet(
@@ -233,7 +233,7 @@ export class AccessControlHelper {
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
       .signers([signer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async thawWallet(
@@ -255,7 +255,7 @@ export class AccessControlHelper {
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
       .signers([signer])
-      .rpc({ commitment: this.confirmOptions });
+      .rpc({ commitment: this.commitment });
   }
 
   async forceTransferBetween(
@@ -287,7 +287,7 @@ export class AccessControlHelper {
     const mintInfo = await getMint(
       connection,
       this.mintPubkey,
-      this.confirmOptions,
+      this.commitment,
       TOKEN_2022_PROGRAM_ID
     );
     const transferHook = getTransferHook(mintInfo);
@@ -301,7 +301,7 @@ export class AccessControlHelper {
       toAccountPubkey,
       fromOwnerPubkey,
       amount,
-      this.confirmOptions
+      this.commitment
     );
 
     const modifyComputeUnitsInstruction =
@@ -315,7 +315,7 @@ export class AccessControlHelper {
         ...[modifyComputeUnitsInstruction, forceTransferBetweenInstruction]
       ),
       [signer],
-      { commitment: this.confirmOptions }
+      { commitment: this.commitment }
     );
 
     return transferWithHookTxSignature;
