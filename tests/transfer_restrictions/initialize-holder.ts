@@ -17,6 +17,7 @@ describe("Initialize transfer restriction Holder", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 2,
+    maxTotalSupply: 100_000_000_000_000,
   };
   let testEnvironment: TestEnvironment;
 

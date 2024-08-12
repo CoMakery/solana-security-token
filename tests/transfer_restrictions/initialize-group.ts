@@ -17,6 +17,7 @@ describe("Initialize transfer restriction Group", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 3,
+    maxTotalSupply: 100_000_000_000_000,
   };
   let testEnvironment: TestEnvironment;
   const firstGroupIdx = new anchor.BN(1);
@@ -176,7 +177,7 @@ describe("Initialize transfer restriction Group", () => {
     );
     assert.equal(group.id.toNumber(), groupIdx.toNumber());
     assert.equal(group.currentHoldersCount.toNumber(), 0);
-    assert.equal(group.maxHolders.toNumber(), testEnvironmentParams.maxHolders);
+    assert.equal(group.maxHolders.toNumber(), 0);
     assert.equal(
       group.transferRestrictionData.toString(),
       testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toString()

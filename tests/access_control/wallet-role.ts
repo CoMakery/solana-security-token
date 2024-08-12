@@ -1,4 +1,3 @@
-import * as anchor from "@coral-xyz/anchor";
 import { assert } from "chai";
 import { Keypair, PublicKey } from "@solana/web3.js";
 
@@ -6,8 +5,6 @@ import {
   TestEnvironment,
   TestEnvironmentParams,
 } from "../helpers/test_environment";
-import { solToLamports, topUpWallet } from "../utils";
-import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { Roles } from "../helpers/access-control_helper";
 
 describe("Access Control wallet role", () => {
