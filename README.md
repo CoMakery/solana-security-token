@@ -4,7 +4,7 @@
 
 The environment is necessary to build and run tests of the project.
 
-1. Install Anchor 0.30.0 from https://www.anchor-lang.com/docs/installation
+1. Install Anchor 0.30.1 from https://www.anchor-lang.com/docs/installation
 
 ## Build and test source code
 
@@ -22,6 +22,49 @@ $ solana-keygen new
 ```
 $ anchor test
 ```
+
+# Deployment
+
+## Programs
+Generate key and airdrop SOL to the generated address. Than specify cluster and path to the keypair.
+```
+$ solana-keygen new --outfile PATH_TO_GENERATED_KEYPAIR
+``` 
+Airdrop or get some SOL to deploy programs (~20 SOL)
+```
+$ solana airdrop 20 PUBKEY --url CLUSTER_MONIKER_OR_RPC_URL
+```
+```
+$ anchor deploy --provider.cluster CLUSTER --provider.wallet PATH_TO_KEYPAIR
+```
+
+## Mint and Progrmas Accounts
+Generate or add data deployment keypair into `deploy/CLUSTER/deployer.json` file as buffer (for example: `[10, 20 .. 12]`).
+
+Configure `config.ts` where specify
+mint parameters: 
+ - `decimals`
+ - `name`
+ - `symbol`
+ - `uri` (logo)
+tokenlock parameters:
+ - `maxReleaseDelay`
+ - `minTimelockAmount`
+ - `space` (in bytes, it is recommended to set 1 Mb)
+other parameters:
+ - `maxHolders`
+ - `maxTotalSupply`
+ - `commitment`
+ - `admins` (array of public keys and their role)
+
+Configure RPC URL inside `.env` (copy `.env.example`) if it is different from default.
+```
+$ yarn deploy:CLUSTER
+```
+
+## Deployment Result
+Deployment script generates mint.json with keypair and tokenlock-data-pubkey.json with public key.
+Print information about deployment into console.
 
 # Overview
 This is a Security Token smart contract implementation from Upside. 
@@ -94,11 +137,13 @@ sequenceDiagram
   participant Token22
 
   Investor ->> TransferAdmin: send AML/KYC and accreditation info
-  TransferAdmin ->> TransferRestrictionsProgram: initialalizeHolder(investorAddress)
-  TransferAdmin ->> TransferRestrictionsProgram: initialalizeSecurityAssociatedAccount(investorAddress, transferGroup)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeHolder(investorAddress)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeHolderGroup(investorAddress, transferGroup)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(investorAddress, transferGroup)
 
   Buyer ->> TransferAdmin: send AML/KYC and accreditation info
   TransferAdmin ->> TransferRestrictionsProgram: initializeHolder(buyerAddress)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeHolderGroup(buyerAddress, transferGroup)
   TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(buyerAddress, transferGroup)
   TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRule(fromGroup, toGroup, afterTimestamp)
 
@@ -114,14 +159,14 @@ The Transfer Admin for the TransferRestrictionsProgram can provision wallet addr
     - We recommend implementations use off-chain mechanisms (such as a 3rd party AML/KYC provider) that ensure a given address is approved and is a non-malicious smart contract wallet. However, generally multi-signature type wallets must be allowed in order to provide adequate security for investors.
     - This smart contract implementation does not provide a solution for collecting AML/KYC information.
 
-2. The Transfer Admin or Wallet Admin calls `initialalizeHolder(buyerAddress)` and `initializeSecurityAssociatedAccount(buyerAddress, transferGroup)` to provision their account. Initially this will be done for the Primary Issuance of tokens to Investors where tokens are distributed directly from the Issuer to Holder wallets, where:
+2. The Transfer Admin or Wallet Admin calls `initialalizeHolder(buyerAddress)`, `initializeHolderGroup(buyerAddress, transferGroup)` and `initializeSecurityAssociatedAccount(buyerAddress, transferGroup)` to provision their account. Initially this will be done for the Primary Issuance of tokens to Investors where tokens are distributed directly from the Issuer to Holder wallets, where:
 
    - `buyerAddress`: Buyer/Investor wallet address for which to set permissions
    - `transferGroup`: desired transfer group ID for wallet address
 
 3. A potential Investor sends their AML/KYC information to the Transfer Admin or Wallet Admin or a **trusted** AML/KYC provider.
 
-4. The Transfer Admin or Wallet Admin calls `initialalizeHolder(investorAddress)` and `initializeSecurityAssociatedAccount(investorAddress, transferGroup)` to provision the Investor account.
+4. The Transfer Admin or Wallet Admin calls `initialalizeHolder(investorAddress)`, `initializeHolderGroup(investorAddress, transferGroup)` and `initializeSecurityAssociatedAccount(investorAddress, transferGroup)` to provision the Investor account.
 
 5. At this time (or potentially earlier), the Transfer Admin or Wallet Admin authorizes the transfer of tokens between account groups with `initializeTransferRule(fromGroup, toGroup, afterTimestamp)`. Note that allowing a transfer from group A to group B by default does not allow the reverse transfer from group B to group A. This would need to be configured separately.
 
@@ -191,6 +236,28 @@ initializeTransferRule(lockedUntil)
     transferRestrictionHolder,
     transferRestrictionData,
     accessControlAccount,
+    payer,
+    systemProgram,
+  })
+```
+
+```typescript
+/**
+  * @dev A convenience method for initializing the new holder.
+  * @accounts
+  * @param holderGroup The transfer restriction holderGroup PDA as ["trhg", transferRestrictionData, holderId].
+  * @param transferRestrictionData The Transfer Restricition data initialized for securityToken
+  * @param holder The transfer restriction holder PDA as ["trh", transferRestrictionData, holderId].
+  * @param payer Wallet which pays transaction fee. Must be Transfer or Wallets Admin
+  * @param systemProgram Solana System Program which is required for new on-chain account data initialization
+  */
+.initializeHolderGroup()
+  .accountsStrict({
+    holderGroup,
+    transferRestrictionData,
+    group,
+    holder,
+    authorityWalletRole,
     payer,
     systemProgram,
   })
