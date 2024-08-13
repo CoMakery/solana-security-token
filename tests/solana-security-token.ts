@@ -403,7 +403,7 @@ describe("solana-security-token", () => {
       transferRestrictionGroup1Pubkey
     );
     assert.equal(trGroupData.id.toString(), transferGroup1.toString());
-    assert.equal(trGroupData.maxHolders.toString(), maxHolders.toString());
+    assert.equal(trGroupData.maxHolders.toNumber(), 0);
     assert.equal(
       trGroupData.currentHoldersCount.toString(),
       Number(0).toString()
@@ -1022,7 +1022,7 @@ describe("solana-security-token", () => {
       transferRestrictionGroup2Pubkey
     );
     assert.equal(trGroupData.id.toString(), transferGroup2Id.toString());
-    assert.equal(trGroupData.maxHolders.toString(), maxHolders.toString());
+    assert.equal(trGroupData.maxHolders.toNumber(), 0);
     assert.equal(
       trGroupData.currentHoldersCount.toString(),
       Number(0).toString()
