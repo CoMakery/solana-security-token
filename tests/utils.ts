@@ -31,7 +31,7 @@ export async function createAccount(
   space: number,
   programId = undefined,
   commitment: Commitment = "confirmed"
-) {
+): Promise<PublicKey | null> {
   const newAccount = Keypair.generate();
   const balanceNeeded = await connection.getMinimumBalanceForRentExemption(
     space
@@ -64,7 +64,7 @@ export async function createAccountWithSeed(
   space: number,
   extLamports: number,
   commitment: Commitment = "confirmed"
-) {
+): Promise<PublicKey> {
   const pubkey = await PublicKey.createWithSeed(
     payer.publicKey,
     seed,

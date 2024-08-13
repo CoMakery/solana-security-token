@@ -1,20 +1,14 @@
-/**
- * Program IDL in camelCase format in order to be used in JS/TS.
- *
- * Note that this is only a type helper and is not the actual IDL. The original
- * IDL can be found at `target/idl/transfer_restrictions.json`.
- */
-export type TransferRestrictions = {
+{
   "address": "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ",
   "metadata": {
-    "name": "transferRestrictions",
+    "name": "transfer_restrictions",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Transfer restrictions for Solana tokens"
   },
   "instructions": [
     {
-      "name": "enforceTransferRestrictions",
+      "name": "enforce_transfer_restrictions",
       "discriminator": [
         77,
         50,
@@ -27,25 +21,25 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "sourceAccount"
+          "name": "source_account"
         },
         {
           "name": "mint"
         },
         {
-          "name": "destinationAccount"
+          "name": "destination_account"
         },
         {
-          "name": "transferRestrictionData"
+          "name": "transfer_restriction_data"
         },
         {
-          "name": "securityAssociatedAccountFrom"
+          "name": "security_associated_account_from"
         },
         {
-          "name": "securityAssociatedAccountTo"
+          "name": "security_associated_account_to"
         },
         {
-          "name": "transferRule",
+          "name": "transfer_rule",
           "pda": {
             "seeds": [
               {
@@ -57,17 +51,17 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "security_associated_account_from.group",
-                "account": "securityAssociatedAccount"
+                "account": "SecurityAssociatedAccount"
               },
               {
                 "kind": "account",
                 "path": "security_associated_account_to.group",
-                "account": "securityAssociatedAccount"
+                "account": "SecurityAssociatedAccount"
               }
             ]
           }
@@ -76,7 +70,7 @@ export type TransferRestrictions = {
       "args": []
     },
     {
-      "name": "executeTransaction",
+      "name": "execute_transaction",
       "docs": [
         "execute transfer hook"
       ],
@@ -92,19 +86,19 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "sourceAccount"
+          "name": "source_account"
         },
         {
           "name": "mint"
         },
         {
-          "name": "destinationAccount"
+          "name": "destination_account"
         },
         {
-          "name": "ownerDelegate"
+          "name": "owner_delegate"
         },
         {
-          "name": "extraMetasAccount",
+          "name": "extra_metas_account",
           "pda": {
             "seeds": [
               {
@@ -139,16 +133,16 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "transferRestrictionData"
+          "name": "transfer_restriction_data"
         },
         {
-          "name": "securityAssociatedAccountFrom"
+          "name": "security_associated_account_from"
         },
         {
-          "name": "securityAssociatedAccountTo"
+          "name": "security_associated_account_to"
         },
         {
-          "name": "transferRule"
+          "name": "transfer_rule"
         }
       ],
       "args": [
@@ -159,7 +153,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "initializeExtraAccountMetaList",
+      "name": "initialize_extra_account_meta_list",
       "discriminator": [
         92,
         197,
@@ -172,7 +166,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "extraMetasAccount",
+          "name": "extra_metas_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -202,19 +196,19 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ]
           }
         },
         {
-          "name": "securityMint"
+          "name": "security_mint"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
-          "name": "accessControl"
+          "name": "access_control"
         },
         {
           "name": "payer",
@@ -222,14 +216,14 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "initializeHolderGroup",
+      "name": "initialize_holder_group",
       "discriminator": [
         236,
         173,
@@ -242,7 +236,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "holderGroup",
+          "name": "holder_group",
           "writable": true,
           "pda": {
             "seeds": [
@@ -262,13 +256,13 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "group.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -283,7 +277,7 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "transfer_restriction_data.security_token_mint",
-                "account": "transferRestrictionData"
+                "account": "TransferRestrictionData"
               }
             ]
           }
@@ -302,12 +296,12 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "group.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
@@ -316,7 +310,7 @@ export type TransferRestrictions = {
           "name": "holder"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -324,14 +318,14 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "initializeSecurityAssociatedAccount",
+      "name": "initialize_security_associated_account",
       "discriminator": [
         154,
         169,
@@ -344,7 +338,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "securityAssociatedAccount",
+          "name": "security_associated_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -358,7 +352,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "associatedTokenAccount"
+                "path": "associated_token_account"
               }
             ]
           }
@@ -372,14 +366,14 @@ export type TransferRestrictions = {
           "writable": true
         },
         {
-          "name": "holderGroup",
+          "name": "holder_group",
           "writable": true
         },
         {
-          "name": "securityToken"
+          "name": "security_token"
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "pda": {
             "seeds": [
               {
@@ -392,21 +386,21 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               }
             ]
           }
         },
         {
-          "name": "userWallet"
+          "name": "user_wallet"
         },
         {
-          "name": "associatedTokenAccount",
+          "name": "associated_token_account",
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "userWallet"
+                "path": "user_wallet"
               },
               {
                 "kind": "const",
@@ -447,7 +441,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               }
             ],
             "program": {
@@ -490,7 +484,7 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -498,14 +492,14 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "initializeTransferRestrictionGroup",
+      "name": "initialize_transfer_restriction_group",
       "discriminator": [
         62,
         223,
@@ -518,7 +512,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "transferRestrictionGroup",
+          "name": "transfer_restriction_group",
           "writable": true,
           "pda": {
             "seeds": [
@@ -532,7 +526,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "arg",
@@ -542,7 +536,7 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -557,16 +551,16 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "access_control_account.mint",
-                "account": "accessControl"
+                "account": "AccessControl"
               }
             ]
           }
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -574,7 +568,7 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -586,7 +580,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "initializeTransferRestrictionHolder",
+      "name": "initialize_transfer_restriction_holder",
       "discriminator": [
         184,
         97,
@@ -599,7 +593,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "transferRestrictionHolder",
+          "name": "transfer_restriction_holder",
           "writable": true,
           "pda": {
             "seeds": [
@@ -613,7 +607,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "arg",
@@ -623,7 +617,7 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -638,16 +632,16 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "access_control_account.mint",
-                "account": "accessControl"
+                "account": "AccessControl"
               }
             ]
           }
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -655,7 +649,7 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -667,7 +661,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "initializeTransferRestrictionsData",
+      "name": "initialize_transfer_restrictions_data",
       "discriminator": [
         214,
         241,
@@ -680,7 +674,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -700,7 +694,7 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "zeroTransferRestrictionGroup",
+          "name": "zero_transfer_restriction_group",
           "writable": true,
           "pda": {
             "seeds": [
@@ -714,7 +708,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "const",
@@ -736,10 +730,10 @@ export type TransferRestrictions = {
           "name": "mint"
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -747,23 +741,23 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
         {
-          "name": "maxHolders",
+          "name": "max_holders",
           "type": "u64"
         }
       ]
     },
     {
-      "name": "initializeTransferRule",
+      "name": "initialize_transfer_rule",
       "discriminator": [
         24,
         28,
@@ -776,7 +770,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "transferRule",
+          "name": "transfer_rule",
           "writable": true,
           "pda": {
             "seeds": [
@@ -789,23 +783,23 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "transfer_restriction_group_from.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               },
               {
                 "kind": "account",
                 "path": "transfer_restriction_group_to.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "pda": {
             "seeds": [
               {
@@ -819,22 +813,22 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "access_control_account.mint",
-                "account": "accessControl"
+                "account": "AccessControl"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionGroupFrom"
+          "name": "transfer_restriction_group_from"
         },
         {
-          "name": "transferRestrictionGroupTo"
+          "name": "transfer_restriction_group_to"
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -842,13 +836,13 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "lockUntil",
+          "name": "lock_until",
           "type": "u64"
         }
       ]
@@ -867,10 +861,10 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "securityMint"
+          "name": "security_mint"
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -884,16 +878,16 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ]
           }
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -909,7 +903,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "revokeHolder",
+      "name": "revoke_holder",
       "discriminator": [
         250,
         238,
@@ -936,18 +930,18 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "holder.id",
-                "account": "transferRestrictionHolder"
+                "account": "TransferRestrictionHolder"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -962,13 +956,13 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "transfer_restriction_data.security_token_mint",
-                "account": "transferRestrictionData"
+                "account": "TransferRestrictionData"
               }
             ]
           }
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "writable": true
         },
         {
@@ -977,14 +971,14 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "revokeHolderGroup",
+      "name": "revoke_holder_group",
       "discriminator": [
         33,
         153,
@@ -1010,18 +1004,18 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "holder.id",
-                "account": "transferRestrictionHolder"
+                "account": "TransferRestrictionHolder"
               }
             ]
           }
         },
         {
-          "name": "holderGroup",
+          "name": "holder_group",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1041,13 +1035,13 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "group.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1062,7 +1056,7 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "transfer_restriction_data.security_token_mint",
-                "account": "transferRestrictionData"
+                "account": "TransferRestrictionData"
               }
             ]
           }
@@ -1081,18 +1075,18 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "group.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "writable": true
         },
         {
@@ -1101,14 +1095,14 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "revokeSecurityAssociatedAccount",
+      "name": "revoke_security_associated_account",
       "discriminator": [
         75,
         206,
@@ -1121,7 +1115,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "securityAssociatedAccount",
+          "name": "security_associated_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1135,7 +1129,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "associatedTokenAccount"
+                "path": "associated_token_account"
               }
             ]
           }
@@ -1149,14 +1143,14 @@ export type TransferRestrictions = {
           "writable": true
         },
         {
-          "name": "holderGroup",
+          "name": "holder_group",
           "writable": true
         },
         {
-          "name": "securityToken"
+          "name": "security_token"
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "pda": {
             "seeds": [
               {
@@ -1169,21 +1163,21 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               }
             ]
           }
         },
         {
-          "name": "userWallet"
+          "name": "user_wallet"
         },
         {
-          "name": "associatedTokenAccount",
+          "name": "associated_token_account",
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "userWallet"
+                "path": "user_wallet"
               },
               {
                 "kind": "const",
@@ -1224,7 +1218,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               }
             ],
             "program": {
@@ -1267,7 +1261,7 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -1275,14 +1269,14 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "setAllowTransferRule",
+      "name": "set_allow_transfer_rule",
       "discriminator": [
         4,
         83,
@@ -1295,7 +1289,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "transferRule",
+          "name": "transfer_rule",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1308,23 +1302,23 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "transfer_restriction_group_from.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               },
               {
                 "kind": "account",
                 "path": "transfer_restriction_group_to.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "pda": {
             "seeds": [
               {
@@ -1338,22 +1332,22 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "access_control_account.mint",
-                "account": "accessControl"
+                "account": "AccessControl"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionGroupFrom"
+          "name": "transfer_restriction_group_from"
         },
         {
-          "name": "transferRestrictionGroupTo"
+          "name": "transfer_restriction_group_to"
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -1363,13 +1357,13 @@ export type TransferRestrictions = {
       ],
       "args": [
         {
-          "name": "lockedUntil",
+          "name": "locked_until",
           "type": "u64"
         }
       ]
     },
     {
-      "name": "setHolderGroupMax",
+      "name": "set_holder_group_max",
       "discriminator": [
         83,
         33,
@@ -1382,7 +1376,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "pda": {
             "seeds": [
               {
@@ -1404,10 +1398,10 @@ export type TransferRestrictions = {
           "name": "mint"
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "group",
@@ -1424,12 +1418,12 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "group.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
@@ -1442,13 +1436,13 @@ export type TransferRestrictions = {
       ],
       "args": [
         {
-          "name": "holderGroupMax",
+          "name": "holder_group_max",
           "type": "u64"
         }
       ]
     },
     {
-      "name": "setHolderMax",
+      "name": "set_holder_max",
       "discriminator": [
         254,
         104,
@@ -1461,7 +1455,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1484,10 +1478,10 @@ export type TransferRestrictions = {
           "name": "mint"
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
           "name": "payer",
@@ -1497,13 +1491,13 @@ export type TransferRestrictions = {
       ],
       "args": [
         {
-          "name": "holderMax",
+          "name": "holder_max",
           "type": "u64"
         }
       ]
     },
     {
-      "name": "setLockupEscrowAccount",
+      "name": "set_lockup_escrow_account",
       "discriminator": [
         134,
         172,
@@ -1516,7 +1510,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1536,7 +1530,7 @@ export type TransferRestrictions = {
           }
         },
         {
-          "name": "escrowSecurityAssociatedAccount",
+          "name": "escrow_security_associated_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1550,7 +1544,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "escrowAccount"
+                "path": "escrow_account"
               }
             ]
           }
@@ -1559,16 +1553,16 @@ export type TransferRestrictions = {
           "name": "mint"
         },
         {
-          "name": "accessControlAccount"
+          "name": "access_control_account"
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
-          "name": "escrowAccount"
+          "name": "escrow_account"
         },
         {
-          "name": "tokenlockAccount"
+          "name": "tokenlock_account"
         },
         {
           "name": "payer",
@@ -1576,14 +1570,14 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "updateWalletGroup",
+      "name": "update_wallet_group",
       "discriminator": [
         225,
         33,
@@ -1596,7 +1590,7 @@ export type TransferRestrictions = {
       ],
       "accounts": [
         {
-          "name": "securityAssociatedAccount",
+          "name": "security_associated_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1610,16 +1604,16 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "userAssociatedTokenAccount"
+                "path": "user_associated_token_account"
               }
             ]
           }
         },
         {
-          "name": "securityToken"
+          "name": "security_token"
         },
         {
-          "name": "transferRestrictionData",
+          "name": "transfer_restriction_data",
           "pda": {
             "seeds": [
               {
@@ -1632,13 +1626,13 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionGroupCurrent",
+          "name": "transfer_restriction_group_current",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1652,18 +1646,18 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "transfer_restriction_group_current.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
         },
         {
-          "name": "transferRestrictionGroupNew",
+          "name": "transfer_restriction_group_new",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1677,18 +1671,18 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "transferRestrictionData"
+                "path": "transfer_restriction_data"
               },
               {
                 "kind": "account",
                 "path": "transfer_restriction_group_new.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
         },
         {
-          "name": "holderGroupCurrent",
+          "name": "holder_group_current",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1704,18 +1698,18 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "security_associated_account.holder",
-                "account": "securityAssociatedAccount"
+                "account": "SecurityAssociatedAccount"
               },
               {
                 "kind": "account",
                 "path": "security_associated_account.group",
-                "account": "securityAssociatedAccount"
+                "account": "SecurityAssociatedAccount"
               }
             ]
           }
         },
         {
-          "name": "holderGroupNew",
+          "name": "holder_group_new",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1731,29 +1725,29 @@ export type TransferRestrictions = {
               {
                 "kind": "account",
                 "path": "security_associated_account.holder",
-                "account": "securityAssociatedAccount"
+                "account": "SecurityAssociatedAccount"
               },
               {
                 "kind": "account",
                 "path": "transfer_restriction_group_new.id",
-                "account": "transferRestrictionGroup"
+                "account": "TransferRestrictionGroup"
               }
             ]
           }
         },
         {
-          "name": "authorityWalletRole"
+          "name": "authority_wallet_role"
         },
         {
-          "name": "userWallet"
+          "name": "user_wallet"
         },
         {
-          "name": "userAssociatedTokenAccount",
+          "name": "user_associated_token_account",
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "userWallet"
+                "path": "user_wallet"
               },
               {
                 "kind": "const",
@@ -1794,7 +1788,7 @@ export type TransferRestrictions = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               }
             ],
             "program": {
@@ -1842,7 +1836,7 @@ export type TransferRestrictions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -1851,7 +1845,7 @@ export type TransferRestrictions = {
   ],
   "accounts": [
     {
-      "name": "accessControl",
+      "name": "AccessControl",
       "discriminator": [
         147,
         81,
@@ -1864,7 +1858,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "holderGroup",
+      "name": "HolderGroup",
       "discriminator": [
         136,
         231,
@@ -1877,7 +1871,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "securityAssociatedAccount",
+      "name": "SecurityAssociatedAccount",
       "discriminator": [
         68,
         169,
@@ -1890,7 +1884,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "transferRestrictionData",
+      "name": "TransferRestrictionData",
       "discriminator": [
         166,
         184,
@@ -1903,7 +1897,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "transferRestrictionGroup",
+      "name": "TransferRestrictionGroup",
       "discriminator": [
         61,
         120,
@@ -1916,7 +1910,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "transferRestrictionHolder",
+      "name": "TransferRestrictionHolder",
       "discriminator": [
         196,
         226,
@@ -1929,7 +1923,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "transferRule",
+      "name": "TransferRule",
       "discriminator": [
         200,
         231,
@@ -1942,7 +1936,7 @@ export type TransferRestrictions = {
       ]
     },
     {
-      "name": "walletRole",
+      "name": "WalletRole",
       "discriminator": [
         219,
         71,
@@ -1958,98 +1952,98 @@ export type TransferRestrictions = {
   "errors": [
     {
       "code": 6000,
-      "name": "unauthorized",
-      "msg": "unauthorized"
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
     },
     {
       "code": 6001,
-      "name": "maxHoldersReached",
+      "name": "MaxHoldersReached",
       "msg": "Max holders reached"
     },
     {
       "code": 6002,
-      "name": "transferRuleNotAllowedUntilLater",
+      "name": "TransferRuleNotAllowedUntilLater",
       "msg": "Transfer rule not allowed until later"
     },
     {
       "code": 6003,
-      "name": "invalidRole",
+      "name": "InvalidRole",
       "msg": "Invalid role"
     },
     {
       "code": 6004,
-      "name": "allTransfersPaused",
+      "name": "AllTransfersPaused",
       "msg": "All transfers are paused"
     },
     {
       "code": 6005,
-      "name": "invalidPda",
+      "name": "InvalidPDA",
       "msg": "Invalid PDA"
     },
     {
       "code": 6006,
-      "name": "balanceIsTooLow",
+      "name": "BalanceIsTooLow",
       "msg": "Balance is too low"
     },
     {
       "code": 6007,
-      "name": "currentWalletsCountMustBeZero",
+      "name": "CurrentWalletsCountMustBeZero",
       "msg": "Current wallets count must be zero"
     },
     {
       "code": 6008,
-      "name": "escrowAccountsMismatch",
+      "name": "EscrowAccountsMismatch",
       "msg": "Escrow accounts mismatch"
     },
     {
       "code": 6009,
-      "name": "invalidHolderIndex",
+      "name": "InvalidHolderIndex",
       "msg": "Invalid transfer restriction holder index"
     },
     {
       "code": 6010,
-      "name": "maxHoldersReachedInsideTheGroup",
+      "name": "MaxHoldersReachedInsideTheGroup",
       "msg": "Max holders reached inside the group"
     },
     {
       "code": 6011,
-      "name": "transferGroupNotApproved",
+      "name": "TransferGroupNotApproved",
       "msg": "Transfer group not approved"
     },
     {
       "code": 6012,
-      "name": "incorrectTokenlockAccount",
+      "name": "IncorrectTokenlockAccount",
       "msg": "Wrong tokenlock account"
     },
     {
       "code": 6013,
-      "name": "transferRuleAccountDataIsEmtpy",
+      "name": "TransferRuleAccountDataIsEmtpy",
       "msg": "Transfer rule account data is empty"
     },
     {
       "code": 6014,
-      "name": "securityAssociatedAccountDataIsEmtpy",
+      "name": "SecurityAssociatedAccountDataIsEmtpy",
       "msg": "Security associated account data is empty"
     },
     {
       "code": 6015,
-      "name": "transferRestrictionsAccountDataIsEmtpy",
+      "name": "TransferRestrictionsAccountDataIsEmtpy",
       "msg": "Transfer restrictions account data is empty"
     },
     {
       "code": 6016,
-      "name": "noWalletsInGroup",
+      "name": "NoWalletsInGroup",
       "msg": "No wallets in group"
     },
     {
       "code": 6017,
-      "name": "newGroupIsTheSameAsTheCurrentGroup",
+      "name": "NewGroupIsTheSameAsTheCurrentGroup",
       "msg": "New group is the same as the current group"
     }
   ],
   "types": [
     {
-      "name": "accessControl",
+      "name": "AccessControl",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2062,14 +2056,14 @@ export type TransferRestrictions = {
             "type": "pubkey"
           },
           {
-            "name": "maxTotalSupply",
+            "name": "max_total_supply",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "holderGroup",
+      "name": "HolderGroup",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2082,14 +2076,14 @@ export type TransferRestrictions = {
             "type": "pubkey"
           },
           {
-            "name": "currentWalletsCount",
+            "name": "current_wallets_count",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "securityAssociatedAccount",
+      "name": "SecurityAssociatedAccount",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2107,28 +2101,28 @@ export type TransferRestrictions = {
       }
     },
     {
-      "name": "transferRestrictionData",
+      "name": "TransferRestrictionData",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "securityTokenMint",
+            "name": "security_token_mint",
             "type": "pubkey"
           },
           {
-            "name": "accessControlAccount",
+            "name": "access_control_account",
             "type": "pubkey"
           },
           {
-            "name": "currentHoldersCount",
+            "name": "current_holders_count",
             "type": "u64"
           },
           {
-            "name": "holderIds",
+            "name": "holder_ids",
             "type": "u64"
           },
           {
-            "name": "maxHolders",
+            "name": "max_holders",
             "type": "u64"
           },
           {
@@ -2136,7 +2130,7 @@ export type TransferRestrictions = {
             "type": "bool"
           },
           {
-            "name": "lockupEscrowAccount",
+            "name": "lockup_escrow_account",
             "type": {
               "option": "pubkey"
             }
@@ -2145,7 +2139,7 @@ export type TransferRestrictions = {
       }
     },
     {
-      "name": "transferRestrictionGroup",
+      "name": "TransferRestrictionGroup",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2154,31 +2148,31 @@ export type TransferRestrictions = {
             "type": "u64"
           },
           {
-            "name": "currentHoldersCount",
+            "name": "current_holders_count",
             "type": "u64"
           },
           {
-            "name": "maxHolders",
+            "name": "max_holders",
             "type": "u64"
           },
           {
-            "name": "transferRestrictionData",
+            "name": "transfer_restriction_data",
             "type": "pubkey"
           }
         ]
       }
     },
     {
-      "name": "transferRestrictionHolder",
+      "name": "TransferRestrictionHolder",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "transferRestrictionData",
+            "name": "transfer_restriction_data",
             "type": "pubkey"
           },
           {
-            "name": "currentWalletsCount",
+            "name": "current_wallets_count",
             "type": "u64"
           },
           {
@@ -2193,31 +2187,31 @@ export type TransferRestrictions = {
       }
     },
     {
-      "name": "transferRule",
+      "name": "TransferRule",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "transferRestrictionData",
+            "name": "transfer_restriction_data",
             "type": "pubkey"
           },
           {
-            "name": "transferGroupIdFrom",
+            "name": "transfer_group_id_from",
             "type": "u64"
           },
           {
-            "name": "transferGroupIdTo",
+            "name": "transfer_group_id_to",
             "type": "u64"
           },
           {
-            "name": "lockedUntil",
+            "name": "locked_until",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "walletRole",
+      "name": "WalletRole",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2226,7 +2220,7 @@ export type TransferRestrictions = {
             "type": "pubkey"
           },
           {
-            "name": "accessControl",
+            "name": "access_control",
             "type": "pubkey"
           },
           {
@@ -2237,4 +2231,4 @@ export type TransferRestrictions = {
       }
     }
   ]
-};
+}

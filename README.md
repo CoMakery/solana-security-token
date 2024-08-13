@@ -4,7 +4,7 @@
 
 The environment is necessary to build and run tests of the project.
 
-1. Install Anchor 0.30.0 from https://www.anchor-lang.com/docs/installation
+1. Install Anchor 0.30.1 from https://www.anchor-lang.com/docs/installation
 
 ## Build and test source code
 
@@ -22,6 +22,49 @@ $ solana-keygen new
 ```
 $ anchor test
 ```
+
+# Deployment
+
+## Programs
+Generate key and airdrop SOL to the generated address. Than specify cluster and path to the keypair.
+```
+$ solana-keygen new --outfile PATH_TO_GENERATED_KEYPAIR
+``` 
+Airdrop or get some SOL to deploy programs (~20 SOL)
+```
+$ solana airdrop 20 PUBKEY --url CLUSTER_MONIKER_OR_RPC_URL
+```
+```
+$ anchor deploy --provider.cluster CLUSTER --provider.wallet PATH_TO_KEYPAIR
+```
+
+## Mint and Progrmas Accounts
+Generate or add data deployment keypair into `deploy/CLUSTER/deployer.json` file as buffer (for example: `[10, 20 .. 12]`).
+
+Configure `config.ts` where specify
+mint parameters: 
+ - `decimals`
+ - `name`
+ - `symbol`
+ - `uri` (logo)
+tokenlock parameters:
+ - `maxReleaseDelay`
+ - `minTimelockAmount`
+ - `space` (in bytes, it is recommended to set 1 Mb)
+other parameters:
+ - `maxHolders`
+ - `maxTotalSupply`
+ - `commitment`
+ - `admins` (array of public keys and their role)
+
+Configure RPC URL inside `.env` (copy `.env.example`) if it is different from default.
+```
+$ yarn deploy:CLUSTER
+```
+
+## Deployment Result
+Deployment script generates mint.json with keypair and tokenlock-data-pubkey.json with public key.
+Print information about deployment into console.
 
 # Overview
 This is a Security Token smart contract implementation from Upside. 
@@ -94,11 +137,13 @@ sequenceDiagram
   participant Token22
 
   Investor ->> TransferAdmin: send AML/KYC and accreditation info
-  TransferAdmin ->> TransferRestrictionsProgram: initialalizeHolder(investorAddress)
-  TransferAdmin ->> TransferRestrictionsProgram: initialalizeSecurityAssociatedAccount(investorAddress, transferGroup)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRestrictionHolder(investorAddress)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeHolderGroup(investorAddress, transferGroup)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(investorAddress, transferGroup)
 
   Buyer ->> TransferAdmin: send AML/KYC and accreditation info
-  TransferAdmin ->> TransferRestrictionsProgram: initializeHolder(buyerAddress)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRestrictionHolder(buyerAddress)
+  TransferAdmin ->> TransferRestrictionsProgram: initializeHolderGroup(buyerAddress, transferGroup)
   TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(buyerAddress, transferGroup)
   TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRule(fromGroup, toGroup, afterTimestamp)
 
@@ -114,14 +159,14 @@ The Transfer Admin for the TransferRestrictionsProgram can provision wallet addr
     - We recommend implementations use off-chain mechanisms (such as a 3rd party AML/KYC provider) that ensure a given address is approved and is a non-malicious smart contract wallet. However, generally multi-signature type wallets must be allowed in order to provide adequate security for investors.
     - This smart contract implementation does not provide a solution for collecting AML/KYC information.
 
-2. The Transfer Admin or Wallet Admin calls `initialalizeHolder(buyerAddress)` and `initializeSecurityAssociatedAccount(buyerAddress, transferGroup)` to provision their account. Initially this will be done for the Primary Issuance of tokens to Investors where tokens are distributed directly from the Issuer to Holder wallets, where:
+2. The Transfer Admin or Wallet Admin calls `initialalizeHolder(buyerAddress)`, `initializeHolderGroup(buyerAddress, transferGroup)` and `initializeSecurityAssociatedAccount(buyerAddress, transferGroup)` to provision their account. Initially this will be done for the Primary Issuance of tokens to Investors where tokens are distributed directly from the Issuer to Holder wallets, where:
 
    - `buyerAddress`: Buyer/Investor wallet address for which to set permissions
    - `transferGroup`: desired transfer group ID for wallet address
 
 3. A potential Investor sends their AML/KYC information to the Transfer Admin or Wallet Admin or a **trusted** AML/KYC provider.
 
-4. The Transfer Admin or Wallet Admin calls `initialalizeHolder(investorAddress)` and `initializeSecurityAssociatedAccount(investorAddress, transferGroup)` to provision the Investor account.
+4. The Transfer Admin or Wallet Admin calls `initialalizeHolder(investorAddress)`, `initializeHolderGroup(investorAddress, transferGroup)` and `initializeSecurityAssociatedAccount(investorAddress, transferGroup)` to provision the Investor account.
 
 5. At this time (or potentially earlier), the Transfer Admin or Wallet Admin authorizes the transfer of tokens between account groups with `initializeTransferRule(fromGroup, toGroup, afterTimestamp)`. Note that allowing a transfer from group A to group B by default does not allow the reverse transfer from group B to group A. This would need to be configured separately.
 
@@ -198,6 +243,28 @@ initializeTransferRule(lockedUntil)
 
 ```typescript
 /**
+  * @dev A convenience method for initializing the new holder.
+  * @accounts
+  * @param holderGroup The transfer restriction holderGroup PDA as ["trhg", transferRestrictionData, holderId].
+  * @param transferRestrictionData The Transfer Restricition data initialized for securityToken
+  * @param holder The transfer restriction holder PDA as ["trh", transferRestrictionData, holderId].
+  * @param payer Wallet which pays transaction fee. Must be Transfer or Wallets Admin
+  * @param systemProgram Solana System Program which is required for new on-chain account data initialization
+  */
+.initializeHolderGroup()
+  .accountsStrict({
+    holderGroup,
+    transferRestrictionData,
+    group,
+    holder,
+    authorityWalletRole,
+    payer,
+    systemProgram,
+  })
+```
+
+```typescript
+/**
   * @dev A convenience method for initializing the transfer group, lock until.
   * @accounts
   * @param securityAssociatedAccount The security associated account PDA as ["saa", associatedTokenAccount].
@@ -237,7 +304,7 @@ The variable `maxTotalSupply` is set when the contract is created and limits the
 | Reg S Group                          | Reg S Group                                               | Forbidden Until Shorter Reg S TimeLock Ended                                                      | `initializeTransferRule(fromGroupS, toGroupS, afterTime)`                                                     | Transfer Admin                                                                            |
 | Issuer                               | Reg CF with > maximum number of total holders allowed     | Forbid transfers increasing number of total Holders (across all groups) above a certain threshold | `setHolderMax(maxAmount)`                                                                                    | Transfer Admin                                                                            |
 | Issuer                               | Reg CF with > maximum number of Holders per group allowed | Forbid transfers increasing number of total Holders (within each group) above a certain threshold | `setHolderGroupMax(transferGroupID, maxAmount)`                                                              | Transfer Admin                                                                            |
-| Stolen Tokens                        | Anyone                                                    | Fix With Freeze, Burn, Reissue                                                                    | `freeze(address, isFrozenFlag);`<br /> `burnSecurities(address, amount);`<br />`mintSecurities(newOwnerAddress);`                | Wallets Admin or Transfer Admin can `freeze()` and Reserve Admin can do `mintSecurities()` `burnSecurities()` |
+| Stolen Tokens                        | Anyone                                                    | Fix With Freeze, Burn, Reissue                                                                    | `freezeWallet();`<br /> `burnSecurities(address, amount);`<br />`mintSecurities(newOwnerAddress);`                | Wallets Admin or Transfer Admin can `freezeWallet()` and Reserve Admin can do `mintSecurities()` `burnSecurities()` |
 | Any Address During Regulatory Freeze | Anyone                                                    | Forbid all transfers while paused                                                                 | `pause(isPausedFlag)`                                                                                        | Transfer Admin                                                                            |
 | Any Address During Regulatory Freeze | Anyone                                                    | Unpause from a paused state                                                             | `pause(isPausedFlag)`                                                                                        | Transfer Admin                                                                            |
 | Anyone                               | Anyone                                                    | Force the transfer of tokens for emergencies                                                      | `forceTransferBetween(sender, recipient, amount)`                                                            | Reserve Admin                                                                              |
@@ -322,14 +389,14 @@ sequenceDiagram
   ReserveAdmin ->> AccessControlProgram: mintSecurities(reserveAdminAddress, amount)
 
   loop EITHER / OR for reserveAdminAddress and walletsAdminAddress
-      TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(address, walletTransferGroup), intializeHolder(address,id)
-      WalletsAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(address, walletTransferGroup), intializeHolder(address,id)
+      TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(address, walletTransferGroup), intializeHolder(address,id), initializeHolderGroup(address, groupId)
+      WalletsAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(address, walletTransferGroup), intializeHolder(address,id), initializeHolderGroup(address, groupId)
   end
 
   ReserveAdmin ->>+ TransferRestrictionsProgram: createTransferCheckedWithTransferHookInstruction(walletsAdminAddress, amount)
   loop EITHER / OR
-      TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(investorAddress, walletTransferGroup), intializeHolder(address,id)
-      WalletsAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(investorAddress, walletTransferGroup), intializeHolder(address,id)
+      TransferAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(investorAddress, walletTransferGroup), intializeHolder(address,id), initializeHolderGroup(address, groupId)
+      WalletsAdmin ->> TransferRestrictionsProgram: initializeSecurityAssociatedAccount(investorAddress, walletTransferGroup), intializeHolder(address,id), initializeHolderGroup(address, groupId)
   end
 
   WalletsAdmin ->> TransferRestrictionsProgram: createTransferCheckedWithTransferHookInstruction(investorAddress, amount)
@@ -338,10 +405,11 @@ sequenceDiagram
 
 1. AccessControl and TransferRestrictions programs are deployed first  
 2. Deployer initializes access control data, mint, transfer restrictions data. At the time of deployment, the deployer configures a separate Reserve Admin address, a Transfer Admin address, and a Wallets Admin address. This allows the reserve security tokens to be stored in cold storage since the treasury Reserve Admin address private keys are not needed for everyday use by the Transfer Admin.
-2. The Reserve Admin then provisions a Wallets Admin address for distributing tokens to investors or other stakeholders. The Wallets Admin uses `initializeSecurityAssociatedAccount(investorAddress, transferGroup)` to set address restrictions.
+2. The Transfer Admin initializes transfer groups with `initializeTransferRestrictionGroup(groupId)`
 3. The Transfer Admin authorizes the transfer of tokens between account groups with `initializeTransferRestrictionGroup(fromGroup, toGroup, afterTimestamp)` .
-4. The Reserve Admin then transfers tokens to the Wallets Admin address.
-5. The Wallets Admin then transfers tokens to Investors or other stakeholders who are entitled to tokens.
+4. The Reserve Admin then provisions a Wallets Admin address for distributing tokens to investors or other stakeholders. The Wallets Admin uses `initializeTransferRestrictionHolder(investorAddress, holderId)`, `initializeHolderGroup(investorAddress, group)``initializeSecurityAssociatedAccount(investorAddress, transferGroup)` to set address restrictions.
+5. The Reserve Admin then transfers tokens to the Wallets Admin address.
+6. The Wallets Admin then transfers tokens to Investors or other stakeholders who are entitled to tokens.
 
 # Setup For Separate Issuer Private Key Management Roles
 
@@ -381,7 +449,7 @@ sequenceDiagram
   Investor ->> TransferAdmin: send AML/KYC and accreditation info
   TransferAdmin ->> TransferRestrictionsProgram: setHolderMax(maxAmount)
   loop
-    TransferAdmin ->> TransferRestrictionsProgram: initializeHolder(...)
+    TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRestrictionHolder(...)
     TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRestrictionGroup(walletsAdminAddress, walletsAdminGroup...)
     TransferAdmin ->> TransferRestrictionsProgram: setTransferGroup(walletsAdminAddress, walletsAdminGroup...)
     TransferAdmin ->> TransferRestrictionsProgram: initializeTransferRestrictionGroup(investorAddress, investorAdminGroup...)
@@ -400,7 +468,7 @@ sequenceDiagram
 
    a) a transfer group designating a regulatory class like "Reg D", "Reg CF" or "Reg S"
 
-   b) the freeze status of that address (with true meaning the account will be frozen from activity)] `freezeWallet(address)`
+   b) the freeze status of that address (with true meaning the account will be frozen from activity)]
 
 1. The Transfer Admin then must allow transfers between groups with `initializeTransferRestrictionRule(walletsAdminGroup, investorAdminGroup...)`
 
@@ -410,7 +478,7 @@ sequenceDiagram
 
 Note that there are no transfers initially authorized between groups. By default no transfers are allowed between groups - all transfer groups are restricted.
 
-## Maximum Number of Holders Allowed (TODO: to be developed)
+## Maximum Number of Holders Allowed
 
 By default Transfer Groups cannot receive token transfers. To receive tokens the issuer gathers AML/KYC information and then calls `initializeSecurityAssociatedAccount()`.
 
@@ -418,7 +486,7 @@ A single Holder may have unlimited Wallet addresses. This cannot be altered. The
 
 `setHolderMax(amount)`
 
-## Maximum Number of Holders Allowed Per Group (TODO: to be developed)
+## Maximum Number of Holders Allowed Per Group
 
 Transfer Admin can configure the maximum number of allowed Holders **per group** by calling `setHolderGroupMax`. By default, the `holderGroupMax` for each group is set to 0, meaning that it won't be applied as a restriction.
 
@@ -433,6 +501,7 @@ Group 0 (the default Holder group) is the only group for which the holder group 
 ## `initializeSecurityAssociatedAccount`
 
 `initializeSecurityAssociatedAccount` is usually used after KYC/AML verification to activate a particular wallet for transfers.
+Usualy used with `initializeTransferRestricitionHolder` and `initializeHolderGroup` if it is a new holder or new group for existing holder.
 
 ## `initialializeTransferRule`
 
@@ -463,7 +532,7 @@ To allow trading between Foreign Reg S account addresses but forbid flow back to
 
 ### Example: Exchanges Can Register Omnibus Accounts
 
-Centralized exchanges can register custody addresses using the same method as other users. They contact the Issuer to provision accounts and the Transfer Admin or Wallets Admin calls `initializeSecurityAssociatedAccount()` for the exchange account.
+Centralized exchanges can register custody addresses using the same method as other users. They contact the Issuer to provision accounts and the Transfer Admin or Wallets Admin calls `initializeTransferRestrictionHolder()`, `initializeHolderGroup()`, `initializeSecurityAssociatedAccount()` for the exchange account.
 
 When customers of the exchange want to withdraw tokens from the exchange account they must withdraw into an account that the Transfer Admin has provisioned for them with `initializeSecurityAssociatedAccount()`.
 
@@ -477,23 +546,23 @@ In general, it is possible to allow Group 0 transfers. They are configurable in 
 
 If there is a regulatory issue with the token, all transfers may be paused by the Transfer Admin calling `pause()`. During normal functioning of the contract `pause()` should never need to be called.
 
-*Note*: This `pause()` mechanism has been implemented into the `TransferRestrictions` program but **not** the `Dividends` contract. As pauses are intended for emergency situations; and dividends, once funded, belong fully to the recipient (even if locked), the pause mechanism has been excluded so as to prevent potential pause abuse from circumventing rightful dividends distributions. 
+The `pause()` mechanism has been implemented into the `TransferRestrictions` program.
 
 ## Law Enforcement Recovery of Stolen Assets
 
-In the case of stolen assets with sufficient legal reason to be returned to their owner, the issuer can call `freeze()` (Wallets Admin, Transfer Admin), `burnSecurities()`, and `mintSecurities()` (Reserve Admin) to transfer the assets to the appropriate account.
+In the case of stolen assets with sufficient legal reason to be returned to their owner, the issuer can call `freezeWallet()` (Wallets Admin, Transfer Admin), `burnSecurities()`, and `mintSecurities()` (Reserve Admin) to transfer the assets to the appropriate account.
 
 Although this is not in the spirit of a cryptocurrency, it is available as a response to requirements that some regulators impose on blockchain security token projects.
 
 ## Asset Recovery In The Case of Lost Keys
 
-In the case of lost keys with sufficient legal reason to be returned to their owner, the issuer can call `freeze()`, `burnSecurities()`, and `mintSecurities()` to transfer the assets to the appropriate account. This opens the issuer up to potential cases of fraud. Handle with care.
+In the case of lost keys with sufficient legal reason to be returned to their owner, the issuer can call `freezeWallet()`, `burnSecurities()`, and `mintSecurities()` to transfer the assets to the appropriate account. This opens the issuer up to potential cases of fraud. Handle with care.
 
 Once again, although this is not in the spirit of a cryptocurrency, it is available as a response to requirements that some regulators impose on blockchain security token projects.
 
 # Access Control
 
-Access Control Program implements roles `initializeWalletRole`, `updateWalletRole` and ownership under admin security token functions: `mintSecurities`, `burnSecurities`, `freeze`, `forceTransferbetween`. This is similar to the linux file permission bitmask exposed in the `chmod` command line function.
+Access Control Program implements roles `initializeWalletRole`, `updateWalletRole` and ownership under admin security token functions: `mintSecurities`, `burnSecurities`, `freezeWallet`, `thawWallet`, `forceTransferbetween`. This is similar to the linux file permission bitmask exposed in the `chmod` command line function.
 
 Our implementation uses binary bitmask determine the access control roles for an address. This optimizes the compute units usage and the size of the smart contract code itself.
 
@@ -615,10 +684,12 @@ Title: Post-Deployment Configuration
   AccessControlProgram->>TransferAdmin: Role is granted
   TransferAdmin->>TransferRestrictionProgram: 2. initializeTransferGroup(1)
   TransferAdmin->>TransferRestrictionProgram: 3. initializeTransferRule(1, 1, 1)
-  TransferAdmin->>TransferRestrictionProgram: 4. initializeHolder(Token_Address, 1)
-  TransferAdmin->>TransferRestrictionProgram: 5. initializeSecurityAssociatedAccount(Token_Address, 1)
-  TransferAdmin->>TransferRestrictionProgram: 6. initializeHolder(ReserveAdmin_Address, 1)
-  TransferAdmin->>TransferRestrictionProgram: 7. initializeSecurityAssociatedAccount(ReserveAdmin_Address, 1)
+  TransferAdmin->>TransferRestrictionProgram: 4. initializeTransferRestrictionHolder(Token_Address, 1)
+  TransferAdmin->>TransferRestrictionProgram: 5. initializeHolderGroup(Token_Address_HolderId, 1)
+  TransferAdmin->>TransferRestrictionProgram: 6. initializeSecurityAssociatedAccount(Token_Address, 1)
+  TransferAdmin->>TransferRestrictionProgram: 7. initializeTransferRestrictionHolder(ReserveAdmin_Address, 1)
+  TransferAdmin->>TransferRestrictionProgram: 8. initializeHolderGroup(ReserveAdmin_Address_HolderId, 1)
+  TransferAdmin->>TransferRestrictionProgram: 9. initializeSecurityAssociatedAccount(ReserveAdmin_Address, 1)
 ```
 
 ## Troubleshooting
@@ -629,4 +700,4 @@ To enable transfers between wallets, ensure that:
 - these transfer groups have approved transfer restrictions (ie invoking `initializeTransferRule`)
 - sender has available tokens to be transferred
 
-Note that `balance` property of AssociatedTokenAccount typically used by wallet providers (ie Phantom) will display wallet balance that includes the amount of simple tokens. Any locked, staked tokens are held by related Smart Contracts. 
+Note that `balance` property of AssociatedTokenAccount typically used by wallet providers (ie Phantom) will display wallet balance that includes the amount of simple tokens. Any locked, staked tokens are held by related Smart Contracts.

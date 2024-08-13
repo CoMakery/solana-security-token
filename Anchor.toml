@@ -20,7 +20,7 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [workspace]
-types = "app/src/idl/"
+types = "app/src/types/"
 
 
 [scripts]

@@ -1,20 +1,14 @@
-/**
- * Program IDL in camelCase format in order to be used in JS/TS.
- *
- * Note that this is only a type helper and is not the actual IDL. The original
- * IDL can be found at `target/idl/access_control.json`.
- */
-export type AccessControl = {
+{
   "address": "4X79YRjz9KNMhdjdxXg2ZNTS3YnMGYdwJkBHnezMJwr3",
   "metadata": {
-    "name": "accessControl",
+    "name": "access_control",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Access Control for Solana Programs"
   },
   "instructions": [
     {
-      "name": "burnSecurities",
+      "name": "burn_securities",
       "discriminator": [
         79,
         165,
@@ -31,7 +25,7 @@ export type AccessControl = {
           "signer": true
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "pda": {
             "seeds": [
               {
@@ -52,7 +46,7 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               },
               {
                 "kind": "account",
@@ -62,7 +56,7 @@ export type AccessControl = {
           }
         },
         {
-          "name": "accessControl",
+          "name": "access_control",
           "pda": {
             "seeds": [
               {
@@ -74,31 +68,31 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ]
           }
         },
         {
-          "name": "securityMint",
+          "name": "security_mint",
           "writable": true
         },
         {
-          "name": "targetAccount",
+          "name": "target_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "targetAuthority"
+                "path": "target_authority"
               },
               {
                 "kind": "account",
-                "path": "tokenProgram"
+                "path": "token_program"
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ],
             "program": {
@@ -141,10 +135,10 @@ export type AccessControl = {
           }
         },
         {
-          "name": "targetAuthority"
+          "name": "target_authority"
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
@@ -156,7 +150,7 @@ export type AccessControl = {
       ]
     },
     {
-      "name": "forceTransferBetween",
+      "name": "force_transfer_between",
       "discriminator": [
         186,
         115,
@@ -169,21 +163,21 @@ export type AccessControl = {
       ],
       "accounts": [
         {
-          "name": "sourceAccount",
+          "name": "source_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "sourceAuthority"
+                "path": "source_authority"
               },
               {
                 "kind": "account",
-                "path": "tokenProgram"
+                "path": "token_program"
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ],
             "program": {
@@ -226,25 +220,25 @@ export type AccessControl = {
           }
         },
         {
-          "name": "securityMint",
+          "name": "security_mint",
           "writable": true
         },
         {
-          "name": "destinationAccount",
+          "name": "destination_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "destinationAuthority"
+                "path": "destination_authority"
               },
               {
                 "kind": "account",
-                "path": "tokenProgram"
+                "path": "token_program"
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ],
             "program": {
@@ -291,7 +285,7 @@ export type AccessControl = {
           "signer": true
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "pda": {
             "seeds": [
               {
@@ -312,7 +306,7 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               },
               {
                 "kind": "account",
@@ -322,7 +316,7 @@ export type AccessControl = {
           }
         },
         {
-          "name": "accessControlAccount",
+          "name": "access_control_account",
           "pda": {
             "seeds": [
               {
@@ -334,19 +328,19 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ]
           }
         },
         {
-          "name": "sourceAuthority"
+          "name": "source_authority"
         },
         {
-          "name": "destinationAuthority"
+          "name": "destination_authority"
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
@@ -358,7 +352,7 @@ export type AccessControl = {
       ]
     },
     {
-      "name": "freezeWallet",
+      "name": "freeze_wallet",
       "discriminator": [
         93,
         202,
@@ -375,7 +369,7 @@ export type AccessControl = {
           "signer": true
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "pda": {
             "seeds": [
               {
@@ -396,7 +390,7 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               },
               {
                 "kind": "account",
@@ -406,7 +400,7 @@ export type AccessControl = {
           }
         },
         {
-          "name": "accessControl",
+          "name": "access_control",
           "pda": {
             "seeds": [
               {
@@ -418,31 +412,31 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ]
           }
         },
         {
-          "name": "securityMint",
+          "name": "security_mint",
           "writable": true
         },
         {
-          "name": "targetAccount",
+          "name": "target_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "targetAuthority"
+                "path": "target_authority"
               },
               {
                 "kind": "account",
-                "path": "tokenProgram"
+                "path": "token_program"
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ],
             "program": {
@@ -485,17 +479,17 @@ export type AccessControl = {
           }
         },
         {
-          "name": "targetAuthority"
+          "name": "target_authority"
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": []
     },
     {
-      "name": "initializeAccessControl",
+      "name": "initialize_access_control",
       "discriminator": [
         244,
         90,
@@ -521,7 +515,7 @@ export type AccessControl = {
           "signer": true
         },
         {
-          "name": "accessControl",
+          "name": "access_control",
           "writable": true,
           "pda": {
             "seeds": [
@@ -540,7 +534,7 @@ export type AccessControl = {
           }
         },
         {
-          "name": "walletRole",
+          "name": "wallet_role",
           "writable": true,
           "pda": {
             "seeds": [
@@ -572,11 +566,11 @@ export type AccessControl = {
           }
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
@@ -585,14 +579,14 @@ export type AccessControl = {
           "name": "args",
           "type": {
             "defined": {
-              "name": "initializeAccessControlArgs"
+              "name": "InitializeAccessControlArgs"
             }
           }
         }
       ]
     },
     {
-      "name": "initializeWalletRole",
+      "name": "initialize_wallet_role",
       "discriminator": [
         218,
         166,
@@ -605,7 +599,7 @@ export type AccessControl = {
       ],
       "accounts": [
         {
-          "name": "walletRole",
+          "name": "wallet_role",
           "writable": true,
           "pda": {
             "seeds": [
@@ -627,17 +621,17 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               },
               {
                 "kind": "account",
-                "path": "userWallet"
+                "path": "user_wallet"
               }
             ]
           }
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "pda": {
             "seeds": [
               {
@@ -658,7 +652,7 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               },
               {
                 "kind": "account",
@@ -668,7 +662,7 @@ export type AccessControl = {
           }
         },
         {
-          "name": "accessControl",
+          "name": "access_control",
           "pda": {
             "seeds": [
               {
@@ -680,16 +674,16 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               }
             ]
           }
         },
         {
-          "name": "securityToken"
+          "name": "security_token"
         },
         {
-          "name": "userWallet"
+          "name": "user_wallet"
         },
         {
           "name": "payer",
@@ -697,7 +691,7 @@ export type AccessControl = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -709,7 +703,7 @@ export type AccessControl = {
       ]
     },
     {
-      "name": "mintSecurities",
+      "name": "mint_securities",
       "discriminator": [
         90,
         195,
@@ -726,7 +720,7 @@ export type AccessControl = {
           "signer": true
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "pda": {
             "seeds": [
               {
@@ -747,7 +741,7 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               },
               {
                 "kind": "account",
@@ -757,7 +751,7 @@ export type AccessControl = {
           }
         },
         {
-          "name": "accessControl",
+          "name": "access_control",
           "pda": {
             "seeds": [
               {
@@ -769,31 +763,31 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ]
           }
         },
         {
-          "name": "securityMint",
+          "name": "security_mint",
           "writable": true
         },
         {
-          "name": "destinationAccount",
+          "name": "destination_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "destinationAuthority"
+                "path": "destination_authority"
               },
               {
                 "kind": "account",
-                "path": "tokenProgram"
+                "path": "token_program"
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ],
             "program": {
@@ -836,10 +830,10 @@ export type AccessControl = {
           }
         },
         {
-          "name": "destinationAuthority"
+          "name": "destination_authority"
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
@@ -851,7 +845,7 @@ export type AccessControl = {
       ]
     },
     {
-      "name": "thawWallet",
+      "name": "thaw_wallet",
       "discriminator": [
         79,
         251,
@@ -868,7 +862,7 @@ export type AccessControl = {
           "signer": true
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "pda": {
             "seeds": [
               {
@@ -889,7 +883,7 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               },
               {
                 "kind": "account",
@@ -899,7 +893,7 @@ export type AccessControl = {
           }
         },
         {
-          "name": "accessControl",
+          "name": "access_control",
           "pda": {
             "seeds": [
               {
@@ -911,31 +905,31 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ]
           }
         },
         {
-          "name": "securityMint",
+          "name": "security_mint",
           "writable": true
         },
         {
-          "name": "targetAccount",
+          "name": "target_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "targetAuthority"
+                "path": "target_authority"
               },
               {
                 "kind": "account",
-                "path": "tokenProgram"
+                "path": "token_program"
               },
               {
                 "kind": "account",
-                "path": "securityMint"
+                "path": "security_mint"
               }
             ],
             "program": {
@@ -978,17 +972,17 @@ export type AccessControl = {
           }
         },
         {
-          "name": "targetAuthority"
+          "name": "target_authority"
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": []
     },
     {
-      "name": "updateWalletRole",
+      "name": "update_wallet_role",
       "discriminator": [
         1,
         63,
@@ -1001,7 +995,7 @@ export type AccessControl = {
       ],
       "accounts": [
         {
-          "name": "walletRole",
+          "name": "wallet_role",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1023,17 +1017,17 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               },
               {
                 "kind": "account",
-                "path": "userWallet"
+                "path": "user_wallet"
               }
             ]
           }
         },
         {
-          "name": "authorityWalletRole",
+          "name": "authority_wallet_role",
           "pda": {
             "seeds": [
               {
@@ -1054,7 +1048,7 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               },
               {
                 "kind": "account",
@@ -1064,7 +1058,7 @@ export type AccessControl = {
           }
         },
         {
-          "name": "accessControl",
+          "name": "access_control",
           "pda": {
             "seeds": [
               {
@@ -1076,16 +1070,16 @@ export type AccessControl = {
               },
               {
                 "kind": "account",
-                "path": "securityToken"
+                "path": "security_token"
               }
             ]
           }
         },
         {
-          "name": "securityToken"
+          "name": "security_token"
         },
         {
-          "name": "userWallet"
+          "name": "user_wallet"
         },
         {
           "name": "payer",
@@ -1093,7 +1087,7 @@ export type AccessControl = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -1107,7 +1101,7 @@ export type AccessControl = {
   ],
   "accounts": [
     {
-      "name": "accessControl",
+      "name": "AccessControl",
       "discriminator": [
         147,
         81,
@@ -1120,7 +1114,7 @@ export type AccessControl = {
       ]
     },
     {
-      "name": "walletRole",
+      "name": "WalletRole",
       "discriminator": [
         219,
         71,
@@ -1136,23 +1130,23 @@ export type AccessControl = {
   "errors": [
     {
       "code": 6000,
-      "name": "unauthorized",
-      "msg": "unauthorized"
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
     },
     {
       "code": 6001,
-      "name": "invalidRole",
+      "name": "InvalidRole",
       "msg": "Invalid role"
     },
     {
       "code": 6002,
-      "name": "mintExceedsMaxTotalSupply",
+      "name": "MintExceedsMaxTotalSupply",
       "msg": "Cannot mint more than max total supply"
     }
   ],
   "types": [
     {
-      "name": "accessControl",
+      "name": "AccessControl",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1165,14 +1159,14 @@ export type AccessControl = {
             "type": "pubkey"
           },
           {
-            "name": "maxTotalSupply",
+            "name": "max_total_supply",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "initializeAccessControlArgs",
+      "name": "InitializeAccessControlArgs",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1193,18 +1187,18 @@ export type AccessControl = {
             "type": "string"
           },
           {
-            "name": "hookProgramId",
+            "name": "hook_program_id",
             "type": "pubkey"
           },
           {
-            "name": "maxTotalSupply",
+            "name": "max_total_supply",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "walletRole",
+      "name": "WalletRole",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1213,7 +1207,7 @@ export type AccessControl = {
             "type": "pubkey"
           },
           {
-            "name": "accessControl",
+            "name": "access_control",
             "type": "pubkey"
           },
           {
@@ -1224,4 +1218,4 @@ export type AccessControl = {
       }
     }
   ]
-};
+}

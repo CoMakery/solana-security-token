@@ -17,6 +17,7 @@ describe("Revoke security associated account", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 10,
+    maxTotalSupply: 100_000_000_000_000,
   };
   let testEnvironment: TestEnvironment;
   const groupId = new anchor.BN(1);

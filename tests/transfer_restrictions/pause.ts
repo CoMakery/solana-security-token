@@ -27,6 +27,7 @@ describe("Pause transfers", () => {
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 3,
+    maxTotalSupply: 100_000_000_000_000,
   };
   let testEnvironment: TestEnvironment;
 
