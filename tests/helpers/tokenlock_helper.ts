@@ -540,7 +540,8 @@ export async function mintReleaseSchedule(
   authorityWalletRolePubkey: PublicKey,
   accessControlPubkey: PublicKey,
   mintPubkey: PublicKey,
-  accessControlProgramId: PublicKey
+  accessControlProgramId: PublicKey,
+  commitment: Commitment = "confirmed"
 ): Promise<number | string> {
   const timelockAccount = getTimelockAccount(
     program.programId,
@@ -603,7 +604,8 @@ export async function mintReleaseSchedule(
       new Transaction().add(
         ...[modifyComputeUnitsInstruction, mintReleaseScheduleInstruction]
       ),
-      [signer]
+      [signer],
+      { commitment }
     );
 
     const account = await program.account.timelockData.fetch(timelockAccount);
