@@ -540,8 +540,7 @@ export async function mintReleaseSchedule(
   authorityWalletRolePubkey: PublicKey,
   accessControlPubkey: PublicKey,
   mintPubkey: PublicKey,
-  accessControlProgramId: PublicKey,
-  commitment: Commitment = "confirmed"
+  accessControlProgramId: PublicKey
 ): Promise<number | string> {
   const timelockAccount = getTimelockAccount(
     program.programId,
@@ -605,7 +604,7 @@ export async function mintReleaseSchedule(
         ...[modifyComputeUnitsInstruction, mintReleaseScheduleInstruction]
       ),
       [signer],
-      { commitment }
+      { commitment: "confirmed" }
     );
 
     const account = await program.account.timelockData.fetch(timelockAccount);
@@ -858,7 +857,12 @@ export async function batchMintReleaseSchedule(
   let result: string;
 
   try {
-    await sendAndConfirmTransaction(program.provider.connection, trx, [signer]);
+    await sendAndConfirmTransaction(
+      program.provider.connection,
+      trx,
+      [signer],
+      { commitment: "confirmed" }
+    );
     result = "ok";
   } catch (e) {
     if (!e.error || !e.logs) {
