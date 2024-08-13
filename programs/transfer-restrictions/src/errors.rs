@@ -38,4 +38,10 @@ pub enum TransferRestrictionsError {
     NoWalletsInGroup,
     #[msg("New group is the same as the current group")]
     NewGroupIsTheSameAsTheCurrentGroup,
+    #[msg("New holder max must exceed current holder count")]
+    NewHolderMaxMustExceedCurrentHolderCount,
+    #[msg("New holder group max must exceed current holder group count")]
+    NewHolderGroupMaxMustExceedCurrentHolderGroupCount,
+    #[msg("Zero group holder group max cannot be non-zero")]
+    ZeroGroupHolderGroupMaxCannotBeNonZero,
 }

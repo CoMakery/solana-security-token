@@ -2039,6 +2039,21 @@
       "code": 6017,
       "name": "NewGroupIsTheSameAsTheCurrentGroup",
       "msg": "New group is the same as the current group"
+    },
+    {
+      "code": 6018,
+      "name": "NewHolderMaxMustExceedCurrentHolderCount",
+      "msg": "New holder max must exceed current holder count"
+    },
+    {
+      "code": 6019,
+      "name": "NewHolderGroupMaxMustExceedCurrentHolderGroupCount",
+      "msg": "New holder group max must exceed current holder group count"
+    },
+    {
+      "code": 6020,
+      "name": "ZeroGroupHolderGroupMaxCannotBeNonZero",
+      "msg": "Zero group holder group max cannot be non-zero"
     }
   ],
   "types": [

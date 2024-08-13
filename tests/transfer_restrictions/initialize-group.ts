@@ -177,7 +177,7 @@ describe("Initialize transfer restriction Group", () => {
     );
     assert.equal(group.id.toNumber(), groupIdx.toNumber());
     assert.equal(group.currentHoldersCount.toNumber(), 0);
-    assert.equal(group.maxHolders.toNumber(), testEnvironmentParams.maxHolders);
+    assert.equal(group.maxHolders.toNumber(), 0);
     assert.equal(
       group.transferRestrictionData.toString(),
       testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toString()
