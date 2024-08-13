@@ -349,7 +349,8 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | setHolderGroupMax()        | no             | no            | **yes**        | no            |
 | fundDividend()             | no             | no            | **yes**        | no            |
 | initilizeTransferRule()    | no             | no            | **yes**        | **yes**       |
-| freeze()                   | no             | no            | **yes**        | **yes**       |
+| freezeWallet()             | no             | no            | **yes**        | **yes**       |
+| thawWallet()               | no             | no            | **yes**        | **yes**       |
 | setTransferGroup()         | no             | no            | **yes**        | **yes**       |
 | createHolderFromAddress()  | no             | no            | **yes**        | **yes**       |
 | appendHolderAddress()      | no             | no            | **yes**        | **yes**       |
@@ -478,6 +479,12 @@ sequenceDiagram
 
 Note that there are no transfers initially authorized between groups. By default no transfers are allowed between groups - all transfer groups are restricted.
 
+## Lockup Periods
+
+Lockup periods are enforced via:
+
+- `initializeTrnasferRule(fromGroup, toGroup, unixTimestamp)` or `setAllowTransferRule(fromGroup, toGroup, unixTimestamp)` allows transfers from one Transfer Group to another after the unixTimestamp. If the unixTimestamp is 0, then no transfer is allowed. 
+
 ## Maximum Number of Holders Allowed
 
 By default Transfer Groups cannot receive token transfers. To receive tokens the issuer gathers AML/KYC information and then calls `initializeSecurityAssociatedAccount()`.
@@ -506,6 +513,23 @@ Usualy used with `initializeTransferRestricitionHolder` and `initializeHolderGro
 ## `initialializeTransferRule`
 
 `initilizeTransferRule` is used to create new transfer rule for 2 specified groups where `..groupFrom` for senders and `..groupTo` for reveivers
+
+## Timelock Cancellations and Transfers
+
+In order to skip enforcement of transfer restrictions for tokenlock contract escrow account we can call `setLockupEscrowAccount(escrowAddress)`.
+If we do not do that Escrow address will be processed as usual investor account which enforces additional transfer restrictions on cancelTimelock (escrow -> reclaimer and escrow -> timelock recipient) and transferTimelock (escrow -> recipient)
+
+### Cancel Timelock
+
+In the case of cancellations, the transfer restrictions must be enabled between the initial target recipient and the reclaimTo address designated by the canceler.
+
+Timelocks can be configured to be cancelled by a specific canceler address. This canceler can designate a separate reclaim address to receive the locked token portion of the remaining timelock, pending allowed group transfers as described above. The remaining unlocked portion will be transferred directly to the initial target recipient of the original vesting.
+
+### Transfer Timelock
+
+For unlocked tokens within a timelock, the initial target recipient can choose to transfer unlocked tokens directly to another recipient. This is a convenience atop the typical transfer method. 
+
+In the case of a timelock transfer, the initial target recipient must also be in a group able to transfer tokens to the new recipient.
 
 ## Example Transfer Restrictions
 
@@ -559,6 +583,170 @@ Although this is not in the spirit of a cryptocurrency, it is available as a res
 In the case of lost keys with sufficient legal reason to be returned to their owner, the issuer can call `freezeWallet()`, `burnSecurities()`, and `mintSecurities()` to transfer the assets to the appropriate account. This opens the issuer up to potential cases of fraud. Handle with care.
 
 Once again, although this is not in the spirit of a cryptocurrency, it is available as a response to requirements that some regulators impose on blockchain security token projects.
+
+# Lockup
+
+A "vesting" smart contract that can implement token lockup with scheduled release and distribution:
+
+- Can enforce a scheduled release of tokens (e.g. investment lockups)
+- Smart contract enforced lockup schedules are used to control the circulating supply and can be an important part of tokenomics.
+- Some lockups are cancelable - such as employee vestings. When canceled, unlocked tokens remain in the recipients account address and locked tokens are returned to an address specified by the administrator that has an appropriate transfer group to receive the tokens.
+
+Note that tokens in lockups cannot be burned by admins to avoid significant complexity.
+
+## mintReleaseSchedule
+
+Release schedules can be only minted directly to timelock by the Reserve Admin. In this case, as it is akin to token minting, it does not have to adhere to transfer restrictions, and is purely under the discretion of the Reserve Admin. 
+
+This is described in `mint_release_schedule.rs`.
+
+## Vesting Schedule Creation & Timelock Funding
+
+Vesting schedules are created independently of any specific timelock. Timelocks reference schedules to control the release of funds for a recipient starting on a specific commencement date.
+
+### Vesting Schedule Creation Code
+
+A vesting schedule can be created with a call to the Solana program like this.
+
+**Solana Web3 JS call:**
+```typescript
+await program.methods
+  .createReleaseSchedule(
+    uuid,
+    releaseCount,
+    new anchor.BN(delayUntilFirstReleaseInSeconds),
+    initialReleasePortionInBips,
+    new anchor.BN(periodBetweenReleasesInSeconds),
+  )
+  .accountsStrict({
+    tokenlockAccount: tokenlockDataPubkey,
+    authority: signer.publicKey,
+    authorityWalletRole: authorityWalletRolePubkey,
+    accessControl: accessControlPubkey,
+  })
+  .signers([signer])
+  .rpc({ commitment });
+```
+
+### Timelock Cancelation
+
+Timelocks can be cancelable (like stock vesting plans) or non-cancelable (like investor lockups).
+
+**Solana Web3 JS call:**
+```typescript
+const cancelTimelockInstruction = program.instruction.cancelTimelock(
+  timelockId,
+  {
+    accounts: {
+      tokenlockAccount: tokenlockDataPubkey,
+      timelockAccount,
+      escrowAccount: escrowAccount,
+      pdaAccount: escrowOwnerPubkey,
+      target,
+      targetAssoc,
+      authority: signer.publicKey,
+      reclaimer: reclaimerTokenAccountPubkey,
+      mintAddress: mintPubkey,
+      tokenProgram: TOKEN_2022_PROGRAM_ID,
+      transferRestrictionsProgram:
+        transferRestrictionsProgram.programId,
+      securityAssociatedAccountFrom,
+      securityAssociatedAccountTo,
+      transferRule: transferRulePubkey,
+    },
+    signers: [signer],
+  }
+);
+
+// Due to the nature of transfer hooks we are required to add extra account metas for each inner transfer of `cancelTimelock` instruction.
+await addExtraAccountMetasForExecute(
+  connection,
+  cancelTimelockInstruction,
+  transferHook.programId,
+  escrowAccount,
+  mintPubkey,
+  reclaimerTokenAccountPubkey,
+  escrowOwnerPubkey,
+  anyAmount,
+);
+await addExtraAccountMetasForExecute(
+  connection,
+  cancelTimelockInstruction,
+  transferHook.programId,
+  escrowAccount,
+  mintPubkey,
+  targetAssoc,
+  escrowOwnerPubkey,
+  anyAmount,
+);
+
+// increase compute units in order to cover all load during instruction execution
+const modifyComputeUnitsInstruction =
+  ComputeBudgetProgram.setComputeUnitLimit({
+    units: 400000,
+  });
+
+await sendAndConfirmTransaction(
+  connection,
+  new Transaction().add(
+    ...[modifyComputeUnitsInstruction, cancelTimelockInstruction]
+  ),
+  [signer],
+  { commitment }
+);
+```
+
+### Transfers
+
+**Transfer unlocked balances from all timelocks**
+
+Called by the recipient.
+```typescript
+const transferInstruction = program.instruction.transfer(new anchor.BN(amount), {
+  accounts: {
+    tokenlockAccount,
+    timelockAccount,
+    escrowAccount,
+    pdaAccount: escrowOwnerPubkey,
+    authority: signer.publicKey,
+    to: recipientAccount,
+    mintAddress: mintPubkey,
+    tokenProgram: TOKEN_2022_PROGRAM_ID,
+    transferRestrictionsProgram: transferRestrictionsHelper.program.programId,
+    authorityAccount,
+    securityAssociatedAccountFrom,
+    securityAssociatedAccountTo,
+    transferRule: transferRulePubkey,
+  },
+  signers: [signer],
+});
+
+// it is required to add transfer hook information for inner transaction (for transferFrom as well)
+await addExtraAccountMetasForExecute(
+    connection,
+    transferInstruction,
+    transferHookProgramId,
+    escrowAccount,
+    mintPubkey,
+    recipientAccount,
+    escrowOwnerPubkey,
+    BigInt(amount),
+    commitment
+  );
+
+// increase compute units in order to cover all load during instruction execution
+const modifyComputeUnitsInstruction =
+  ComputeBudgetProgram.setComputeUnitLimit({
+    units: 400000,
+  });
+
+return sendAndConfirmTransaction(
+  connection,
+  new Transaction().add(modifyComputeUnitsInstruction, transferInstruction),
+  [signer],
+  { commitment: "confirmed" }
+);
+```
 
 # Access Control
 
@@ -676,6 +864,7 @@ After smart contract deployment, there are certain configurations to complete be
     The Transfer Admin can then set the group of the PDA address itself. 
 
     It is important that group transfers are allowed between PDA and recipients. This is necessary to take into account during integration Security Token with your Program. 
+    Tokenlockup program escrow account must be whitelisted with `setLockupEscrowAccount()` 
 
 ```mermaid
 sequenceDiagram
@@ -700,4 +889,13 @@ To enable transfers between wallets, ensure that:
 - these transfer groups have approved transfer restrictions (ie invoking `initializeTransferRule`)
 - sender has available tokens to be transferred
 
-Note that `balance` property of AssociatedTokenAccount typically used by wallet providers (ie Phantom) will display wallet balance that includes the amount of simple tokens. Any locked, staked tokens are held by related Smart Contracts.
+Note that `balance` property of AssociatedTokenAccount typically used by wallet providers (ie Phantom) will display wallet balance that includes the amount of simple tokens. Any locked, staked tokens are held by related Tokenlockup program escrow account.
+
+## Program Deploy and Upgrade 
+
+The programs deployed are not immutable until they are marked as "final" (i.e., not upgradeable) on the Solana blockchain by the admin team. The upgrade authority has super power to change program.
+In order to deploy not upgradable program use an option `--final` to use [BPFLoader2](https://explorer.solana.com/address/BPFLoader2111111111111111111111111111111111) at the deployment time (when --final is provided and the program will not be upgradeable).
+If any changes are required to the finalized program (features, patches, etc…) the new program must be deployed to a new program ID.
+To verify that program is not upgradable can be done on https://explorer.solana.com/ by checking Upgradeable property or not belong to *Owner: BPFLoaderUpgradeab1e11111111111111111111111U*
+
+Otherwise program ownership, upgrades and changes must be shared with users. 
