@@ -8,4 +8,12 @@ pub enum AccessControlError {
     InvalidRole,
     #[msg("Cannot mint more than max total supply")]
     MintExceedsMaxTotalSupply,
+    #[msg("Wrong tokenlock account")]
+    IncorrectTokenlockAccount,
+    #[msg("Mismatched escrow account")]
+    MisMatchedEscrow,
+    #[msg("Cannot burn securities within lockup; cancel the lockup first")]
+    CantBurnSecuritiesWithinLockup,
+    #[msg("Cannot force transfer between lockup accounts")]
+    CantForceTransferBetweenLockup,
 }

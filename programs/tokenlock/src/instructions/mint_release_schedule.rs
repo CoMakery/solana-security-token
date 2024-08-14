@@ -6,10 +6,12 @@ use anchor_lang::{prelude::*, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
 use anchor_lang::solana_program::program_memory::{sol_memcmp, sol_memcpy};
 
-use crate::TOKENLOCK_PDA_SEED;
-use crate::{
-    common::PUBKEY_SIZE, utils, Timelock, TimelockData, TokenLockData, TokenLockDataWrapper,
-    TokenlockErrors,
+use crate::error::TokenlockErrors;
+use crate::{TOKENLOCK_PDA_SEED, utils};
+use tokenlock_accounts::{
+    states::{TimelockData, TokenLockData, Timelock},
+    wrappers::TokenLockDataWrapper,
+    common::PUBKEY_SIZE
 };
 
 #[derive(Accounts)]

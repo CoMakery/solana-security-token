@@ -21,6 +21,7 @@ dependencies = [
  "num_enum 0.7.2",
  "spl-tlv-account-resolution 0.6.3",
  "spl-transfer-hook-interface 0.6.3",
+ "tokenlock-accounts",
 ]
 
 [[package]]
@@ -5754,7 +5755,15 @@ dependencies = [
  "solana-program-test",
  "solana-sdk",
  "spl-token-2022 3.0.2",
+ "tokenlock-accounts",
  "transfer-restrictions",
+]
+
+[[package]]
+name = "tokenlock-accounts"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
 ]
 
 [[package]]
@@ -6005,6 +6014,7 @@ dependencies = [
  "num_enum 0.7.2",
  "spl-tlv-account-resolution 0.6.3",
  "spl-transfer-hook-interface 0.6.3",
+ "tokenlock-accounts",
 ]
 
 [[package]]

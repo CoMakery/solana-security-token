@@ -15,6 +15,14 @@ pub fn force_transfer_beetween<'info>(
         return Err(AccessControlError::Unauthorized.into());
     }
 
+    if ctx.accounts.access_control_account.lockup_escrow_account
+        == Some(ctx.accounts.source_account.key())
+        || ctx.accounts.access_control_account.lockup_escrow_account
+            == Some(ctx.accounts.destination_account.key())
+    {
+        return Err(AccessControlError::CantForceTransferBetweenLockup.into());
+    }
+
     let mint = ctx.accounts.security_mint.to_account_info();
     let (_pda, bump_seed) =
         Pubkey::find_program_address(&[ACCESS_CONTROL_SEED, mint.key.as_ref()], ctx.program_id);

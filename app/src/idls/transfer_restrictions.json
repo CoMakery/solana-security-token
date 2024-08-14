@@ -2073,6 +2073,12 @@
           {
             "name": "max_total_supply",
             "type": "u64"
+          },
+          {
+            "name": "lockup_escrow_account",
+            "type": {
+              "option": "pubkey"
+            }
           }
         ]
       }

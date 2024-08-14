@@ -4,14 +4,13 @@ use anchor_spl::{
     token_2022::{self, ID as TOKEN_2022_PROGRAM_ID},
     token_interface::{Mint, TokenAccount},
 };
-use std::str::FromStr;
 
 use crate::{
     common::DISCRIMINATOR_LEN, SecurityAssociatedAccount, TransferRestrictionData,
     SECURITY_ASSOCIATED_ACCOUNT_PREFIX, TRANSFER_RESTRICTION_DATA_PREFIX,
 };
 
-const TOKENLOCK_ID: &str = "7CN3iHcRimZRa97M38cyMQAF68ecQYDqHfCUgBeSARG2";
+
 #[derive(Accounts)]
 pub struct SetLockupEscrowAccount<'info> {
     #[account(mut,
@@ -56,7 +55,7 @@ pub struct SetLockupEscrowAccount<'info> {
     pub escrow_account: Box<InterfaceAccount<'info, TokenAccount>>,
     /// CHECK: implemented own serialization in order to save compute units
     #[account(
-        constraint = *tokenlock_account.owner == Pubkey::from_str(TOKENLOCK_ID).unwrap(),
+        constraint = *tokenlock_account.owner == tokenlock_accounts::ID,
     )]
     pub tokenlock_account: AccountInfo<'info>,
     #[account(mut)]

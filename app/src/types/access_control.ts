@@ -695,6 +695,46 @@ export type AccessControl = {
       ];
     },
     {
+      name: "setLockupEscrowAccount";
+      discriminator: [134, 172, 249, 223, 25, 118, 55, 93];
+      accounts: [
+        {
+          name: "accessControlAccount";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [97, 99];
+              },
+              {
+                kind: "account";
+                path: "mint";
+              }
+            ];
+          };
+        },
+        {
+          name: "mint";
+        },
+        {
+          name: "authorityWalletRole";
+        },
+        {
+          name: "escrowAccount";
+        },
+        {
+          name: "tokenlockAccount";
+        },
+        {
+          name: "payer";
+          writable: true;
+          signer: true;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "thawWallet";
       discriminator: [79, 251, 128, 221, 55, 172, 181, 221];
       accounts: [
@@ -914,6 +954,26 @@ export type AccessControl = {
       code: 6002;
       name: "mintExceedsMaxTotalSupply";
       msg: "Cannot mint more than max total supply";
+    },
+    {
+      code: 6003;
+      name: "incorrectTokenlockAccount";
+      msg: "Wrong tokenlock account";
+    },
+    {
+      code: 6004;
+      name: "misMatchedEscrow";
+      msg: "Mismatched escrow account";
+    },
+    {
+      code: 6005;
+      name: "cantBurnSecuritiesWithinLockup";
+      msg: "Cannot burn securities within lockup; cancel the lockup first";
+    },
+    {
+      code: 6006;
+      name: "cantForceTransferBetweenLockup";
+      msg: "Cannot force transfer between lockup accounts";
     }
   ];
   types: [
@@ -933,6 +993,12 @@ export type AccessControl = {
           {
             name: "maxTotalSupply";
             type: "u64";
+          },
+          {
+            name: "lockupEscrowAccount";
+            type: {
+              option: "pubkey";
+            };
           }
         ];
       };

@@ -3,8 +3,11 @@ use access_control::{
 };
 use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcmp, Discriminator};
 
-use crate::{
-    utils, ReleaseSchedule, TimelockData, TokenLockData, TokenLockDataWrapper, TokenlockErrors,
+use crate::{error::TokenlockErrors, utils};
+
+use tokenlock_accounts::{
+    states::{ReleaseSchedule, TimelockData, TokenLockData},
+    wrappers::TokenLockDataWrapper,
 };
 
 #[derive(Accounts, Clone)]

@@ -12,6 +12,11 @@ pub fn burn_securities(ctx: Context<BurnSecurities>, amount: u64) -> Result<()> 
         return Err(AccessControlError::Unauthorized.into());
     }
 
+    if ctx.accounts.access_control.lockup_escrow_account == Some(ctx.accounts.target_account.key())
+    {
+        return Err(AccessControlError::CantBurnSecuritiesWithinLockup.into());
+    }
+
     let mint = ctx.accounts.security_mint.to_account_info();
     let accounts = Burn {
         mint: mint.clone(),

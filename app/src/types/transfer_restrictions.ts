@@ -1689,6 +1689,12 @@ export type TransferRestrictions = {
           {
             name: "maxTotalSupply";
             type: "u64";
+          },
+          {
+            name: "lockupEscrowAccount";
+            type: {
+              option: "pubkey";
+            };
           }
         ];
       };

@@ -1,10 +1,13 @@
 use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcmp, Discriminator};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
+use tokenlock_accounts::{
+    states::{TimelockData, TokenLockData},
+    wrappers::TokenLockDataWrapper,
+};
 use transfer_restrictions::program::TransferRestrictions;
 
 use crate::{
-    enforce_transfer_restrictions_cpi, transfer_spl_from_escrow, utils, TimelockData,
-    TokenLockData, TokenLockDataWrapper, TokenlockErrors,
+    enforce_transfer_restrictions_cpi, error::TokenlockErrors, transfer_spl_from_escrow, utils,
 };
 
 #[derive(Accounts)]
