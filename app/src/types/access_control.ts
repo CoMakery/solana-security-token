@@ -962,7 +962,7 @@ export type AccessControl = {
     },
     {
       code: 6004;
-      name: "misMatchedEscrow";
+      name: "mismatchedEscrowAccount";
       msg: "Mismatched escrow account";
     },
     {

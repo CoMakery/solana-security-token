@@ -88,13 +88,10 @@ describe("Set lockup escrow account", () => {
 
   it("fails to set lockup escrow account by reserve admin", async () => {
     const signer = testEnvironment.reserveAdmin;
-    const [authorityWalletRolePubkey] =
-      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     try {
-      await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+      await testEnvironment.accessControlHelper.setLockupEscrowAccount(
         escrowAccount,
         tokenlockDataPubkey,
-        authorityWalletRolePubkey,
         signer
       );
       assert.fail("Expect an error");
@@ -106,13 +103,10 @@ describe("Set lockup escrow account", () => {
 
   it("fails to set lockup escrow account by transfer admin", async () => {
     const signer = testEnvironment.transferAdmin;
-    const [authorityWalletRolePubkey] =
-      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     try {
-      await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+      await testEnvironment.accessControlHelper.setLockupEscrowAccount(
         escrowAccount,
         tokenlockDataPubkey,
-        authorityWalletRolePubkey,
         signer
       );
       assert.fail("Expect an error");
@@ -124,13 +118,10 @@ describe("Set lockup escrow account", () => {
 
   it("fails to set lockup escrow account by wallets admin", async () => {
     const signer = testEnvironment.walletsAdmin;
-    const [authorityWalletRolePubkey] =
-      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     try {
-      await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+      await testEnvironment.accessControlHelper.setLockupEscrowAccount(
         escrowAccount,
         tokenlockDataPubkey,
-        authorityWalletRolePubkey,
         signer
       );
       assert.fail("Expect an error");
@@ -142,8 +133,6 @@ describe("Set lockup escrow account", () => {
 
   it("fails to set lockup escrow account differ from tokenlock data", async () => {
     const signer = testEnvironment.contractAdmin;
-    const [authorityWalletRolePubkey] =
-      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const [escrowOwnerReplacedPubkey] =
       anchor.web3.PublicKey.findProgramAddressSync(
         [
@@ -161,10 +150,9 @@ describe("Set lockup escrow account", () => {
       );
 
     try {
-      await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+      await testEnvironment.accessControlHelper.setLockupEscrowAccount(
         escrowReplacedAccount,
         tokenlockDataPubkey,
-        authorityWalletRolePubkey,
         signer
       );
       assert.fail("Expect an error");
@@ -187,14 +175,11 @@ describe("Set lockup escrow account", () => {
       )[0],
       testEnvironment.reserveAdmin
     );
-    const [authorityWalletRolePubkey] =
-      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
 
     try {
-      await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+      await testEnvironment.accessControlHelper.setLockupEscrowAccount(
         escrowAccount,
         timelockAccount,
-        authorityWalletRolePubkey,
         signer
       );
       assert.fail("Expect an error");
@@ -206,20 +191,17 @@ describe("Set lockup escrow account", () => {
 
   it("sets lockup escrow account by contract admin", async () => {
     const signer = testEnvironment.contractAdmin;
-    const [authorityWalletRolePubkey] =
-      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const { lockupEscrowAccount } =
-      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+      await testEnvironment.accessControlHelper.accessControlData();
     assert.equal(lockupEscrowAccount, null);
 
-    await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+    await testEnvironment.accessControlHelper.setLockupEscrowAccount(
       escrowAccount,
       tokenlockDataPubkey,
-      authorityWalletRolePubkey,
       signer
     );
     const { lockupEscrowAccount: lockupEscrowAccountAfter } =
-      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+      await testEnvironment.accessControlHelper.accessControlData();
     assert.equal(lockupEscrowAccountAfter.toString(), escrowAccount.toString());
   });
 });

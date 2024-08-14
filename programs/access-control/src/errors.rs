@@ -11,7 +11,7 @@ pub enum AccessControlError {
     #[msg("Wrong tokenlock account")]
     IncorrectTokenlockAccount,
     #[msg("Mismatched escrow account")]
-    MisMatchedEscrow,
+    MismatchedEscrowAccount,
     #[msg("Cannot burn securities within lockup; cancel the lockup first")]
     CantBurnSecuritiesWithinLockup,
     #[msg("Cannot force transfer between lockup accounts")]

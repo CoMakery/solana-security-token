@@ -1608,8 +1608,8 @@ export type TransferRestrictions = {
     },
     {
       code: 6008;
-      name: "escrowAccountsMismatch";
-      msg: "Escrow accounts mismatch";
+      name: "mismatchedEscrowAccount";
+      msg: "Mismatched escrow account";
     },
     {
       code: 6009;

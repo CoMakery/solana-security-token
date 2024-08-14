@@ -21,7 +21,7 @@ pub fn set_lockup_escrow_account(ctx: Context<SetLockupEscrowAccount>) -> Result
     }
     let escrow_account = TokenLockDataWrapper::escrow_account(&tokenlock_account_data);
     if escrow_account != *ctx.accounts.escrow_account.to_account_info().key {
-        return Err(TransferRestrictionsError::EscrowAccountsMismatch.into());
+        return Err(TransferRestrictionsError::MismatchedEscrowAccount.into());
     }
 
     let transfer_restriction_data = &mut ctx.accounts.transfer_restriction_data;
