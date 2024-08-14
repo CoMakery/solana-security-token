@@ -374,4 +374,86 @@ describe("Initialize security associated account", () => {
       holderGroupCountBefore.addn(1).toNumber()
     );
   });
+
+  const investorWallet3 = Keypair.generate();
+  let investorWallet3AssociatedAccount: PublicKey;
+  describe("when max holders reached inside the group", () => {
+    before(async () => {
+      await testEnvironment.transferRestrictionsHelper.setHolderGroupMax(
+        new anchor.BN(2),
+        firstGroupPubkey,
+        testEnvironment.accessControlHelper.walletRolePDA(
+          testEnvironment.transferAdmin.publicKey
+        )[0],
+        testEnvironment.transferAdmin
+      );
+      investorWallet3AssociatedAccount =
+        await testEnvironment.mintHelper.createAssociatedTokenAccount(
+          investorWallet3.publicKey,
+          testEnvironment.reserveAdmin
+        );
+    });
+
+    it("fails to initialize security associated account", async () => {
+      const signer = testEnvironment.transferAdmin;
+      const holderIdx = new anchor.BN(2);
+      const [authorityWalletRolePubkey] =
+        testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+      const [groupPubkey] =
+        testEnvironment.transferRestrictionsHelper.groupPDA(firstGroupIdx);
+      const [securityAssociatedAccountPubkey] =
+        testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+          investorWallet3AssociatedAccount
+        );
+      const [holderPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderPDA(holderIdx);
+      const [holderGroupPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+          holderPubkey,
+          firstGroupIdx
+        );
+      const {
+        currentHoldersCount: holderGroupCountBefore,
+        maxHolders: maxHolders,
+      } = await testEnvironment.transferRestrictionsHelper.groupData(
+        groupPubkey
+      );
+
+      try {
+        await testEnvironment.transferRestrictionsHelper.program.methods
+          .initializeSecurityAssociatedAccount()
+          .accountsStrict({
+            securityAssociatedAccount: securityAssociatedAccountPubkey,
+            group: groupPubkey,
+            holder: holderPubkey,
+            holderGroup: holderGroupPubkey,
+            securityToken: testEnvironment.mintKeypair.publicKey,
+            transferRestrictionData:
+              testEnvironment.transferRestrictionsHelper
+                .transferRestrictionDataPubkey,
+            userWallet: investorWallet3.publicKey,
+            associatedTokenAccount: investorWallet3AssociatedAccount,
+            authorityWalletRole: authorityWalletRolePubkey,
+            payer: signer.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([signer])
+          .rpc({ commitment: testEnvironment.commitment });
+        assert.fail("Expect an error");
+      } catch ({ error }) {
+        assert.equal(error.errorCode.code, "MaxHoldersReachedInsideTheGroup");
+        assert.equal(
+          error.errorMessage,
+          "Max holders reached inside the group"
+        );
+      }
+
+      const { currentHoldersCount: holderGroupCountAfter } =
+        await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
+      assert.equal(
+        holderGroupCountBefore.toNumber(),
+        holderGroupCountAfter.toNumber()
+      );
+    });
+  });
 });

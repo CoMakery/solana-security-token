@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { assert } from "chai";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Keypair } from "@solana/web3.js";
 
 import {
   TestEnvironment,
@@ -130,28 +130,163 @@ describe("Set holder group max", () => {
     }
   });
 
-  it("sets holder group max by transfer admin", async () => {
-    const signer = testEnvironment.transferAdmin;
-    const [authorityWalletRolePubkey] =
-      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
-    const maxHolders = new anchor.BN(10);
-    await testEnvironment.transferRestrictionsHelper.program.methods
-      .setHolderGroupMax(maxHolders)
-      .accountsStrict({
-        transferRestrictionData:
-          testEnvironment.transferRestrictionsHelper
-            .transferRestrictionDataPubkey,
-        accessControlAccount:
-          testEnvironment.accessControlHelper.accessControlPubkey,
-        mint: testEnvironment.mintKeypair.publicKey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        group: groupPubkey,
-        payer: signer.publicKey,
-      })
-      .signers([signer])
-      .rpc({ commitment: testEnvironment.commitment });
-    const groupData =
-      await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
-    assert.equal(groupData.maxHolders.toNumber(), maxHolders.toNumber());
+  describe("for non-zero group", () => {
+    describe("when current holders count is less than new holder group max", () => {
+      it("sets holder group max by transfer admin", async () => {
+        const signer = testEnvironment.transferAdmin;
+        const [authorityWalletRolePubkey] =
+          testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+        const maxHolders = new anchor.BN(10);
+        await testEnvironment.transferRestrictionsHelper.program.methods
+          .setHolderGroupMax(maxHolders)
+          .accountsStrict({
+            transferRestrictionData:
+              testEnvironment.transferRestrictionsHelper
+                .transferRestrictionDataPubkey,
+            accessControlAccount:
+              testEnvironment.accessControlHelper.accessControlPubkey,
+            mint: testEnvironment.mintKeypair.publicKey,
+            authorityWalletRole: authorityWalletRolePubkey,
+            group: groupPubkey,
+            payer: signer.publicKey,
+          })
+          .signers([signer])
+          .rpc({ commitment: testEnvironment.commitment });
+        const groupData =
+          await testEnvironment.transferRestrictionsHelper.groupData(
+            groupPubkey
+          );
+        assert.equal(groupData.maxHolders.toNumber(), maxHolders.toNumber());
+      });
+    });
+
+    describe("when current holders count is greater than new holder group max", () => {
+      before(async () => {
+        const investors = [Keypair.generate(), Keypair.generate()];
+        let { holderIds: currentHolderId } =
+          await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+        const [transferAdminWalletRole] =
+          testEnvironment.accessControlHelper.walletRolePDA(
+            testEnvironment.transferAdmin.publicKey
+          );
+
+        for (const investor of investors) {
+          const investorAssociatedTokenAccountPubkey =
+            await testEnvironment.mintHelper.createAssociatedTokenAccount(
+              investor.publicKey,
+              testEnvironment.reserveAdmin
+            );
+          await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
+            currentHolderId,
+            transferAdminWalletRole,
+            testEnvironment.transferAdmin
+          );
+          const [holderPubkey] =
+            testEnvironment.transferRestrictionsHelper.holderPDA(
+              currentHolderId
+            );
+          const [holderGroupPubkey] =
+            testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+              holderPubkey,
+              firstGroupIdx
+            );
+          await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+            holderGroupPubkey,
+            holderPubkey,
+            groupPubkey,
+            transferAdminWalletRole,
+            testEnvironment.transferAdmin
+          );
+          await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+            groupPubkey,
+            holderPubkey,
+            holderGroupPubkey,
+            investor.publicKey,
+            investorAssociatedTokenAccountPubkey,
+            transferAdminWalletRole,
+            testEnvironment.transferAdmin
+          );
+          currentHolderId = currentHolderId.addn(1);
+        }
+      });
+
+      it("fails to set holder group max", async () => {
+        const signer = testEnvironment.transferAdmin;
+        const [authorityWalletRolePubkey] =
+          testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+        const {
+          currentHoldersCount: currentHoldersCount,
+          maxHolders: currentMaxHolders,
+        } = await testEnvironment.transferRestrictionsHelper.groupData(
+          groupPubkey
+        );
+        const maxHolders = currentHoldersCount.subn(1);
+        try {
+          await testEnvironment.transferRestrictionsHelper.program.methods
+            .setHolderGroupMax(maxHolders)
+            .accountsStrict({
+              transferRestrictionData:
+                testEnvironment.transferRestrictionsHelper
+                  .transferRestrictionDataPubkey,
+              accessControlAccount:
+                testEnvironment.accessControlHelper.accessControlPubkey,
+              mint: testEnvironment.mintKeypair.publicKey,
+              authorityWalletRole: authorityWalletRolePubkey,
+              group: groupPubkey,
+              payer: signer.publicKey,
+            })
+            .signers([signer])
+            .rpc({ commitment: testEnvironment.commitment });
+          assert.fail("Expect an error");
+        } catch ({ error }) {
+          assert.equal(
+            error.errorCode.code,
+            "NewHolderGroupMaxMustExceedCurrentHolderGroupCount"
+          );
+          assert.equal(
+            error.errorMessage,
+            "New holder group max must exceed current holder group count"
+          );
+        }
+      });
+    });
+  });
+
+  describe("for zero group", () => {
+    it("fails to set holder group max", async () => {
+      const signer = testEnvironment.transferAdmin;
+      const [authorityWalletRolePubkey] =
+        testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+      const maxHolders = new anchor.BN(10);
+      const [zeroGroupPubkey] =
+        testEnvironment.transferRestrictionsHelper.groupPDA(zeroIdx);
+      try {
+        await testEnvironment.transferRestrictionsHelper.program.methods
+          .setHolderGroupMax(maxHolders)
+          .accountsStrict({
+            transferRestrictionData:
+              testEnvironment.transferRestrictionsHelper
+                .transferRestrictionDataPubkey,
+            accessControlAccount:
+              testEnvironment.accessControlHelper.accessControlPubkey,
+            mint: testEnvironment.mintKeypair.publicKey,
+            authorityWalletRole: authorityWalletRolePubkey,
+            group: zeroGroupPubkey,
+            payer: signer.publicKey,
+          })
+          .signers([signer])
+          .rpc({ commitment: testEnvironment.commitment });
+        assert.fail("Expect an error");
+      } catch ({ error }) {
+        assert.equal(
+          error.errorCode.code,
+          "ZeroGroupHolderGroupMaxCannotBeNonZero"
+        );
+        assert.equal(
+          error.errorMessage,
+          "Zero group holder group max cannot be non-zero"
+        );
+      }
+    });
   });
 });

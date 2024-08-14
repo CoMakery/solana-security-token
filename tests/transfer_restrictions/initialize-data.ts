@@ -260,10 +260,7 @@ describe("Initialize transfer restriction data", () => {
       await testEnvironment.transferRestrictionsHelper.groupData(groupPDA);
     assert.equal(groupData.currentHoldersCount.toNumber(), 0);
     assert.equal(groupData.id.toNumber(), 0);
-    assert.equal(
-      groupData.maxHolders.toNumber(),
-      testEnvironmentParams.maxHolders
-    );
+    assert.equal(groupData.maxHolders.toNumber(), 0);
     assert.equal(
       groupData.transferRestrictionData.toString(),
       testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toString()

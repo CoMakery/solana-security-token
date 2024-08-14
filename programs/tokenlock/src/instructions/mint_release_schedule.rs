@@ -1,5 +1,5 @@
 use access_control::{
-    program::AccessControl as AccessControlProgram, AccessControl, WalletRole, ADMIN_ROLES,
+    program::AccessControl as AccessControlProgram, AccessControl, WalletRole,
 };
 use access_control::cpi::accounts::MintSecurities;
 use anchor_lang::{prelude::*, Discriminator};
@@ -89,7 +89,7 @@ pub fn mint_release_schedule<'info>(
         return Err(TokenlockErrors::IncorrectTokenlockAccount.into());
     }
 
-    if !ctx.accounts.authority_wallet_role.has_any_role(ADMIN_ROLES) {
+    if !ctx.accounts.authority_wallet_role.has_role(access_control::Roles::ReserveAdmin) {
         return Err(TokenlockErrors::Unauthorized.into());
     }
 

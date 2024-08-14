@@ -1655,6 +1655,21 @@ export type TransferRestrictions = {
       code: 6017;
       name: "newGroupIsTheSameAsTheCurrentGroup";
       msg: "New group is the same as the current group";
+    },
+    {
+      code: 6018;
+      name: "newHolderMaxMustExceedCurrentHolderCount";
+      msg: "New holder max must exceed current holder count";
+    },
+    {
+      code: 6019;
+      name: "newHolderGroupMaxMustExceedCurrentHolderGroupCount";
+      msg: "New holder group max must exceed current holder group count";
+    },
+    {
+      code: 6020;
+      name: "zeroGroupHolderGroupMaxCannotBeNonZero";
+      msg: "Zero group holder group max cannot be non-zero";
     }
   ];
   types: [

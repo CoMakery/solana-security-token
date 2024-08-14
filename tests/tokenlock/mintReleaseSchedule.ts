@@ -26,7 +26,7 @@ import {
 import { getNowTs } from "../helpers/clock_helper";
 import { fromDaysToSeconds } from "../helpers/datetime";
 
-describe("TokenLockup mint release schedues", () => {
+describe("TokenLockup mint release schedules", () => {
   const testEnvironmentParams: TestEnvironmentParams = {
     mint: {
       decimals: 6,

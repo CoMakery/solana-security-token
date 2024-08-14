@@ -22,7 +22,7 @@ pub fn update_wallet_group(ctx: Context<UpdateWalletGroup>) -> Result<()> {
         group_new.current_holders_count = group_new.current_holders_count.checked_add(1).unwrap();
     }
     // check group max count
-    if group_new.current_holders_count > group_new.max_holders {
+    if group_new.current_holders_count > group_new.max_holders && group_new.max_holders != 0 {
         return Err(TransferRestrictionsError::MaxHoldersReached.into());
     }
 
