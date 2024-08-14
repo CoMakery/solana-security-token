@@ -434,30 +434,29 @@ export async function createReleaseSchedule(
   periodBetweenReleasesInSeconds: BN,
   accessControlPubkey: PublicKey,
   authorityWalletRolePubkey: PublicKey,
-  signer: Keypair,
-  commitment: Commitment = "confirmed"
+  signer: Keypair
 ): Promise<string | number> {
   const uuid = uuidBytes();
   const signerHash = calcSignerHash(signer.publicKey, uuid);
   let result;
 
   try {
-    await program.methods
-      .createReleaseSchedule(
-        uuid,
-        releaseCount,
-        delayUntilFirstReleaseInSeconds,
-        initialReleasePortionInBips,
-        periodBetweenReleasesInSeconds
-      )
-      .accountsStrict({
-        tokenlockAccount: tokenlockDataPubkey,
-        authority: signer.publicKey,
-        authorityWalletRole: authorityWalletRolePubkey,
-        accessControl: accessControlPubkey,
-      })
-      .signers([signer])
-      .rpc({ commitment });
+    await program.rpc.createReleaseSchedule(
+      uuid,
+      releaseCount,
+      delayUntilFirstReleaseInSeconds,
+      initialReleasePortionInBips,
+      periodBetweenReleasesInSeconds,
+      {
+        accounts: {
+          tokenlockAccount: tokenlockDataPubkey,
+          authority: signer.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          accessControl: accessControlPubkey,
+        },
+        signers: [signer],
+      }
+    );
     const account = await program.account.tokenLockData.fetch(
       tokenlockDataPubkey
     );
@@ -603,8 +602,7 @@ export async function mintReleaseSchedule(
       new Transaction().add(
         ...[modifyComputeUnitsInstruction, mintReleaseScheduleInstruction]
       ),
-      [signer],
-      { commitment: "confirmed" }
+      [signer]
     );
 
     const account = await program.account.timelockData.fetch(timelockAccount);
@@ -857,12 +855,7 @@ export async function batchMintReleaseSchedule(
   let result: string;
 
   try {
-    await sendAndConfirmTransaction(
-      program.provider.connection,
-      trx,
-      [signer],
-      { commitment: "confirmed" }
-    );
+    await sendAndConfirmTransaction(program.provider.connection, trx, [signer]);
     result = "ok";
   } catch (e) {
     if (!e.error || !e.logs) {
