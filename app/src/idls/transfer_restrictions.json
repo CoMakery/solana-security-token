@@ -1992,8 +1992,8 @@
     },
     {
       "code": 6008,
-      "name": "EscrowAccountsMismatch",
-      "msg": "Escrow accounts mismatch"
+      "name": "MismatchedEscrowAccount",
+      "msg": "Mismatched escrow account"
     },
     {
       "code": 6009,
