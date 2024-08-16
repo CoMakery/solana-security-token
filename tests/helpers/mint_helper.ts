@@ -21,15 +21,18 @@ export class MintHelper {
   mintPubkey: PublicKey;
   commitment: Commitment = "confirmed";
   connection: Connection;
+  programId: PublicKey;
 
   constructor(
     connection: Connection,
     mintPubkey: PublicKey,
-    commitment: Commitment = "confirmed"
+    commitment: Commitment = "confirmed",
+    programId = TOKEN_2022_PROGRAM_ID
   ) {
     this.connection = connection;
     this.mintPubkey = mintPubkey;
     this.commitment = commitment;
+    this.programId = programId;
   }
 
   async getMint(): Promise<Mint> {
@@ -37,7 +40,7 @@ export class MintHelper {
       this.connection,
       this.mintPubkey,
       this.commitment,
-      TOKEN_2022_PROGRAM_ID
+      this.programId
     );
   }
 
@@ -49,7 +52,7 @@ export class MintHelper {
       this.mintPubkey,
       walletPubkey,
       allowOwnerOffCurve,
-      TOKEN_2022_PROGRAM_ID
+      this.programId
     );
   }
 
@@ -60,7 +63,7 @@ export class MintHelper {
       this.connection,
       userWalletAssociatedAccountPubkey,
       this.commitment,
-      TOKEN_2022_PROGRAM_ID
+      this.programId
     );
   }
 
@@ -74,7 +77,7 @@ export class MintHelper {
       userWalletAssociatedTokenAccountPubkey,
       userWalletPubkey,
       this.mintPubkey,
-      TOKEN_2022_PROGRAM_ID
+      this.programId
     );
   }
 

@@ -4,6 +4,7 @@ members = [
     "programs/access-control",
     "programs/transfer-restrictions",
     "programs/tokenlock",
+    "programs/dividends"
 ]
 resolver = "2"
 

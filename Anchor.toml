@@ -11,6 +11,7 @@ skip-lint = false
 access_control = "4X79YRjz9KNMhdjdxXg2ZNTS3YnMGYdwJkBHnezMJwr3"
 transfer_restrictions = "6yEnqdEjX3zBBDkzhwTRGJwv1jRaN4QE4gywmgdcfPBZ"
 tokenlock = "7CN3iHcRimZRa97M38cyMQAF68ecQYDqHfCUgBeSARG2"
+dividends = "BvQwgkeevtxXrUsWtZU3fUu5R3qTYne2XfrQp8dXXut3"
 
 [registry]
 url = "https://api.apr.dev"
@@ -24,4 +25,4 @@ types = "app/src/types/"
 
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/*.ts tests/tokenlock/*.ts tests/access_control/*.ts tests/transfer_restrictions/*.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/*.ts tests/tokenlock/*.ts tests/access_control/*.ts tests/transfer_restrictions/*.ts tests/dividends/*.ts"
