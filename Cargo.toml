@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "libraries/tokenlock-accounts",
     "programs/access-control",
     "programs/transfer-restrictions",
     "programs/tokenlock",

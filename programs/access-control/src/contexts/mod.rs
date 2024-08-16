@@ -23,3 +23,6 @@ pub use freeze_wallet::*;
 
 pub mod thaw_wallet;
 pub use thaw_wallet::*;
+
+pub mod set_lockup_escrow_account;
+pub use set_lockup_escrow_account::*;

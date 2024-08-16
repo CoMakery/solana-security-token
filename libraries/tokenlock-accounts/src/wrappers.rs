@@ -1,5 +1,4 @@
-use anchor_lang::prelude::*;
-use anchor_lang::solana_program::program_memory::sol_memcpy;
+use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcpy};
 
 use crate::{ReleaseSchedule, TokenLockData};
 
@@ -97,7 +96,10 @@ impl TokenLockDataWrapper {
         return BinaryOperation::key_read(account_data, TokenLockData::ESCROW_ACCOUNT_OFFSET);
     }
     pub fn transfer_restriction_data(account_data: &[u8]) -> Pubkey {
-        return BinaryOperation::key_read(account_data, TokenLockData::TRANSFER_RESTRICTIONS_DATA_OFFSET);
+        return BinaryOperation::key_read(
+            account_data,
+            TokenLockData::TRANSFER_RESTRICTIONS_DATA_OFFSET,
+        );
     }
     pub fn bump_seed(account_data: &[u8]) -> u8 {
         return BinaryOperation::u8_read(account_data, TokenLockData::BUMP_SEED_OFFSET);
@@ -111,7 +113,10 @@ impl TokenLockDataWrapper {
     }
 
     pub fn schedule_count(account_data: &[u8]) -> u16 {
-        return BinaryOperation::u16_read(account_data, TokenLockData::RELEASE_SCHEDULE_COUNT_OFFSET);
+        return BinaryOperation::u16_read(
+            account_data,
+            TokenLockData::RELEASE_SCHEDULE_COUNT_OFFSET,
+        );
     }
 
     pub fn update_schedule_count(data: &mut [u8], count: u16) -> () {
@@ -145,10 +150,7 @@ impl TokenLockDataWrapper {
     pub fn add_schedule(account_data: &mut [u8], schedule: &ReleaseSchedule) -> Option<u16> {
         let schedule_count = Self::schedule_count(account_data);
         let schedule_offset = TokenLockData::RELEASE_SCHEDULE_START_OFFSET
-            .checked_add(
-                (schedule_count as usize)
-                    .checked_mul(ReleaseSchedule::DEFAULT_SIZE)?,
-            )?;
+            .checked_add((schedule_count as usize).checked_mul(ReleaseSchedule::DEFAULT_SIZE)?)?;
         //write schedule
         ReleaseScheduleWrap::write(account_data, schedule_offset, schedule);
 

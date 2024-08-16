@@ -1608,8 +1608,8 @@ export type TransferRestrictions = {
     },
     {
       code: 6008;
-      name: "escrowAccountsMismatch";
-      msg: "Escrow accounts mismatch";
+      name: "mismatchedEscrowAccount";
+      msg: "Mismatched escrow account";
     },
     {
       code: 6009;
@@ -1689,6 +1689,12 @@ export type TransferRestrictions = {
           {
             name: "maxTotalSupply";
             type: "u64";
+          },
+          {
+            name: "lockupEscrowAccount";
+            type: {
+              option: "pubkey";
+            };
           }
         ];
       };

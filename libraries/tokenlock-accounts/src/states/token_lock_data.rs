@@ -1,8 +1,7 @@
 
 use anchor_lang::prelude::*;
 
-use crate::common::PUBKEY_SIZE;
-use crate::ReleaseSchedule;
+use crate::{common::PUBKEY_SIZE, ReleaseSchedule};
 
 #[account]
 #[derive(Default)]

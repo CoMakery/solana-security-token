@@ -652,6 +652,12 @@ export type Tokenlock = {
           {
             name: "maxTotalSupply";
             type: "u64";
+          },
+          {
+            name: "lockupEscrowAccount";
+            type: {
+              option: "pubkey";
+            };
           }
         ];
       };

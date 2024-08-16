@@ -29,6 +29,7 @@ pub struct AccessControl {
     pub mint: Pubkey,
     pub authority: Pubkey,
     pub max_total_supply: u64,
+    pub lockup_escrow_account: Option<Pubkey>,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]

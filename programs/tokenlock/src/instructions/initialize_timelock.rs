@@ -3,7 +3,12 @@ use access_control::{
 };
 use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcmp, Discriminator};
 
-use crate::{TimelockData, TokenLockData, TokenLockDataWrapper, TokenlockErrors};
+use tokenlock_accounts::{
+    states::{TimelockData, TokenLockData},
+    wrappers::TokenLockDataWrapper,
+};
+
+use crate::error::TokenlockErrors;
 
 #[derive(Accounts)]
 pub struct InitializeTimeLock<'info> {

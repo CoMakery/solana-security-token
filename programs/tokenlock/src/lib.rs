@@ -1,23 +1,15 @@
 use anchor_lang::prelude::*;
 
-pub mod error;
-pub use error::TokenlockErrors;
-
 pub mod instructions;
 use instructions::*;
 
-pub mod states;
-use states::*;
-
-pub mod common;
-
 pub mod utils;
-pub mod wrappers;
-
 use crate::utils::*;
-use crate::wrappers::*;
 
-declare_id!("7CN3iHcRimZRa97M38cyMQAF68ecQYDqHfCUgBeSARG2");
+pub mod error;
+
+// NOTE: Anchor cannot parse program id into IDL, so we need to declare it manuallys
+declare_id!(tokenlock_accounts::id_const());
 
 #[program]
 mod tokenlock {
@@ -71,7 +63,10 @@ mod tokenlock {
         )
     }
 
-    pub fn transfer<'info>(ctx: Context<'_, '_, '_, 'info, TransferFrom<'info>>, value: u64) -> Result<()> {
+    pub fn transfer<'info>(
+        ctx: Context<'_, '_, '_, 'info, TransferFrom<'info>>,
+        value: u64,
+    ) -> Result<()> {
         instructions::transfer(ctx, value)
     }
 
@@ -83,7 +78,10 @@ mod tokenlock {
         instructions::transfer_timelock(ctx, value, timelock_id)
     }
 
-    pub fn cancel_timelock<'info>(ctx: Context<'_, '_, '_, 'info, CancelTimelock<'info>>, timelock_id: u32) -> Result<()> {
+    pub fn cancel_timelock<'info>(
+        ctx: Context<'_, '_, '_, 'info, CancelTimelock<'info>>,
+        timelock_id: u32,
+    ) -> Result<()> {
         instructions::cancel_timelock(ctx, timelock_id)
     }
 }

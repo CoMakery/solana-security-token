@@ -1,9 +1,12 @@
 use access_control::{program::AccessControl as AccessControlProgram, AccessControl, WalletRole};
-use transfer_restrictions::{program::TransferRestrictions as TransferRestrictionsProgram, TransferRestrictionData};
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
+use transfer_restrictions::{
+    program::TransferRestrictions as TransferRestrictionsProgram, TransferRestrictionData,
+};
 
-use crate::{TokenLockData, TokenlockErrors, TOKENLOCK_PDA_SEED};
+use crate::{error::TokenlockErrors, TOKENLOCK_PDA_SEED};
+use tokenlock_accounts::states::TokenLockData;
 
 #[derive(Accounts)]
 pub struct InitializeTokenLock<'info> {

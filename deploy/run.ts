@@ -204,9 +204,9 @@ const consoleLine = (symbol: string = "*") => console.log(symbol.repeat(50));
     tokenlockData === null ||
     tokenlockData.mintAddress?.toString() != mintKeypair.publicKey.toString() ||
     tokenlockData.accessControl?.toString() !=
-      accessControlHelper.accessControlPubkey.toString() ||
+    accessControlHelper.accessControlPubkey.toString() ||
     tokenlockData.transferRestrictionsData?.toString() !=
-      transferRestrictionsHelper.transferRestrictionDataPubkey.toString() ||
+    transferRestrictionsHelper.transferRestrictionDataPubkey.toString() ||
     tokenlockData.escrowAccount.toString() != escrowAccount.toString()
   ) {
     console.log("Initializing tokenlock data...");
@@ -242,7 +242,7 @@ const consoleLine = (symbol: string = "*") => console.log(symbol.repeat(50));
   if (
     transferRestrictionsData.lockupEscrowAccount == null ||
     transferRestrictionsData.lockupEscrowAccount.toString() !=
-      escrowAccount.toString()
+    escrowAccount.toString()
   ) {
     console.log(
       "Lockup escrow account is not set in TransferRestrictions data",
@@ -259,6 +259,33 @@ const consoleLine = (symbol: string = "*") => console.log(symbol.repeat(50));
   } else {
     console.log(
       "Lockup escrow account already set in TransferRestrictions data:",
+      escrowAccount.toString()
+    );
+  }
+  consoleLine();
+  console.log(
+    "6. Setting up tokenlock escrow account into AccessControl data..."
+  );
+  const accessControlData = await accessControlHelper.accessControlData();
+  if (
+    accessControlData.lockupEscrowAccount == null ||
+    transferRestrictionsData.lockupEscrowAccount.toString() !=
+    escrowAccount.toString()
+  ) {
+    console.log(
+      "Lockup escrow account is not set in AccessControl data",
+      accessControlData.lockupEscrowAccount?.toString(),
+      " ==> ",
+      escrowAccount.toString()
+    );
+    await accessControlHelper.setLockupEscrowAccount(
+      escrowAccount,
+      tokenlockDataPubkey,
+      deployerKeypair
+    );
+  } else {
+    console.log(
+      "Lockup escrow account already set in AccessControl data:",
       escrowAccount.toString()
     );
   }

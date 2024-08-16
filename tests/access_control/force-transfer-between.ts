@@ -7,6 +7,16 @@ import {
   TestEnvironmentParams,
 } from "../helpers/test_environment";
 import { TokenTransferHookAccountDataNotFound } from "@solana/spl-token";
+import { fromDaysToSeconds } from "../helpers/datetime";
+import {
+  createReleaseSchedule,
+  initializeTokenlock,
+  MAX_RELEASE_DELAY,
+  mintReleaseSchedule,
+} from "../helpers/tokenlock_helper";
+import { createAccount, solToLamports, topUpWallet } from "../utils";
+import { Tokenlock } from "../../target/types/tokenlock";
+import { getNowTs } from "../helpers/clock_helper";
 
 describe("Access Control force transfer between", () => {
   const testEnvironmentParams: TestEnvironmentParams = {
@@ -279,5 +289,192 @@ describe("Access Control force transfer between", () => {
       await testEnvironment.mintHelper.getAccount(recipientTokenAccount);
     assert.equal(targetAmountBefore - targetAmountAfter, BigInt(amount));
     assert.equal(recipientAmountAfter - recipientAmountBefore, BigInt(amount));
+  });
+
+  describe("when tokenlock escrow is set", () => {
+    const tokenlockProgram = anchor.workspace
+      .Tokenlock as anchor.Program<Tokenlock>;
+    let tokenlockDataPubkey: PublicKey;
+    let tokenlockWallet: Keypair;
+    let escrowAccount: PublicKey;
+    let escrowOwnerPubkey: PublicKey;
+    const investorWallet = Keypair.generate();
+    const cantForceTransferBetweenLockupError =
+      "Program log: AnchorError occurred. Error Code: CantForceTransferBetweenLockup. Error Number: 6006. Error Message: Cannot force transfer between lockup accounts.";
+
+    before(async () => {
+      tokenlockWallet = Keypair.generate();
+      tokenlockDataPubkey = tokenlockWallet.publicKey;
+
+      await topUpWallet(
+        testEnvironment.connection,
+        testEnvironment.contractAdmin.publicKey,
+        solToLamports(10)
+      );
+      const space = 1 * 1024 * 1024; // 1MB
+
+      tokenlockDataPubkey = await createAccount(
+        testEnvironment.connection,
+        testEnvironment.contractAdmin,
+        space,
+        tokenlockProgram.programId
+      );
+      [escrowOwnerPubkey] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("tokenlock"),
+          testEnvironment.mintKeypair.publicKey.toBuffer(),
+          tokenlockDataPubkey.toBuffer(),
+        ],
+        tokenlockProgram.programId
+      );
+      escrowAccount =
+        await testEnvironment.mintHelper.createAssociatedTokenAccount(
+          escrowOwnerPubkey,
+          testEnvironment.contractAdmin,
+          true
+        );
+      const maxReleaseDelay = new anchor.BN(MAX_RELEASE_DELAY);
+      const minTimelockAmount = new anchor.BN(100);
+      await initializeTokenlock(
+        tokenlockProgram,
+        maxReleaseDelay,
+        minTimelockAmount,
+        tokenlockDataPubkey,
+        escrowAccount,
+        testEnvironment.transferRestrictionsHelper
+          .transferRestrictionDataPubkey,
+        testEnvironment.mintKeypair.publicKey,
+        testEnvironment.accessControlHelper.walletRolePDA(
+          testEnvironment.contractAdmin.publicKey
+        )[0],
+        testEnvironment.accessControlHelper.accessControlPubkey,
+        testEnvironment.contractAdmin
+      );
+
+      const totalBatches = 4;
+      const firstDelay = 0;
+      const firstBatchBips = 800; // 8%
+      const batchDelay = fromDaysToSeconds(4); // 4 days
+      const scheduleId = await createReleaseSchedule(
+        tokenlockProgram,
+        tokenlockDataPubkey,
+        totalBatches,
+        new anchor.BN(firstDelay),
+        firstBatchBips,
+        new anchor.BN(batchDelay),
+        testEnvironment.accessControlHelper.accessControlPubkey,
+        reserveAdminWalletRole,
+        testEnvironment.reserveAdmin
+      );
+
+      let nowTs = await getNowTs(testEnvironment.connection);
+      await mintReleaseSchedule(
+        testEnvironment.connection,
+        tokenlockProgram,
+        new anchor.BN(1_000_000),
+        new anchor.BN(nowTs),
+        Number(scheduleId),
+        [testEnvironment.reserveAdmin.publicKey],
+        tokenlockDataPubkey,
+        escrowAccount,
+        escrowOwnerPubkey,
+        investorWallet.publicKey,
+        testEnvironment.reserveAdmin,
+        reserveAdminWalletRole,
+        testEnvironment.accessControlHelper.accessControlPubkey,
+        testEnvironment.mintKeypair.publicKey,
+        testEnvironment.accessControlProgram.programId
+      );
+
+      await testEnvironment.accessControlProgram.methods
+        .setLockupEscrowAccount()
+        .accountsStrict({
+          mint: testEnvironment.mintKeypair.publicKey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          authorityWalletRole:
+            testEnvironment.accessControlHelper.walletRolePDA(
+              testEnvironment.contractAdmin.publicKey
+            )[0],
+          escrowAccount,
+          tokenlockAccount: tokenlockDataPubkey,
+          payer: testEnvironment.contractAdmin.publicKey,
+        })
+        .signers([testEnvironment.contractAdmin])
+        .rpc({ commitment: testEnvironment.commitment });
+
+      const { holderIds: currentHolderIdx } =
+        await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+      await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
+        currentHolderIdx,
+        transferAdminWalletRole,
+        testEnvironment.transferAdmin
+      );
+      const [holderPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderPDA(currentHolderIdx);
+      const [holderGroupPubkey] =
+        testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+          holderPubkey,
+          new anchor.BN(groupId)
+        );
+      await testEnvironment.transferRestrictionsHelper.initializeHolderGroup(
+        holderGroupPubkey,
+        holderPubkey,
+        groupPubkey,
+        transferAdminWalletRole,
+        testEnvironment.transferAdmin
+      );
+      await testEnvironment.transferRestrictionsHelper.initializeSecurityAssociatedAccount(
+        groupPubkey,
+        holderPubkey,
+        holderGroupPubkey,
+        escrowOwnerPubkey,
+        escrowAccount,
+        transferAdminWalletRole,
+        testEnvironment.transferAdmin
+      );
+    });
+
+    describe("when tokenlock escrow is a source account", () => {
+      it("fails to force transfer between", async () => {
+        try {
+          await testEnvironment.accessControlHelper.forceTransferBetween(
+            1_000_000,
+            escrowOwnerPubkey,
+            escrowAccount,
+            recipient.publicKey,
+            recipientTokenAccount,
+            testEnvironment.reserveAdmin,
+            testEnvironment.connection
+          );
+          assert.fail("Expected an error");
+        } catch (error) {
+          error.logs.some(
+            (log: string) => log === cantForceTransferBetweenLockupError
+          );
+        }
+      });
+    });
+
+    describe("when tokenlock escrow is a destination account", () => {
+      it("fails to force transfer between", async () => {
+        try {
+          await testEnvironment.accessControlHelper.forceTransferBetween(
+            1_000_000,
+            target.publicKey,
+            targetTokenAccount,
+            escrowOwnerPubkey,
+            escrowAccount,
+            testEnvironment.reserveAdmin,
+            testEnvironment.connection
+          );
+          assert.fail("Expected an error");
+        } catch (error) {
+          error.logs.some(
+            (log: string) => log === cantForceTransferBetweenLockupError
+          );
+        }
+      });
+    });
   });
 });

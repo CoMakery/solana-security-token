@@ -266,7 +266,7 @@ export class AccessControlHelper {
     toAccountPubkey: PublicKey,
     signer: Keypair,
     connection: Connection
-  ) {
+  ): Promise<string> {
     const reserveAdminRolePubkey = this.walletRolePDA(signer.publicKey)[0];
 
     const forceTransferBetweenInstruction =
@@ -319,5 +319,26 @@ export class AccessControlHelper {
     );
 
     return transferWithHookTxSignature;
+  }
+
+  async setLockupEscrowAccount(
+    lockupEscrowAccountPubkey: PublicKey,
+    tokenlockAccountPubkey: PublicKey,
+    signer: Keypair
+  ): Promise<string> {
+    const authorityWalletRolePubkey = this.walletRolePDA(signer.publicKey)[0];
+
+    return this.program.methods
+      .setLockupEscrowAccount()
+      .accountsStrict({
+        mint: this.mintPubkey,
+        accessControlAccount: this.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        escrowAccount: lockupEscrowAccountPubkey,
+        tokenlockAccount: tokenlockAccountPubkey,
+        payer: signer.publicKey,
+      })
+      .signers([signer])
+      .rpc({ commitment: this.commitment });
   }
 }

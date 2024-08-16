@@ -1,7 +1,7 @@
 use super::*;
 use access_control::{AccessControl, Roles, WalletRole};
 use anchor_lang::Discriminator;
-use common::PUBKEY_SIZE;
+use tokenlock_accounts::{common::PUBKEY_SIZE, states::{Timelock, TimelockData, TokenLockData}};
 use core::result::Result;
 use solana_sdk::{
     account::{create_account_for_test, Account as SolanaAccount},

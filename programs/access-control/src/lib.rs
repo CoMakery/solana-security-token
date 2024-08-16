@@ -51,4 +51,8 @@ pub mod access_control {
     pub fn thaw_wallet(ctx: Context<ThawWallet>) -> Result<()> {
         instructions::asset::thaw_wallet(ctx)
     }
+
+    pub fn set_lockup_escrow_account(ctx: Context<SetLockupEscrowAccount>) -> Result<()> {
+        instructions::access_control::set_lockup_escrow_account(ctx)
+    }
 }

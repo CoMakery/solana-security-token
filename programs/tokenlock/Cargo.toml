@@ -21,6 +21,7 @@ anchor-lang = "0.30.1"
 anchor-spl = "0.30.1"
 hex = "0.4.3"
 sha2 = "0.10.2"
+tokenlock-accounts = { path = "../../libraries/tokenlock-accounts" }
 access-control = { path = "../access-control", features = ["cpi"] }
 transfer-restrictions = { path = "../transfer-restrictions", features = ["cpi"] }
 

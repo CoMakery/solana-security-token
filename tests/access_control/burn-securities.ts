@@ -6,8 +6,17 @@ import {
   TestEnvironment,
   TestEnvironmentParams,
 } from "../helpers/test_environment";
-import { solToLamports, topUpWallet } from "../utils";
+import { createAccount, solToLamports, topUpWallet } from "../utils";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { Tokenlock } from "../../target/types/tokenlock";
+import {
+  createReleaseSchedule,
+  initializeTokenlock,
+  MAX_RELEASE_DELAY,
+  mintReleaseSchedule,
+} from "../helpers/tokenlock_helper";
+import { fromDaysToSeconds } from "../helpers/datetime";
+import { getNowTs } from "../helpers/clock_helper";
 
 describe("Access Control burn securities", () => {
   const testEnvironmentParams: TestEnvironmentParams = {
@@ -178,5 +187,136 @@ describe("Access Control burn securities", () => {
       reserveAdminAmountBefore - BigInt(amount.toString())
     );
     assert.equal(supplyAfterBurn, supplyBeforeBurn - BigInt(amount.toString()));
+  });
+
+  describe("when tokenlock escrow is set", () => {
+    const tokenlockProgram = anchor.workspace
+      .Tokenlock as anchor.Program<Tokenlock>;
+    let tokenlockDataPubkey: PublicKey;
+    let tokenlockWallet: Keypair;
+    let escrowAccount: PublicKey;
+    let escrowOwnerPubkey: PublicKey;
+    const investorWallet = Keypair.generate();
+
+    before(async () => {
+      tokenlockWallet = Keypair.generate();
+      tokenlockDataPubkey = tokenlockWallet.publicKey;
+
+      await topUpWallet(
+        testEnvironment.connection,
+        testEnvironment.contractAdmin.publicKey,
+        solToLamports(10)
+      );
+      const space = 1 * 1024 * 1024; // 1MB
+
+      tokenlockDataPubkey = await createAccount(
+        testEnvironment.connection,
+        testEnvironment.contractAdmin,
+        space,
+        tokenlockProgram.programId
+      );
+      [escrowOwnerPubkey] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("tokenlock"),
+          testEnvironment.mintKeypair.publicKey.toBuffer(),
+          tokenlockDataPubkey.toBuffer(),
+        ],
+        tokenlockProgram.programId
+      );
+      escrowAccount =
+        await testEnvironment.mintHelper.createAssociatedTokenAccount(
+          escrowOwnerPubkey,
+          testEnvironment.contractAdmin,
+          true
+        );
+      const maxReleaseDelay = new anchor.BN(MAX_RELEASE_DELAY);
+      const minTimelockAmount = new anchor.BN(100);
+      await initializeTokenlock(
+        tokenlockProgram,
+        maxReleaseDelay,
+        minTimelockAmount,
+        tokenlockDataPubkey,
+        escrowAccount,
+        testEnvironment.transferRestrictionsHelper
+          .transferRestrictionDataPubkey,
+        testEnvironment.mintKeypair.publicKey,
+        testEnvironment.accessControlHelper.walletRolePDA(
+          testEnvironment.contractAdmin.publicKey
+        )[0],
+        testEnvironment.accessControlHelper.accessControlPubkey,
+        testEnvironment.contractAdmin
+      );
+
+      const totalBatches = 4;
+      const firstDelay = 0;
+      const firstBatchBips = 800; // 8%
+      const batchDelay = fromDaysToSeconds(4); // 4 days
+      const scheduleId = await createReleaseSchedule(
+        tokenlockProgram,
+        tokenlockDataPubkey,
+        totalBatches,
+        new anchor.BN(firstDelay),
+        firstBatchBips,
+        new anchor.BN(batchDelay),
+        testEnvironment.accessControlHelper.accessControlPubkey,
+        reserveAdminWalletRole,
+        testEnvironment.reserveAdmin
+      );
+
+      let nowTs = await getNowTs(testEnvironment.connection);
+      await mintReleaseSchedule(
+        testEnvironment.connection,
+        tokenlockProgram,
+        new anchor.BN(1_000_000),
+        new anchor.BN(nowTs),
+        Number(scheduleId),
+        [testEnvironment.reserveAdmin.publicKey],
+        tokenlockDataPubkey,
+        escrowAccount,
+        escrowOwnerPubkey,
+        investorWallet.publicKey,
+        testEnvironment.reserveAdmin,
+        reserveAdminWalletRole,
+        testEnvironment.accessControlHelper.accessControlPubkey,
+        testEnvironment.mintKeypair.publicKey,
+        testEnvironment.accessControlProgram.programId
+      );
+
+      await testEnvironment.accessControlProgram.methods
+        .setLockupEscrowAccount()
+        .accountsStrict({
+          mint: testEnvironment.mintKeypair.publicKey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          authorityWalletRole:
+            testEnvironment.accessControlHelper.walletRolePDA(
+              testEnvironment.contractAdmin.publicKey
+            )[0],
+          escrowAccount,
+          tokenlockAccount: tokenlockDataPubkey,
+          payer: testEnvironment.contractAdmin.publicKey,
+        })
+        .signers([testEnvironment.contractAdmin])
+        .rpc({ commitment: testEnvironment.commitment });
+    });
+
+    it("fails to burn securities within lockup escrow", async () => {
+      const amount = new anchor.BN(1_000_000);
+      try {
+        await testEnvironment.accessControlHelper.burnSecurities(
+          amount,
+          escrowOwnerPubkey,
+          escrowAccount,
+          testEnvironment.reserveAdmin
+        );
+        assert.fail("Expected an error");
+      } catch ({ error }) {
+        assert.equal(error.errorCode.code, "CantBurnSecuritiesWithinLockup");
+        assert.equal(
+          error.errorMessage,
+          "Cannot burn securities within lockup; cancel the lockup first"
+        );
+      }
+    });
   });
 });
