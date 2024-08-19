@@ -1,7 +1,6 @@
+use anchor_lang::{prelude::*, solana_program::pubkey::PUBKEY_BYTES};
 
-use anchor_lang::prelude::*;
-
-use crate::{common::PUBKEY_SIZE, ReleaseSchedule};
+use crate::ReleaseSchedule;
 
 #[account]
 #[derive(Default)]
@@ -20,10 +19,10 @@ impl TokenLockData {
     pub const MAX_SCHEDULE_COUNT: usize = 65535;
 
     pub const ACCESS_CONTROL_OFFSET: usize = 8;
-    pub const MINT_ADDRESS_OFFSET: usize = Self::ACCESS_CONTROL_OFFSET + PUBKEY_SIZE;
-    pub const ESCROW_ACCOUNT_OFFSET: usize = Self::MINT_ADDRESS_OFFSET + PUBKEY_SIZE;
-    pub const TRANSFER_RESTRICTIONS_DATA_OFFSET: usize = Self::ESCROW_ACCOUNT_OFFSET + PUBKEY_SIZE;
-    pub const BUMP_SEED_OFFSET: usize = Self::TRANSFER_RESTRICTIONS_DATA_OFFSET + PUBKEY_SIZE;
+    pub const MINT_ADDRESS_OFFSET: usize = Self::ACCESS_CONTROL_OFFSET + PUBKEY_BYTES;
+    pub const ESCROW_ACCOUNT_OFFSET: usize = Self::MINT_ADDRESS_OFFSET + PUBKEY_BYTES;
+    pub const TRANSFER_RESTRICTIONS_DATA_OFFSET: usize = Self::ESCROW_ACCOUNT_OFFSET + PUBKEY_BYTES;
+    pub const BUMP_SEED_OFFSET: usize = Self::TRANSFER_RESTRICTIONS_DATA_OFFSET + PUBKEY_BYTES;
     pub const MAX_RELEASE_DELAY_OFFSET: usize = Self::BUMP_SEED_OFFSET + 1;
     pub const MIN_TIMELOCK_AMOUNT_OFFSET: usize = Self::MAX_RELEASE_DELAY_OFFSET + 8;
 

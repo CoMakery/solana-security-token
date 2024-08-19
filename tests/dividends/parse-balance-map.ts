@@ -1,27 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
-import {
-  AnchorProvider,
-  Program,
-  BN,
-  utils
-} from "@coral-xyz/anchor";
+import { AnchorProvider, Program, BN, utils } from "@coral-xyz/anchor";
 import { Dividends } from "../../target/types/dividends";
-import {
-  createMint,
-  mintTo,
-  TOKEN_PROGRAM_ID
-} from "@solana/spl-token";
-import {
-  Keypair,
-  PublicKey,
-  SystemProgram
-} from "@solana/web3.js";
+import { createMint, mintTo, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { assert } from "chai";
 import { MintHelper } from "../helpers/mint_helper";
-import {
-  solToLamports,
-  topUpWallet
-} from "../utils";
+import { solToLamports, topUpWallet } from "../utils";
 import {
   parseBalanceMap,
   toBytes32Array,
@@ -207,12 +191,7 @@ describe("parse BalanceMap", () => {
         );
         const proofBytes = claim.proof.map((p) => toBytes32Array(p));
         await dividendsProgram.methods
-          .claim(
-            claimBump,
-            index,
-            claim.amount,
-            proofBytes
-          )
+          .claim(claimBump, index, claim.amount, proofBytes)
           .accountsStrict({
             distributor,
             claimStatus: claimPubkey,
@@ -229,16 +208,14 @@ describe("parse BalanceMap", () => {
           await dividendsProgram.account.claimStatus.fetch(claimPubkey);
         assert.equal(claimStatusData.isClaimed, true);
         assert.deepEqual(claimStatusData.claimant, claimantPubkey);
-        assert.equal(claimStatusData.amount.toString(), claim.amount.toString());
+        assert.equal(
+          claimStatusData.amount.toString(),
+          claim.amount.toString()
+        );
 
         try {
           await dividendsProgram.methods
-            .claim(
-              claimBump,
-              index,
-              claim.amount,
-              proofBytes
-            )
+            .claim(claimBump, index, claim.amount, proofBytes)
             .accountsStrict({
               distributor,
               claimStatus: claimPubkey,

@@ -1,33 +1,19 @@
 import * as anchor from "@coral-xyz/anchor";
-import {
-  AnchorProvider,
-  Program,
-  BN,
-  utils
-} from "@coral-xyz/anchor";
+import { AnchorProvider, Program, BN, utils } from "@coral-xyz/anchor";
 import { Dividends } from "../../target/types/dividends";
-import {
-  createMint,
-  mintTo,
-  TOKEN_PROGRAM_ID
-} from "@solana/spl-token";
-import {
-  Keypair,
-  PublicKey,
-  SystemProgram
-} from "@solana/web3.js";
+import { createMint, mintTo, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { assert } from "chai";
 import { MintHelper } from "../helpers/mint_helper";
 import {
   getTransactionComputeUnits,
   solToLamports,
-  topUpWallet
+  topUpWallet,
 } from "../utils";
 import {
   BalanceTree,
   toBytes32Array,
 } from "../../app/src/merkle-distributor/utils";
-
 
 describe("claim-dividends", () => {
   const provider = AnchorProvider.env();
@@ -118,7 +104,8 @@ describe("claim-dividends", () => {
           toBytes32Array(tree.getRoot()),
           new BN(maxTotalClaim),
           new BN(NUM_LEAVES)
-        ).accountsStrict({
+        )
+        .accountsStrict({
           base: baseKey.publicKey,
           distributor,
           mint: mintKeypair.publicKey,
@@ -174,7 +161,11 @@ describe("claim-dividends", () => {
         })
         .signers([claimant, signer])
         .rpc({ commitment });
-      const computeUnits = await getTransactionComputeUnits(connection, signature, commitment);
+      const computeUnits = await getTransactionComputeUnits(
+        connection,
+        signature,
+        commitment
+      );
       assert.isAtMost(computeUnits, 200000);
     });
 
@@ -213,7 +204,11 @@ describe("claim-dividends", () => {
           .signers([claimant, signer])
           .rpc({ commitment });
 
-        const computeUnits = await getTransactionComputeUnits(connection, signature, commitment);
+        const computeUnits = await getTransactionComputeUnits(
+          connection,
+          signature,
+          commitment
+        );
         assert.isAtMost(computeUnits, 200000);
       }
     });

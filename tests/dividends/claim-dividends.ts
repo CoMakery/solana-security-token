@@ -229,10 +229,10 @@ describe("claim-dividends", () => {
             ],
             dividendsProgram.programId
           );
-          const proof2 = proof.map((p) => toBytes32Array(p));
+          const proofBytes = proof.map((p) => toBytes32Array(p));
 
           await dividendsProgram.methods
-            .claim(claimBump, new BN(index), amount, proof2)
+            .claim(claimBump, new BN(index), amount, proofBytes)
             .accountsStrict({
               distributor,
               claimStatus: claimPubkey,
@@ -333,10 +333,10 @@ describe("claim-dividends", () => {
         ],
         dividendsProgram.programId
       );
-      const proof2 = proof.map((p) => toBytes32Array(p));
+      const proofBytes = proof.map((p) => toBytes32Array(p));
 
       await dividendsProgram.methods
-        .claim(claimBump, new BN(index), claimAmount, proof2)
+        .claim(claimBump, new BN(index), claimAmount, proofBytes)
         .accountsStrict({
           distributor,
           claimStatus: claimPubkey,
@@ -352,7 +352,7 @@ describe("claim-dividends", () => {
 
       try {
         await dividendsProgram.methods
-          .claim(claimBump, new BN(index), claimAmount, proof2)
+          .claim(claimBump, new BN(index), claimAmount, proofBytes)
           .accountsStrict({
             distributor,
             claimStatus: claimPubkey,
@@ -365,6 +365,7 @@ describe("claim-dividends", () => {
           })
           .signers([userKP, signer])
           .rpc({ commitment });
+        assert.fail("Expected an error");
       } catch (error) {
         const isExpectedError = error.logs.some((log: string) => {
           return (
@@ -433,11 +434,11 @@ describe("claim-dividends", () => {
         ],
         dividendsProgram.programId
       );
-      const proof2 = proof.map((p) => toBytes32Array(p));
+      const proofBytes = proof.map((p) => toBytes32Array(p));
 
       try {
         await dividendsProgram.methods
-          .claim(claimBump, new BN(index), claimAmount.addn(1), proof2)
+          .claim(claimBump, new BN(index), claimAmount.addn(1), proofBytes)
           .accountsStrict({
             distributor,
             claimStatus: claimPubkey,
@@ -510,11 +511,11 @@ describe("claim-dividends", () => {
         ],
         dividendsProgram.programId
       );
-      const proof2 = proof.map((p) => toBytes32Array(p));
+      const proofBytes = proof.map((p) => toBytes32Array(p));
 
       try {
         await dividendsProgram.methods
-          .claim(claimBump, new BN(index), claimAmount, proof2)
+          .claim(claimBump, new BN(index), claimAmount, proofBytes)
           .accountsStrict({
             distributor,
             claimStatus: claimPubkey,

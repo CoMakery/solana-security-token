@@ -8,7 +8,7 @@ import {
   Transaction,
   Signer,
   Commitment,
-  Finality
+  Finality,
 } from "@solana/web3.js";
 
 export async function topUpWallet(
@@ -93,7 +93,11 @@ export async function createAccountWithSeed(
   return pubkey;
 }
 
-export async function getTransactionComputeUnits(connection: Connection, txSignature: string, commitment: Finality = "confirmed") {
+export async function getTransactionComputeUnits(
+  connection: Connection,
+  txSignature: string,
+  commitment: Finality = "confirmed"
+) {
   const result = await connection.getTransaction(txSignature, {
     commitment,
   });
