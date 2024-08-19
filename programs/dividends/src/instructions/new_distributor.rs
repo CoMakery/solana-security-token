@@ -33,8 +33,6 @@ pub struct NewDistributor<'info> {
     pub system_program: Program<'info, System>,
 }
 
-/// Creates a new [MerkleDistributor].
-/// After creating this [MerkleDistributor], the account should be seeded with tokens via its ATA.
 pub fn new_distributor(
     ctx: Context<NewDistributor>,
     _bump: u8,

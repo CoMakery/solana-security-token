@@ -1,10 +1,12 @@
-pub mod instructions;
-pub use instructions::*;
+use anchor_lang::prelude::*;
+
 pub mod states;
-pub use states::*;
+use states::*;
 pub mod errors;
 pub mod events;
 pub mod merkle_proof;
+pub mod instructions;
+use instructions::*;
 
 declare_id!("BvQwgkeevtxXrUsWtZU3fUu5R3qTYne2XfrQp8dXXut3");
 
