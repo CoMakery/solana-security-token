@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, Program, BN, utils } from "@coral-xyz/anchor";
+import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
 import { Dividends } from "../../target/types/dividends";
-import { createMint, mintTo, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { mintTo, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { assert } from "chai";
 import { MintHelper } from "../helpers/mint_helper";
@@ -10,6 +10,8 @@ import {
   BalanceTree,
   toBytes32Array,
 } from "../../app/src/merkle-distributor/utils";
+import { findClaimStatusKey } from "../../app/src/merkle-distributor";
+import { claim, createDistributor } from "./utils";
 
 describe("claim-dividends", () => {
   const provider = AnchorProvider.env();
@@ -33,37 +35,15 @@ describe("claim-dividends", () => {
 
   beforeEach(async () => {
     await topUpWallet(connection, signer.publicKey, solToLamports(10));
-    mintKeypair = Keypair.generate();
-    await createMint(
-      connection,
-      signer,
-      signer.publicKey,
-      null,
-      decimals,
-      mintKeypair,
-      { commitment },
-      TOKEN_PROGRAM_ID
-    );
-    baseKey = Keypair.generate();
-    [distributor, bump] = PublicKey.findProgramAddressSync(
-      [
-        utils.bytes.utf8.encode("MerkleDistributor"),
-        baseKey.publicKey.toBytes(),
-      ],
-      dividendsProgram.programId
-    );
-
-    mintHelper = new MintHelper(
-      connection,
-      mintKeypair.publicKey,
-      commitment,
-      TOKEN_PROGRAM_ID
-    );
-    distributorATA = await mintHelper.createAssociatedTokenAccount(
-      distributor,
-      signer,
-      true
-    );
+    ({ mintKeypair, mintHelper, baseKey, distributor, bump, distributorATA } =
+      await createDistributor(
+        connection,
+        decimals,
+        signer,
+        dividendsProgram.programId,
+        TOKEN_PROGRAM_ID,
+        commitment
+      ));
   });
 
   it("Is initialized!", async () => {
@@ -124,36 +104,19 @@ describe("claim-dividends", () => {
 
       const claimantKP = Keypair.generate();
       const index = new BN(0);
-      const [claimPubkey, claimBump] = PublicKey.findProgramAddressSync(
-        [
-          utils.bytes.utf8.encode("ClaimStatus"),
-          index.toArrayLike(Buffer, "le", 8),
-          distributor.toBytes(),
-        ],
-        dividendsProgram.programId
-      );
-
       const claimAmount = new BN(1_000_000);
-      const claimantATA = await mintHelper.createAssociatedTokenAccount(
-        claimantKP.publicKey,
-        signer,
-        false
-      );
       try {
-        await dividendsProgram.methods
-          .claim(claimBump, index, claimAmount, [])
-          .accountsStrict({
-            distributor,
-            claimStatus: claimPubkey,
-            from: distributorATA,
-            to: claimantATA,
-            claimant: claimantKP.publicKey,
-            payer: signer.publicKey,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
-          })
-          .signers([claimantKP, signer])
-          .rpc({ commitment });
+        await claim(
+          dividendsProgram,
+          index,
+          claimAmount,
+          [],
+          claimantKP,
+          distributor,
+          mintHelper,
+          signer,
+          commitment
+        );
         assert.fail("Expected an error");
       } catch ({ error }) {
         assert.equal(error.errorCode.code, "InvalidProof");
@@ -221,30 +184,23 @@ describe("claim-dividends", () => {
             false
           );
 
-          const [claimPubkey, claimBump] = PublicKey.findProgramAddressSync(
-            [
-              utils.bytes.utf8.encode("ClaimStatus"),
-              new BN(index).toArrayLike(Buffer, "le", 8),
-              distributor.toBytes(),
-            ],
+          const [claimPubkey, claimBump] = findClaimStatusKey(
+            new BN(index),
+            distributor,
             dividendsProgram.programId
           );
-          const proofBytes = proof.map((p) => toBytes32Array(p));
 
-          await dividendsProgram.methods
-            .claim(claimBump, new BN(index), amount, proofBytes)
-            .accountsStrict({
-              distributor,
-              claimStatus: claimPubkey,
-              from: distributorATA,
-              to: claimantATA,
-              claimant: kp.publicKey,
-              payer: signer.publicKey,
-              tokenProgram: TOKEN_PROGRAM_ID,
-              systemProgram: SystemProgram.programId,
-            })
-            .signers([kp, signer])
-            .rpc({ commitment });
+          await claim(
+            dividendsProgram,
+            new BN(index),
+            amount,
+            proof,
+            kp,
+            distributor,
+            mintHelper,
+            signer,
+            commitment
+          );
 
           const tokenAccountInfo = await mintHelper.getAccount(claimantATA);
           assert.equal(tokenAccountInfo.amount.toString(), amount.toString());
@@ -319,52 +275,36 @@ describe("claim-dividends", () => {
         userKP.publicKey,
         claimAmount
       );
-      const claimantATA = await mintHelper.createAssociatedTokenAccount(
-        userKP.publicKey,
-        signer,
-        false
-      );
-
-      const [claimPubkey, claimBump] = PublicKey.findProgramAddressSync(
-        [
-          utils.bytes.utf8.encode("ClaimStatus"),
-          new BN(index).toArrayLike(Buffer, "le", 8),
-          distributor.toBytes(),
-        ],
+      const [claimPubkey] = findClaimStatusKey(
+        new BN(index),
+        distributor,
         dividendsProgram.programId
       );
-      const proofBytes = proof.map((p) => toBytes32Array(p));
 
-      await dividendsProgram.methods
-        .claim(claimBump, new BN(index), claimAmount, proofBytes)
-        .accountsStrict({
-          distributor,
-          claimStatus: claimPubkey,
-          from: distributorATA,
-          to: claimantATA,
-          claimant: userKP.publicKey,
-          payer: signer.publicKey,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([userKP, signer])
-        .rpc({ commitment });
+      await claim(
+        dividendsProgram,
+        index,
+        claimAmount,
+        proof,
+        userKP,
+        distributor,
+        mintHelper,
+        signer,
+        commitment
+      );
 
       try {
-        await dividendsProgram.methods
-          .claim(claimBump, new BN(index), claimAmount, proofBytes)
-          .accountsStrict({
-            distributor,
-            claimStatus: claimPubkey,
-            from: distributorATA,
-            to: claimantATA,
-            claimant: userKP.publicKey,
-            payer: signer.publicKey,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
-          })
-          .signers([userKP, signer])
-          .rpc({ commitment });
+        await claim(
+          dividendsProgram,
+          index,
+          claimAmount,
+          proof,
+          userKP,
+          distributor,
+          mintHelper,
+          signer,
+          commitment
+        );
         assert.fail("Expected an error");
       } catch (error) {
         const isExpectedError = error.logs.some((log: string) => {
@@ -421,36 +361,19 @@ describe("claim-dividends", () => {
         userKP.publicKey,
         claimAmount
       );
-      const claimantATA = await mintHelper.createAssociatedTokenAccount(
-        userKP.publicKey,
-        signer,
-        false
-      );
-      const [claimPubkey, claimBump] = PublicKey.findProgramAddressSync(
-        [
-          utils.bytes.utf8.encode("ClaimStatus"),
-          new BN(index).toArrayLike(Buffer, "le", 8),
-          distributor.toBytes(),
-        ],
-        dividendsProgram.programId
-      );
-      const proofBytes = proof.map((p) => toBytes32Array(p));
 
       try {
-        await dividendsProgram.methods
-          .claim(claimBump, new BN(index), claimAmount.addn(1), proofBytes)
-          .accountsStrict({
-            distributor,
-            claimStatus: claimPubkey,
-            from: distributorATA,
-            to: claimantATA,
-            claimant: userKP.publicKey,
-            payer: signer.publicKey,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
-          })
-          .signers([userKP, signer])
-          .rpc({ commitment });
+        await claim(
+          dividendsProgram,
+          index,
+          claimAmount.addn(1),
+          proof,
+          userKP,
+          distributor,
+          mintHelper,
+          signer,
+          commitment
+        );
       } catch ({ error }) {
         assert.equal(error.errorCode.code, "InvalidProof");
         assert.equal(error.errorMessage, "Invalid Merkle proof");
@@ -503,12 +426,9 @@ describe("claim-dividends", () => {
         signer,
         false
       );
-      const [claimPubkey, claimBump] = PublicKey.findProgramAddressSync(
-        [
-          utils.bytes.utf8.encode("ClaimStatus"),
-          new BN(index).toArrayLike(Buffer, "le", 8),
-          distributor.toBytes(),
-        ],
+      const [claimPubkey, claimBump] = findClaimStatusKey(
+        new BN(index),
+        distributor,
         dividendsProgram.programId
       );
       const proofBytes = proof.map((p) => toBytes32Array(p));

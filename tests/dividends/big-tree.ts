@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, Program, BN, utils } from "@coral-xyz/anchor";
+import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
 import { Dividends } from "../../target/types/dividends";
-import { createMint, mintTo, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { mintTo, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { assert } from "chai";
 import { MintHelper } from "../helpers/mint_helper";
@@ -14,6 +14,7 @@ import {
   BalanceTree,
   toBytes32Array,
 } from "../../app/src/merkle-distributor/utils";
+import { claim, createDistributor } from "./utils";
 
 describe("claim-dividends", () => {
   const provider = AnchorProvider.env();
@@ -67,36 +68,15 @@ describe("claim-dividends", () => {
 
     before(async () => {
       await topUpWallet(connection, signer.publicKey, solToLamports(10));
-      mintKeypair = Keypair.generate();
-      await createMint(
-        connection,
-        signer,
-        signer.publicKey,
-        null,
-        decimals,
-        mintKeypair,
-        { commitment },
-        TOKEN_PROGRAM_ID
-      );
-      baseKey = Keypair.generate();
-      [distributor, bump] = PublicKey.findProgramAddressSync(
-        [
-          utils.bytes.utf8.encode("MerkleDistributor"),
-          baseKey.publicKey.toBytes(),
-        ],
-        dividendsProgram.programId
-      );
-      mintHelper = new MintHelper(
-        connection,
-        mintKeypair.publicKey,
-        commitment,
-        TOKEN_PROGRAM_ID
-      );
-      distributorATA = await mintHelper.createAssociatedTokenAccount(
-        distributor,
-        signer,
-        true
-      );
+      ({ mintKeypair, mintHelper, baseKey, distributor, bump, distributorATA } =
+        await createDistributor(
+          connection,
+          decimals,
+          signer,
+          dividendsProgram.programId,
+          TOKEN_PROGRAM_ID,
+          commitment
+        ));
 
       await dividendsProgram.methods
         .newDistributor(
@@ -132,35 +112,18 @@ describe("claim-dividends", () => {
       const index = 90000;
       const claimant = investors[index];
       const proof = tree.getProof(index, claimant.publicKey, amount);
-      const claimantATA = await mintHelper.createAssociatedTokenAccount(
-        claimant.publicKey,
-        signer,
-        false
-      );
-      const proofBytes = proof.map((p) => toBytes32Array(p));
-      const [claimPubkey, claimBump] = PublicKey.findProgramAddressSync(
-        [
-          utils.bytes.utf8.encode("ClaimStatus"),
-          new BN(index).toArrayLike(Buffer, "le", 8),
-          distributor.toBytes(),
-        ],
-        dividendsProgram.programId
+
+      const signature = await claim(
+        dividendsProgram,
+        new BN(index),
+        amount,
+        proof,
+        claimant,
+        distributor,
+        mintHelper,
+        signer
       );
 
-      const signature = await dividendsProgram.methods
-        .claim(claimBump, new BN(index), amount, proofBytes)
-        .accountsStrict({
-          distributor,
-          claimStatus: claimPubkey,
-          from: distributorATA,
-          to: claimantATA,
-          claimant: claimant.publicKey,
-          payer: signer.publicKey,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([claimant, signer])
-        .rpc({ commitment });
       const computeUnits = await getTransactionComputeUnits(
         connection,
         signature,
@@ -174,35 +137,17 @@ describe("claim-dividends", () => {
       for (let i = 0; i < NUM_LEAVES; i += NUM_LEAVES / NUM_SAMPLES) {
         const claimant = investors[i];
         const proof = tree.getProof(i, claimant.publicKey, amount);
-        const claimantATA = await mintHelper.createAssociatedTokenAccount(
-          claimant.publicKey,
-          signer,
-          false
-        );
-        const proofBytes = proof.map((p) => toBytes32Array(p));
-        const [claimPubkey, claimBump] = PublicKey.findProgramAddressSync(
-          [
-            utils.bytes.utf8.encode("ClaimStatus"),
-            new BN(i).toArrayLike(Buffer, "le", 8),
-            distributor.toBytes(),
-          ],
-          dividendsProgram.programId
-        );
 
-        const signature = await dividendsProgram.methods
-          .claim(claimBump, new BN(i), amount, proofBytes)
-          .accountsStrict({
-            distributor,
-            claimStatus: claimPubkey,
-            from: distributorATA,
-            to: claimantATA,
-            claimant: claimant.publicKey,
-            payer: signer.publicKey,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
-          })
-          .signers([claimant, signer])
-          .rpc({ commitment });
+        const signature = await claim(
+          dividendsProgram,
+          new BN(i),
+          amount,
+          proof,
+          claimant,
+          distributor,
+          mintHelper,
+          signer
+        );
 
         const computeUnits = await getTransactionComputeUnits(
           connection,
