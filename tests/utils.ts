@@ -8,6 +8,7 @@ import {
   Transaction,
   Signer,
   Commitment,
+  Finality
 } from "@solana/web3.js";
 
 export async function topUpWallet(
@@ -90,4 +91,18 @@ export async function createAccountWithSeed(
   // Execute the transaction against the cluster.
   await sendAndConfirmTransaction(connection, tx, [payer], { commitment });
   return pubkey;
+}
+
+export async function getTransactionComputeUnits(connection: Connection, txSignature: string, commitment: Finality = "confirmed") {
+  const result = await connection.getTransaction(txSignature, {
+    commitment,
+  });
+  const txLogs = result.meta.logMessages;
+  if (!txLogs) throw new Error("No logs found in transaction");
+  const computeUnitsLogs = txLogs[txLogs.length - 2];
+  if (!computeUnitsLogs) throw new Error("No compute units found in logs");
+  const amtStr = computeUnitsLogs.split(" ")[3];
+  if (!amtStr) throw new Error("No amount found in compute units logs");
+
+  return parseInt(amtStr);
 }
