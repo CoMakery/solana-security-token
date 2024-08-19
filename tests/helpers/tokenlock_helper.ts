@@ -484,6 +484,7 @@ export async function createReleaseSchedule(
       }
     }
   } catch (e) {
+    console.error("ERROR: [createReleaseSchedule]", e);
     if (!e.error && !e.error.errorCode && !e.error.errorMessage) {
       result = parseCustomProgramErrorNumber(
         program.idl.errors,
