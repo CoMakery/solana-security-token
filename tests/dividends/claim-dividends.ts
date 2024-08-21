@@ -443,6 +443,7 @@ describe("claim-dividends", () => {
             to: claimantATA,
             claimant,
             payer: signer.publicKey,
+            mint: mintKeypair.publicKey,
             tokenProgram: TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
           })

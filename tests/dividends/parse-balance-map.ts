@@ -10,9 +10,7 @@ import {
   parseBalanceMap,
   toBytes32Array,
 } from "../../app/src/merkle-distributor/utils";
-import {
-  findClaimStatusKey,
-} from "../../app/src/merkle-distributor";
+import { findClaimStatusKey } from "../../app/src/merkle-distributor";
 import { claim, createDistributor } from "./utils";
 
 describe("parse BalanceMap", () => {

@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount};
+use anchor_spl::token::{self, Token, TokenAccount, Mint};
 
 use crate::{
     errors::DividendsErrorCode, events::ClaimedEvent, merkle_proof, ClaimStatus, MerkleDistributor,
@@ -31,11 +31,17 @@ pub struct Claim<'info> {
     pub claim_status: Account<'info, ClaimStatus>,
 
     /// Distributor ATA containing the tokens to distribute.
-    #[account(mut)]
+    #[account(mut,
+        token::mint = mint,
+        token::token_program = token_program,
+    )]
     pub from: Account<'info, TokenAccount>,
 
     /// Account to send the claimed tokens to.
-    #[account(mut)]
+    #[account(mut,
+        token::mint = mint,
+        token::token_program = token_program,
+    )]
     pub to: Account<'info, TokenAccount>,
 
     /// Who is claiming the tokens.
@@ -45,6 +51,10 @@ pub struct Claim<'info> {
     /// Payer of the claim.
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    // Distributor's token mint.
+    #[account(address = distributor.mint)]
+    pub mint: Account<'info, Mint>,
 
     /// The [System] program.
     pub system_program: Program<'info, System>,
@@ -61,7 +71,7 @@ pub fn claim(
     amount: u64,
     proof: Vec<[u8; 32]>,
 ) -> Result<()> {
-    // assert_keys_neq!(ctx.accounts.from, ctx.accounts.to);
+    require!(ctx.accounts.from.key() != ctx.accounts.to.key(), DividendsErrorCode::KeysMustNotMatch);
 
     let claim_status = &mut ctx.accounts.claim_status;
     require!(
@@ -98,15 +108,6 @@ pub fn claim(
         &[ctx.accounts.distributor.bump],
     ];
 
-    // #[allow(deprecated)]
-    // {
-    //     vipers::assert_ata!(
-    //         ctx.accounts.from,
-    //         ctx.accounts.distributor,
-    //         distributor.mint
-    //     );
-    // }
-    // assert_keys_eq!(ctx.accounts.to.owner, claimant_account.key(), OwnerMismatch);
     token::transfer(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -125,13 +126,11 @@ pub fn claim(
         .total_amount_claimed
         .checked_add(amount)
         .unwrap();
-    // unwrap_int!(distributor.total_amount_claimed.checked_add(amount));
     require!(
         distributor.total_amount_claimed <= distributor.max_total_claim,
         DividendsErrorCode::ExceededMaxClaim
     );
     distributor.num_nodes_claimed = distributor.num_nodes_claimed.checked_add(1).unwrap();
-    // distributor.num_nodes_claimed = unwrap_int!(distributor.num_nodes_claimed.checked_add(1));
     require!(
         distributor.num_nodes_claimed <= distributor.max_num_nodes,
         DividendsErrorCode::ExceededMaxNumNodes

@@ -5,10 +5,7 @@ import {
   PublicKey,
   SystemProgram,
 } from "@solana/web3.js";
-import {
-  createMint,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+import { createMint, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   findClaimStatusKey,
   findDistributorKey,
@@ -114,6 +111,7 @@ export async function claim(
       to: claimantATA,
       claimant: claimant.publicKey,
       payer: payer.publicKey,
+      mint: mintHelper.mintPubkey,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     })

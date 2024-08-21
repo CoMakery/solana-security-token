@@ -14,4 +14,6 @@ pub enum DividendsErrorCode {
     Unauthorized,
     #[msg("Token account owner did not match intended owner")]
     OwnerMismatch,
+    #[msg("Keys must not match")]
+    KeysMustNotMatch,
 }

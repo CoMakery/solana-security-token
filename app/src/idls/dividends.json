@@ -95,6 +95,9 @@
           "signer": true
         },
         {
+          "name": "mint"
+        },
+        {
           "name": "system_program",
           "docs": [
             "The [System] program."
@@ -316,6 +319,11 @@
       "code": 6005,
       "name": "OwnerMismatch",
       "msg": "Token account owner did not match intended owner"
+    },
+    {
+      "code": 6006,
+      "name": "KeysMustNotMatch",
+      "msg": "Keys must not match"
     }
   ],
   "types": [

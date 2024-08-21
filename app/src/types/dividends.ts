@@ -66,6 +66,9 @@ export type Dividends = {
           signer: true;
         },
         {
+          name: "mint";
+        },
+        {
           name: "systemProgram";
           docs: ["The [System] program."];
           address: "11111111111111111111111111111111";
@@ -231,6 +234,11 @@ export type Dividends = {
       code: 6005;
       name: "ownerMismatch";
       msg: "Token account owner did not match intended owner";
+    },
+    {
+      code: 6006;
+      name: "keysMustNotMatch";
+      msg: "Keys must not match";
     }
   ];
   types: [
