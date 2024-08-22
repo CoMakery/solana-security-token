@@ -82,6 +82,7 @@ export async function claim(
   distributor: PublicKey,
   mintHelper: MintHelper,
   payer: Keypair,
+  tokenProgramId: PublicKey = TOKEN_PROGRAM_ID,
   commitment: Commitment = "confirmed"
 ): Promise<string> {
   const [claimPubkey, claimBump] = findClaimStatusKey(
@@ -112,7 +113,7 @@ export async function claim(
       claimant: claimant.publicKey,
       payer: payer.publicKey,
       mint: mintHelper.mintPubkey,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram: tokenProgramId,
       systemProgram: SystemProgram.programId,
     })
     .signers([claimant, payer])

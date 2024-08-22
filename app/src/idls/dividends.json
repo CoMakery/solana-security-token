@@ -108,8 +108,7 @@
           "name": "token_program",
           "docs": [
             "SPL [Token] program."
-          ],
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          ]
         }
       ],
       "args": [
