@@ -76,7 +76,6 @@ export type Dividends = {
         {
           name: "tokenProgram";
           docs: ["SPL [Token] program."];
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
         }
       ];
       args: [

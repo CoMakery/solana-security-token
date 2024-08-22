@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
+use anchor_spl::token_interface::Mint;
 
 use crate::MerkleDistributor;
 
@@ -23,7 +23,7 @@ pub struct NewDistributor<'info> {
     pub distributor: Account<'info, MerkleDistributor>,
 
     /// The mint to distribute.
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     /// Payer to create the distributor.
     #[account(mut)]
@@ -33,6 +33,7 @@ pub struct NewDistributor<'info> {
     pub system_program: Program<'info, System>,
 }
 
+// TODO: only contract admin can create a new distributor
 pub fn new_distributor(
     ctx: Context<NewDistributor>,
     _bump: u8,

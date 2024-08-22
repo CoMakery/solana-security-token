@@ -27,8 +27,8 @@ pub mod dividends {
     }
 
     /// Claims tokens from the [MerkleDistributor].
-    pub fn claim(
-        ctx: Context<Claim>,
+    pub fn claim<'info>(
+        ctx: Context<'_, '_, '_, 'info, Claim<'info>>,
         _bump: u8,
         index: u64,
         amount: u64,

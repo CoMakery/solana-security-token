@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Mint};
+use anchor_spl::token_2022::spl_token_2022::onchain::invoke_transfer_checked;
+use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::{
     errors::DividendsErrorCode, events::ClaimedEvent, merkle_proof, ClaimStatus, MerkleDistributor,
@@ -35,14 +36,14 @@ pub struct Claim<'info> {
         token::mint = mint,
         token::token_program = token_program,
     )]
-    pub from: Account<'info, TokenAccount>,
+    pub from: Box<InterfaceAccount<'info, TokenAccount>>,
 
     /// Account to send the claimed tokens to.
     #[account(mut,
         token::mint = mint,
         token::token_program = token_program,
     )]
-    pub to: Account<'info, TokenAccount>,
+    pub to: Box<InterfaceAccount<'info, TokenAccount>>,
 
     /// Who is claiming the tokens.
     #[account(address = to.owner @ DividendsErrorCode::OwnerMismatch)]
@@ -54,24 +55,27 @@ pub struct Claim<'info> {
 
     // Distributor's token mint.
     #[account(address = distributor.mint)]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     /// The [System] program.
     pub system_program: Program<'info, System>,
 
     /// SPL [Token] program.
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
 }
 
 /// Claims tokens from the [MerkleDistributor].
-pub fn claim(
-    ctx: Context<Claim>,
+pub fn claim<'info>(
+    ctx: Context<'_, '_, '_, 'info, Claim<'info>>,
     _bump: u8,
     index: u64,
     amount: u64,
     proof: Vec<[u8; 32]>,
 ) -> Result<()> {
-    require!(ctx.accounts.from.key() != ctx.accounts.to.key(), DividendsErrorCode::KeysMustNotMatch);
+    require!(
+        ctx.accounts.from.key() != ctx.accounts.to.key(),
+        DividendsErrorCode::KeysMustNotMatch
+    );
 
     let claim_status = &mut ctx.accounts.claim_status;
     require!(
@@ -102,23 +106,28 @@ pub fn claim(
     claim_status.claimed_at = clock.unix_timestamp;
     claim_status.claimant = claimant_account.key();
 
-    let seeds = [
+    let seeds = &[
         b"MerkleDistributor".as_ref(),
         &distributor.base.to_bytes(),
         &[ctx.accounts.distributor.bump],
     ];
 
-    token::transfer(
-        CpiContext::new(
-            ctx.accounts.token_program.to_account_info(),
-            token::Transfer {
-                from: ctx.accounts.from.to_account_info(),
-                to: ctx.accounts.to.to_account_info(),
-                authority: ctx.accounts.distributor.to_account_info(),
-            },
-        )
-        .with_signer(&[&seeds[..]]),
+    let token_program_id = ctx.accounts.token_program.key;
+    let source_info = ctx.accounts.from.to_account_info();
+    let mint_info = ctx.accounts.mint.to_account_info();
+    let destination_info = ctx.accounts.to.to_account_info();
+    let authority_info = ctx.accounts.distributor.to_account_info();
+    let decimals = ctx.accounts.mint.decimals;
+    invoke_transfer_checked(
+        token_program_id,
+        source_info.clone(),
+        mint_info.clone(),
+        destination_info.clone(),
+        authority_info.clone(),
+        ctx.remaining_accounts,
         amount,
+        decimals,
+        &[&seeds[..]],
     )?;
 
     let distributor = &mut ctx.accounts.distributor;
