@@ -34,7 +34,7 @@ pub struct InitializeTokenLock<'info> {
 
     #[account(
         constraint = authority_wallet_role.owner == authority.key(),
-        constraint = authority_wallet_role.has_role(access_control::Roles::ContractAdmin),
+        constraint = authority_wallet_role.has_role(access_control::Roles::ContractAdmin) @ TokenlockErrors::Unauthorized,
         constraint = authority_wallet_role.access_control == access_control.key(),
         owner = AccessControlProgram::id(),
     )]
