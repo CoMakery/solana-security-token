@@ -36,4 +36,12 @@ pub mod dividends {
     ) -> Result<()> {
         instructions::claim(ctx, _bump, index, amount, proof)
     }
+
+    /// Fund dividend tokens to the [MerkleDistributor].
+    pub fn fund_dividends<'info>(
+        ctx: Context<'_, '_, '_, 'info, FundDividends<'info>>,
+        amount: u64,
+    ) -> Result<()> {
+        instructions::fund_dividends(ctx, amount)
+    }
 }
