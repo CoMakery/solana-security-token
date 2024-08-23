@@ -102,6 +102,51 @@ export type Dividends = {
       ];
     },
     {
+      name: "fundDividends";
+      docs: ["Fund dividend tokens to the [MerkleDistributor]."];
+      discriminator: [80, 231, 140, 123, 85, 15, 70, 166];
+      accounts: [
+        {
+          name: "distributor";
+          docs: ["The [MerkleDistributor]."];
+        },
+        {
+          name: "from";
+          docs: ["Account which send the funding tokens."];
+          writable: true;
+        },
+        {
+          name: "to";
+          docs: ["Distributor ATA containing the tokens to distribute."];
+          writable: true;
+        },
+        {
+          name: "funder";
+          docs: ["Who is funding the tokens."];
+          signer: true;
+        },
+        {
+          name: "payer";
+          docs: ["Payer of the fund dividends."];
+          writable: true;
+          signer: true;
+        },
+        {
+          name: "mint";
+        },
+        {
+          name: "tokenProgram";
+          docs: ["SPL [Token] program."];
+        }
+      ];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
+        }
+      ];
+    },
+    {
       name: "newDistributor";
       docs: [
         "Creates a new [MerkleDistributor].",
@@ -201,6 +246,10 @@ export type Dividends = {
     {
       name: "claimedEvent";
       discriminator: [144, 172, 209, 86, 144, 87, 84, 115];
+    },
+    {
+      name: "fundedEvent";
+      discriminator: [184, 241, 25, 25, 217, 159, 102, 174];
     }
   ];
   errors: [
@@ -238,6 +287,11 @@ export type Dividends = {
       code: 6006;
       name: "keysMustNotMatch";
       msg: "Keys must not match";
+    },
+    {
+      code: 6007;
+      name: "invalidFundingAmount";
+      msg: "Invalid funding amount";
     }
   ];
   types: [
@@ -293,6 +347,29 @@ export type Dividends = {
           {
             name: "amount";
             docs: ["Amount of tokens to distribute."];
+            type: "u64";
+          }
+        ];
+      };
+    },
+    {
+      name: "fundedEvent";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "distributor";
+            docs: ["Distribution which funded."];
+            type: "pubkey";
+          },
+          {
+            name: "funder";
+            docs: ["User that funded."];
+            type: "pubkey";
+          },
+          {
+            name: "amount";
+            docs: ["Amount of tokens funded."];
             type: "u64";
           }
         ];

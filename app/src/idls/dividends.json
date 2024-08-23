@@ -138,6 +138,74 @@
       ]
     },
     {
+      "name": "fund_dividends",
+      "docs": [
+        "Fund dividend tokens to the [MerkleDistributor]."
+      ],
+      "discriminator": [
+        80,
+        231,
+        140,
+        123,
+        85,
+        15,
+        70,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "distributor",
+          "docs": [
+            "The [MerkleDistributor]."
+          ]
+        },
+        {
+          "name": "from",
+          "docs": [
+            "Account which send the funding tokens."
+          ],
+          "writable": true
+        },
+        {
+          "name": "to",
+          "docs": [
+            "Distributor ATA containing the tokens to distribute."
+          ],
+          "writable": true
+        },
+        {
+          "name": "funder",
+          "docs": [
+            "Who is funding the tokens."
+          ],
+          "signer": true
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "Payer of the fund dividends."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "token_program",
+          "docs": [
+            "SPL [Token] program."
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "new_distributor",
       "docs": [
         "Creates a new [MerkleDistributor].",
@@ -286,6 +354,19 @@
         84,
         115
       ]
+    },
+    {
+      "name": "FundedEvent",
+      "discriminator": [
+        184,
+        241,
+        25,
+        25,
+        217,
+        159,
+        102,
+        174
+      ]
     }
   ],
   "errors": [
@@ -323,6 +404,11 @@
       "code": 6006,
       "name": "KeysMustNotMatch",
       "msg": "Keys must not match"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidFundingAmount",
+      "msg": "Invalid funding amount"
     }
   ],
   "types": [
@@ -393,6 +479,35 @@
             "name": "amount",
             "docs": [
               "Amount of tokens to distribute."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FundedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "distributor",
+            "docs": [
+              "Distribution which funded."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "funder",
+            "docs": [
+              "User that funded."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "docs": [
+              "Amount of tokens funded."
             ],
             "type": "u64"
           }

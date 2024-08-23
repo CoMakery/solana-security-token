@@ -11,3 +11,13 @@ pub struct ClaimedEvent {
     /// Amount of tokens to distribute.
     pub amount: u64,
 }
+
+#[event]
+pub struct FundedEvent {
+    /// Distribution which funded.
+    pub distributor: Pubkey,
+    /// User that funded.
+    pub funder: Pubkey,
+    /// Amount of tokens funded.
+    pub amount: u64,
+}

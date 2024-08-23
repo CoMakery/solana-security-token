@@ -16,4 +16,6 @@ pub enum DividendsErrorCode {
     OwnerMismatch,
     #[msg("Keys must not match")]
     KeysMustNotMatch,
+    #[msg("Invalid funding amount")]
+    InvalidFundingAmount,
 }
