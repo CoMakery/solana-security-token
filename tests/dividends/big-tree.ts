@@ -15,8 +15,12 @@ import {
   toBytes32Array,
 } from "../../app/src/merkle-distributor/utils";
 import { claim, createDistributor } from "./utils";
+import {
+  TestEnvironment,
+  TestEnvironmentParams,
+} from "../helpers/test_environment";
 
-describe("claim-dividends", () => {
+describe("big tree", () => {
   const provider = AnchorProvider.env();
   const connection = provider.connection;
   anchor.setProvider(provider);
@@ -42,6 +46,19 @@ describe("claim-dividends", () => {
   }
   const tree = new BalanceTree(elements);
 
+  const testEnvironmentParams: TestEnvironmentParams = {
+    mint: {
+      decimals: 6,
+      name: "XYZ Token",
+      symbol: "XYZ",
+      uri: "https://example.com",
+    },
+    initialSupply: 1_000_000_000_000,
+    maxHolders: 10000,
+    maxTotalSupply: 100_000_000_000_000,
+  };
+  let testEnvironment: TestEnvironment;
+
   it("proof verification works", () => {
     const root = tree.getRoot();
 
@@ -63,11 +80,15 @@ describe("claim-dividends", () => {
     let distributor: PublicKey;
     let distributorATA: PublicKey;
     let bump: number;
-    const signer = Keypair.generate();
+    let signer: Keypair;
     const maxTotalClaim = 100 * NUM_LEAVES;
 
     before(async () => {
-      await topUpWallet(connection, signer.publicKey, solToLamports(10));
+      testEnvironment = new TestEnvironment(testEnvironmentParams);
+      await testEnvironment.setupAccessControl();
+      signer = testEnvironment.contractAdmin;
+
+      await topUpWallet(connection, signer.publicKey, solToLamports(1));
       ({ mintKeypair, mintHelper, baseKey, distributor, bump, distributorATA } =
         await createDistributor(
           connection,
@@ -89,6 +110,12 @@ describe("claim-dividends", () => {
           base: baseKey.publicKey,
           distributor,
           mint: mintKeypair.publicKey,
+          authorityWalletRole:
+            testEnvironment.accessControlHelper.walletRolePDA(
+              signer.publicKey
+            )[0],
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           payer: signer.publicKey,
           systemProgram: SystemProgram.programId,
         })

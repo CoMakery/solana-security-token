@@ -199,6 +199,14 @@ export type Dividends = {
           docs: ["The mint to distribute."];
         },
         {
+          name: "authorityWalletRole";
+          docs: ["Authority wallet role to create the distributor."];
+        },
+        {
+          name: "accessControl";
+          docs: ["Access Control for Security Token."];
+        },
+        {
           name: "payer";
           docs: ["Payer to create the distributor."];
           writable: true;
@@ -234,12 +242,20 @@ export type Dividends = {
   ];
   accounts: [
     {
+      name: "accessControl";
+      discriminator: [147, 81, 178, 92, 223, 66, 181, 132];
+    },
+    {
       name: "claimStatus";
       discriminator: [22, 183, 249, 157, 247, 95, 150, 96];
     },
     {
       name: "merkleDistributor";
       discriminator: [77, 119, 139, 70, 84, 247, 12, 26];
+    },
+    {
+      name: "walletRole";
+      discriminator: [219, 71, 35, 217, 102, 248, 173, 9];
     }
   ];
   events: [
@@ -295,6 +311,32 @@ export type Dividends = {
     }
   ];
   types: [
+    {
+      name: "accessControl";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "mint";
+            type: "pubkey";
+          },
+          {
+            name: "authority";
+            type: "pubkey";
+          },
+          {
+            name: "maxTotalSupply";
+            type: "u64";
+          },
+          {
+            name: "lockupEscrowAccount";
+            type: {
+              option: "pubkey";
+            };
+          }
+        ];
+      };
+    },
     {
       name: "claimStatus";
       docs: [
@@ -426,6 +468,33 @@ export type Dividends = {
             name: "numNodesClaimed";
             docs: ["Number of nodes that have been claimed."];
             type: "u64";
+          },
+          {
+            name: "accessControl";
+            docs: [
+              "Access control for the [MerkleDistributor] and Security Token."
+            ];
+            type: "pubkey";
+          }
+        ];
+      };
+    },
+    {
+      name: "walletRole";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "owner";
+            type: "pubkey";
+          },
+          {
+            name: "accessControl";
+            type: "pubkey";
+          },
+          {
+            name: "role";
+            type: "u8";
           }
         ];
       };

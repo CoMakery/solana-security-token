@@ -23,4 +23,6 @@ pub struct MerkleDistributor {
     pub total_amount_claimed: u64,
     /// Number of nodes that have been claimed.
     pub num_nodes_claimed: u64,
+    /// Access control for the [MerkleDistributor] and Security Token.
+    pub access_control: Pubkey,
 }

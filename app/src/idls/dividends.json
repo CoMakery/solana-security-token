@@ -273,6 +273,18 @@
           ]
         },
         {
+          "name": "authority_wallet_role",
+          "docs": [
+            "Authority wallet role to create the distributor."
+          ]
+        },
+        {
+          "name": "access_control",
+          "docs": [
+            "Access Control for Security Token."
+          ]
+        },
+        {
           "name": "payer",
           "docs": [
             "Payer to create the distributor."
@@ -315,6 +327,19 @@
   ],
   "accounts": [
     {
+      "name": "AccessControl",
+      "discriminator": [
+        147,
+        81,
+        178,
+        92,
+        223,
+        66,
+        181,
+        132
+      ]
+    },
+    {
       "name": "ClaimStatus",
       "discriminator": [
         22,
@@ -338,6 +363,19 @@
         247,
         12,
         26
+      ]
+    },
+    {
+      "name": "WalletRole",
+      "discriminator": [
+        219,
+        71,
+        35,
+        217,
+        102,
+        248,
+        173,
+        9
       ]
     }
   ],
@@ -412,6 +450,32 @@
     }
   ],
   "types": [
+    {
+      "name": "AccessControl",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "max_total_supply",
+            "type": "u64"
+          },
+          {
+            "name": "lockup_escrow_account",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "ClaimStatus",
       "docs": [
@@ -582,6 +646,33 @@
               "Number of nodes that have been claimed."
             ],
             "type": "u64"
+          },
+          {
+            "name": "access_control",
+            "docs": [
+              "Access control for the [MerkleDistributor] and Security Token."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WalletRole",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "access_control",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": "u8"
           }
         ]
       }

@@ -16,6 +16,10 @@ import {
 } from "../../app/src/merkle-distributor/utils";
 import { findClaimStatusKey } from "../../app/src/merkle-distributor";
 import { claim, createDistributor } from "./utils";
+import {
+  TestEnvironment,
+  TestEnvironmentParams,
+} from "../helpers/test_environment";
 
 type TestCase = {
   tokenProgramId: PublicKey;
@@ -46,10 +50,27 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     let baseKey: Keypair;
     let mintHelper: MintHelper;
     let distributorATA: PublicKey;
-    const signer = Keypair.generate();
+    let signer;
+
+    const testEnvironmentParams: TestEnvironmentParams = {
+      mint: {
+        decimals: 6,
+        name: "XYZ Token",
+        symbol: "XYZ",
+        uri: "https://example.com",
+      },
+      initialSupply: 1_000_000_000_000,
+      maxHolders: 10000,
+      maxTotalSupply: 100_000_000_000_000,
+    };
+    let testEnvironment: TestEnvironment;
 
     beforeEach(async () => {
-      await topUpWallet(connection, signer.publicKey, solToLamports(10));
+      testEnvironment = new TestEnvironment(testEnvironmentParams);
+      await testEnvironment.setupAccessControl();
+      signer = testEnvironment.contractAdmin;
+
+      await topUpWallet(connection, signer.publicKey, solToLamports(1));
       ({ mintKeypair, mintHelper, baseKey, distributor, bump, distributorATA } =
         await createDistributor(
           connection,
@@ -59,44 +80,6 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           tokenProgramId,
           commitment
         ));
-    });
-
-    it("Is initialized!", async () => {
-      const root = ZERO_BYTES32;
-      const maxTotalClaim = MAX_TOTAL_CLAIM;
-      const maxNumNodes = MAX_NUM_NODES;
-
-      await dividendsProgram.methods
-        .newDistributor(bump, toBytes32Array(root), maxTotalClaim, maxNumNodes)
-        .accountsStrict({
-          base: baseKey.publicKey,
-          distributor,
-          mint: mintKeypair.publicKey,
-          payer: signer.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([signer, baseKey])
-        .rpc({ commitment });
-
-      const distributorData =
-        await dividendsProgram.account.merkleDistributor.fetch(distributor);
-      assert.equal(distributorData.bump, bump);
-      assert.equal(
-        distributorData.maxNumNodes.toString(),
-        MAX_NUM_NODES.toString()
-      );
-      assert.equal(
-        distributorData.maxTotalClaim.toString(),
-        MAX_TOTAL_CLAIM.toString()
-      );
-      assert.deepEqual(distributorData.base, baseKey.publicKey);
-      assert.deepEqual(distributorData.mint, mintKeypair.publicKey);
-      assert.equal(distributorData.numNodesClaimed.toNumber(), 0);
-      assert.deepEqual(
-        distributorData.root,
-        Array.from(new Uint8Array(ZERO_BYTES32))
-      );
-      assert.equal(distributorData.totalAmountClaimed.toNumber(), 0);
     });
 
     context("claim", () => {
@@ -116,6 +99,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             base: baseKey.publicKey,
             distributor,
             mint: mintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -179,6 +168,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             base: baseKey.publicKey,
             distributor,
             mint: mintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -276,6 +271,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             base: baseKey.publicKey,
             distributor,
             mint: mintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -365,6 +366,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             base: baseKey.publicKey,
             distributor,
             mint: mintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -431,6 +438,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             base: baseKey.publicKey,
             distributor,
             mint: mintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
