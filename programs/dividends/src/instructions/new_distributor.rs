@@ -68,6 +68,7 @@ pub fn new_distributor(
     distributor.max_num_nodes = max_num_nodes;
     distributor.total_amount_claimed = 0;
     distributor.num_nodes_claimed = 0;
+    distributor.paused = false;
 
     Ok(())
 }

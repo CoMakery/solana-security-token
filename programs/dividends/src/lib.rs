@@ -44,4 +44,9 @@ pub mod dividends {
     ) -> Result<()> {
         instructions::fund_dividends(ctx, amount)
     }
+
+    /// Pause the [MerkleDistributor].
+    pub fn pause<'info>(ctx: Context<Pause>, paused: bool) -> Result<()> {
+        instructions::pause(ctx, paused)
+    }
 }

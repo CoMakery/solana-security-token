@@ -25,4 +25,6 @@ pub struct MerkleDistributor {
     pub num_nodes_claimed: u64,
     /// Access control for the [MerkleDistributor] and Security Token.
     pub access_control: Pubkey,
+    /// The [MerkleDistributor] is paused.
+    pub paused: bool,
 }

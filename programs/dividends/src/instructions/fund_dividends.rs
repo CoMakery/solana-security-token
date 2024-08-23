@@ -11,7 +11,8 @@ use crate::{errors::DividendsErrorCode, MerkleDistributor};
 pub struct FundDividends<'info> {
     /// The [MerkleDistributor].
     #[account(
-        address = to.owner
+        address = to.owner,
+        constraint = distributor.paused == false @ DividendsErrorCode::DistributionPaused,
     )]
     pub distributor: Account<'info, MerkleDistributor>,
 

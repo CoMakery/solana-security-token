@@ -238,6 +238,36 @@ export type Dividends = {
           type: "u64";
         }
       ];
+    },
+    {
+      name: "pause";
+      docs: ["Pause the [MerkleDistributor]."];
+      discriminator: [211, 22, 221, 251, 74, 121, 193, 47];
+      accounts: [
+        {
+          name: "distributor";
+          docs: ["The [MerkleDistributor]."];
+          writable: true;
+        },
+        {
+          name: "authorityWalletRole";
+        },
+        {
+          name: "accessControl";
+          docs: ["Access Control for Security Token."];
+        },
+        {
+          name: "authority";
+          writable: true;
+          signer: true;
+        }
+      ];
+      args: [
+        {
+          name: "paused";
+          type: "bool";
+        }
+      ];
     }
   ];
   accounts: [
@@ -308,6 +338,11 @@ export type Dividends = {
       code: 6007;
       name: "invalidFundingAmount";
       msg: "Invalid funding amount";
+    },
+    {
+      code: 6008;
+      name: "distributionPaused";
+      msg: "Distribution is paused";
     }
   ];
   types: [
@@ -475,6 +510,11 @@ export type Dividends = {
               "Access control for the [MerkleDistributor] and Security Token."
             ];
             type: "pubkey";
+          },
+          {
+            name: "paused";
+            docs: ["The [MerkleDistributor] is paused."];
+            type: "bool";
           }
         ];
       };
