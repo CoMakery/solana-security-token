@@ -12,6 +12,10 @@ import { MintHelper } from "../helpers/mint_helper";
 import { solToLamports, topUpWallet } from "../utils";
 import { toBytes32Array } from "../../app/src/merkle-distributor/utils";
 import { createDistributor } from "./utils";
+import {
+  TestEnvironment,
+  TestEnvironmentParams,
+} from "../helpers/test_environment";
 
 type TestCase = {
   tokenProgramId: PublicKey;
@@ -42,10 +46,27 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     let baseKey: Keypair;
     let mintHelper: MintHelper;
     let distributorATA: PublicKey;
-    const signer = Keypair.generate();
+    let signer: Keypair;
+
+    const testEnvironmentParams: TestEnvironmentParams = {
+      mint: {
+        decimals: 6,
+        name: "XYZ Token",
+        symbol: "XYZ",
+        uri: "https://example.com",
+      },
+      initialSupply: 1_000_000_000_000,
+      maxHolders: 10000,
+      maxTotalSupply: 100_000_000_000_000,
+    };
+    let testEnvironment: TestEnvironment;
 
     beforeEach(async () => {
-      await topUpWallet(connection, signer.publicKey, solToLamports(10));
+      testEnvironment = new TestEnvironment(testEnvironmentParams);
+      await testEnvironment.setupAccessControl();
+      signer = testEnvironment.contractAdmin;
+
+      await topUpWallet(connection, signer.publicKey, solToLamports(1));
       ({ mintKeypair, mintHelper, baseKey, distributor, bump, distributorATA } =
         await createDistributor(
           connection,
@@ -68,6 +89,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           base: baseKey.publicKey,
           distributor,
           mint: mintKeypair.publicKey,
+          authorityWalletRole:
+            testEnvironment.accessControlHelper.walletRolePDA(
+              signer.publicKey
+            )[0],
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           payer: signer.publicKey,
           systemProgram: SystemProgram.programId,
         })
@@ -114,6 +141,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             base: baseKey.publicKey,
             distributor,
             mint: mintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -224,15 +257,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
 
       it("fails for distributor with different mint", async () => {
         const fundingAmount = new BN(1);
-        const invalidDistributor = Keypair.generate().publicKey;
 
         const {
           mintKeypair: anotherMintKeypair,
-          mintHelper: anotherMintHelper,
           baseKey: anotherBaseKey,
           distributor: anotherDistributor,
           bump: anotherBump,
-          distributorATA: anotherDistributorATA,
         } = await createDistributor(
           connection,
           decimals,
@@ -253,6 +283,12 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             base: anotherBaseKey.publicKey,
             distributor: anotherDistributor,
             mint: anotherMintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
