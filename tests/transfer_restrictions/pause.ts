@@ -23,7 +23,7 @@ describe("Pause transfers", () => {
       decimals: 6,
       name: "XYZ Token",
       symbol: "XYZ",
-      uri: "https://e.com",
+      uri: "https://example.com",
     },
     initialSupply: 1_000_000_000_000,
     maxHolders: 3,

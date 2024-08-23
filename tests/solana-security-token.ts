@@ -45,7 +45,7 @@ describe("solana-security-token", () => {
     payer: superAdmin.publicKey,
     authority: superAdmin.publicKey,
     name: "XYZ Token",
-    uri: "https://e.com",
+    uri: "https://example.com",
     symbol: "XYZ",
     delegate: superAdmin.publicKey,
     maxTotalSupply: new anchor.BN(1_000_000_000),
