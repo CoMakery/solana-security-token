@@ -171,6 +171,43 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         );
       });
 
+      it("fails for paused distribution", async () => {
+        await dividendsProgram.methods
+          .pause(true)
+          .accountsStrict({
+            distributor,
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            authority: signer.publicKey,
+          })
+          .signers([signer])
+          .rpc({ commitment });
+
+        try {
+          await dividendsProgram.methods
+            .fundDividends(new BN(1))
+            .accountsStrict({
+              distributor,
+              mint: mintKeypair.publicKey,
+              from: funderATA,
+              to: distributorATA,
+              funder: funderKP.publicKey,
+              payer: signer.publicKey,
+              tokenProgram: tokenProgramId,
+            })
+            .signers([funderKP, signer])
+            .rpc({ commitment });
+          assert.fail("Expected an error");
+        } catch ({ error }) {
+          assert.equal(error.errorCode.code, "DistributionPaused");
+          assert.equal(error.errorMessage, "Distribution is paused");
+        }
+      });
+
       it("fails for zero amount", async () => {
         const fundingAmount = new BN(0);
         try {

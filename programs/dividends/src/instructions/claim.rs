@@ -13,7 +13,8 @@ pub struct Claim<'info> {
     /// The [MerkleDistributor].
     #[account(
         mut,
-        address = from.owner
+        address = from.owner,
+        constraint = distributor.paused == false @ DividendsErrorCode::DistributionPaused,
     )]
     pub distributor: Account<'info, MerkleDistributor>,
 

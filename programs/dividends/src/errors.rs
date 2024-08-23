@@ -18,4 +18,6 @@ pub enum DividendsErrorCode {
     KeysMustNotMatch,
     #[msg("Invalid funding amount")]
     InvalidFundingAmount,
+    #[msg("Distribution is paused")]
+    DistributionPaused,
 }

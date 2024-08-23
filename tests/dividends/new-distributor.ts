@@ -1,16 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
 import { Dividends } from "../../target/types/dividends";
-import {
-  TOKEN_2022_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { assert } from "chai";
 import { solToLamports, topUpWallet } from "../utils";
-import {
-  toBytes32Array,
-} from "../../app/src/merkle-distributor/utils";
+import { toBytes32Array } from "../../app/src/merkle-distributor/utils";
 import { createDistributor } from "./utils";
 import {
   TestEnvironment,
@@ -111,6 +106,11 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       );
       assert.deepEqual(distributorData.base, baseKey.publicKey);
       assert.deepEqual(distributorData.mint, mintKeypair.publicKey);
+      assert.deepEqual(
+        distributorData.accessControl,
+        testEnvironment.accessControlHelper.accessControlPubkey
+      );
+      assert.equal(distributorData.paused, false);
       assert.equal(distributorData.numNodesClaimed.toNumber(), 0);
       assert.deepEqual(
         distributorData.root,

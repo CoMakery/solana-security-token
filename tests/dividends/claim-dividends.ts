@@ -50,7 +50,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     let baseKey: Keypair;
     let mintHelper: MintHelper;
     let distributorATA: PublicKey;
-    let signer;
+    let signer: Keypair;
 
     const testEnvironmentParams: TestEnvironmentParams = {
       mint: {
@@ -131,6 +131,73 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         } catch ({ error }) {
           assert.equal(error.errorCode.code, "InvalidProof");
           assert.equal(error.errorMessage, "Invalid Merkle proof");
+        }
+      });
+
+      it("fails for paused distribution", async () => {
+        const root = ZERO_BYTES32;
+        const maxTotalClaim = MAX_TOTAL_CLAIM;
+        const maxNumNodes = MAX_NUM_NODES;
+
+        await dividendsProgram.methods
+          .newDistributor(
+            bump,
+            toBytes32Array(root),
+            maxTotalClaim,
+            maxNumNodes
+          )
+          .accountsStrict({
+            base: baseKey.publicKey,
+            distributor,
+            mint: mintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
+            payer: signer.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([signer, baseKey])
+          .rpc({ commitment });
+
+        await dividendsProgram.methods
+          .pause(true)
+          .accountsStrict({
+            distributor,
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            authority: signer.publicKey,
+          })
+          .signers([signer])
+          .rpc({ commitment });
+
+        const claimantKP = Keypair.generate();
+        const index = new BN(0);
+        const claimAmount = new BN(1_000_000);
+        const proof = [Buffer.alloc(32)];
+        try {
+          await claim(
+            dividendsProgram,
+            index,
+            claimAmount,
+            proof,
+            claimantKP,
+            distributor,
+            mintHelper,
+            signer,
+            tokenProgramId,
+            commitment
+          );
+          assert.fail("Expected an error");
+        } catch ({ error }) {
+          assert.equal(error.errorCode.code, "DistributionPaused");
+          assert.equal(error.errorMessage, "Distribution is paused");
         }
       });
 
