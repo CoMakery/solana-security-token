@@ -157,7 +157,8 @@
           "name": "distributor",
           "docs": [
             "The [MerkleDistributor]."
-          ]
+          ],
+          "writable": true
         },
         {
           "name": "from",
@@ -315,11 +316,11 @@
           }
         },
         {
-          "name": "max_total_claim",
+          "name": "total_claim_amount",
           "type": "u64"
         },
         {
-          "name": "max_num_nodes",
+          "name": "num_nodes",
           "type": "u64"
         }
       ]
@@ -348,7 +349,10 @@
           "writable": true
         },
         {
-          "name": "authority_wallet_role"
+          "name": "authority_wallet_role",
+          "docs": [
+            "Authority wallet role to pause the distributor."
+          ]
         },
         {
           "name": "access_control",
@@ -358,6 +362,9 @@
         },
         {
           "name": "authority",
+          "docs": [
+            "Payer and authority to pause the distributor."
+          ],
           "writable": true,
           "signer": true
         }
@@ -470,7 +477,7 @@
     },
     {
       "code": 6003,
-      "name": "ExceededMaxNumNodes",
+      "name": "ExceededNumNodes",
       "msg": "Exceeded maximum number of claimed nodes"
     },
     {
@@ -497,6 +504,11 @@
       "code": 6008,
       "name": "DistributionPaused",
       "msg": "Distribution is paused"
+    },
+    {
+      "code": 6009,
+      "name": "DistributorNotReadyToClaim",
+      "msg": "Distributor is not ready to claim"
     }
   ],
   "types": [
@@ -670,16 +682,16 @@
             "type": "pubkey"
           },
           {
-            "name": "max_total_claim",
+            "name": "total_claim_amount",
             "docs": [
-              "Maximum number of tokens that can ever be claimed from this [MerkleDistributor]."
+              "Number of tokens that can be claimed from this [MerkleDistributor]."
             ],
             "type": "u64"
           },
           {
-            "name": "max_num_nodes",
+            "name": "num_nodes",
             "docs": [
-              "Maximum number of nodes that can ever be claimed from this [MerkleDistributor]."
+              "Number of nodes that can be claimed from this [MerkleDistributor]."
             ],
             "type": "u64"
           },
@@ -708,6 +720,13 @@
             "name": "paused",
             "docs": [
               "The [MerkleDistributor] is paused."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "ready_to_claim",
+            "docs": [
+              "The [MerkleDistributor] is ready to claim."
             ],
             "type": "bool"
           }
