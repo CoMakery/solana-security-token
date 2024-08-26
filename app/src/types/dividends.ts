@@ -109,6 +109,7 @@ export type Dividends = {
         {
           name: "distributor";
           docs: ["The [MerkleDistributor]."];
+          writable: true;
         },
         {
           name: "from";
@@ -230,11 +231,11 @@ export type Dividends = {
           };
         },
         {
-          name: "maxTotalClaim";
+          name: "totalClaimAmount";
           type: "u64";
         },
         {
-          name: "maxNumNodes";
+          name: "numNodes";
           type: "u64";
         }
       ];
@@ -251,6 +252,7 @@ export type Dividends = {
         },
         {
           name: "authorityWalletRole";
+          docs: ["Authority wallet role to pause the distributor."];
         },
         {
           name: "accessControl";
@@ -258,6 +260,7 @@ export type Dividends = {
         },
         {
           name: "authority";
+          docs: ["Payer and authority to pause the distributor."];
           writable: true;
           signer: true;
         }
@@ -316,7 +319,7 @@ export type Dividends = {
     },
     {
       code: 6003;
-      name: "exceededMaxNumNodes";
+      name: "exceededNumNodes";
       msg: "Exceeded maximum number of claimed nodes";
     },
     {
@@ -343,6 +346,11 @@ export type Dividends = {
       code: 6008;
       name: "distributionPaused";
       msg: "Distribution is paused";
+    },
+    {
+      code: 6009;
+      name: "distributorNotReadyToClaim";
+      msg: "Distributor is not ready to claim";
     }
   ];
   types: [
@@ -481,16 +489,16 @@ export type Dividends = {
             type: "pubkey";
           },
           {
-            name: "maxTotalClaim";
+            name: "totalClaimAmount";
             docs: [
-              "Maximum number of tokens that can ever be claimed from this [MerkleDistributor]."
+              "Number of tokens that can be claimed from this [MerkleDistributor]."
             ];
             type: "u64";
           },
           {
-            name: "maxNumNodes";
+            name: "numNodes";
             docs: [
-              "Maximum number of nodes that can ever be claimed from this [MerkleDistributor]."
+              "Number of nodes that can be claimed from this [MerkleDistributor]."
             ];
             type: "u64";
           },
@@ -514,6 +522,11 @@ export type Dividends = {
           {
             name: "paused";
             docs: ["The [MerkleDistributor] is paused."];
+            type: "bool";
+          },
+          {
+            name: "readyToClaim";
+            docs: ["The [MerkleDistributor] is ready to claim."];
             type: "bool";
           }
         ];

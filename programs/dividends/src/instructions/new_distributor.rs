@@ -52,8 +52,8 @@ pub fn new_distributor(
     ctx: Context<NewDistributor>,
     _bump: u8,
     root: [u8; 32],
-    max_total_claim: u64,
-    max_num_nodes: u64,
+    total_claim_amount: u64,
+    num_nodes: u64,
 ) -> Result<()> {
     let distributor = &mut ctx.accounts.distributor;
 
@@ -64,11 +64,12 @@ pub fn new_distributor(
     distributor.mint = ctx.accounts.mint.key();
     distributor.access_control = ctx.accounts.access_control.key();
 
-    distributor.max_total_claim = max_total_claim;
-    distributor.max_num_nodes = max_num_nodes;
+    distributor.total_claim_amount = total_claim_amount;
+    distributor.num_nodes = num_nodes;
     distributor.total_amount_claimed = 0;
     distributor.num_nodes_claimed = 0;
     distributor.paused = false;
+    distributor.ready_to_claim = false;
 
     Ok(())
 }

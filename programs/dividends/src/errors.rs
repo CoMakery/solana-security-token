@@ -9,7 +9,7 @@ pub enum DividendsErrorCode {
     #[msg("Exceeded maximum claim amount")]
     ExceededMaxClaim,
     #[msg("Exceeded maximum number of claimed nodes")]
-    ExceededMaxNumNodes,
+    ExceededNumNodes,
     #[msg("Account is not authorized to execute this instruction")]
     Unauthorized,
     #[msg("Token account owner did not match intended owner")]
@@ -20,4 +20,6 @@ pub enum DividendsErrorCode {
     InvalidFundingAmount,
     #[msg("Distribution is paused")]
     DistributionPaused,
+    #[msg("Distributor is not ready to claim")]
+    DistributorNotReadyToClaim,
 }

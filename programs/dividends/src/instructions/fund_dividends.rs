@@ -10,7 +10,7 @@ use crate::{errors::DividendsErrorCode, MerkleDistributor};
 #[instruction(amount: u64)]
 pub struct FundDividends<'info> {
     /// The [MerkleDistributor].
-    #[account(
+    #[account(mut,
         address = to.owner,
         constraint = distributor.paused == false @ DividendsErrorCode::DistributionPaused,
     )]
@@ -57,16 +57,17 @@ pub fn fund_dividends<'info>(
         DividendsErrorCode::KeysMustNotMatch
     );
     require!(
-        amount > 0 && amount <= ctx.accounts.distributor.max_total_claim,
+        amount > 0 && amount <= ctx.accounts.distributor.total_claim_amount,
         DividendsErrorCode::InvalidFundingAmount
     );
     require!(
         ctx.accounts.to.amount.checked_add(amount).unwrap()
-            <= ctx.accounts.distributor.max_total_claim,
+            <= ctx.accounts.distributor.total_claim_amount,
         DividendsErrorCode::InvalidFundingAmount
     );
 
-    let distributor = &ctx.accounts.distributor;
+    let distributor = &mut ctx.accounts.distributor;
+    let treasury_amount_before = ctx.accounts.to.amount;
 
     let token_program_id = ctx.accounts.token_program.key;
     let source_info = ctx.accounts.from.to_account_info();
@@ -85,6 +86,9 @@ pub fn fund_dividends<'info>(
         decimals,
         &[],
     )?;
+    if treasury_amount_before.checked_add(amount).unwrap() >= distributor.total_claim_amount {
+        distributor.ready_to_claim = true;
+    }
 
     emit!(FundedEvent {
         distributor: distributor.key(),
