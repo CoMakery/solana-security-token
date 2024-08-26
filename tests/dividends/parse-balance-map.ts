@@ -46,6 +46,7 @@ describe("parse BalanceMap", () => {
   let mintHelper: MintHelper;
   let distributorATA: PublicKey;
   let signer: Keypair;
+  let signerATA: PublicKey;
 
   const testEnvironmentParams: TestEnvironmentParams = {
     mint: {
@@ -115,16 +116,34 @@ describe("parse BalanceMap", () => {
       .signers([signer, baseKey])
       .rpc({ commitment });
 
+    signerATA = await mintHelper.createAssociatedTokenAccount(
+      signer.publicKey,
+      signer
+    );
     await mintTo(
       connection,
       signer,
       mintKeypair.publicKey,
-      distributorATA,
+      signerATA,
       signer,
       BigInt(tokenTotal),
       [],
-      { commitment }
+      { commitment },
+      TOKEN_PROGRAM_ID
     );
+    await dividendsProgram.methods
+      .fundDividends(new BN(tokenTotal))
+      .accounts({
+        distributor,
+        mint: mintKeypair.publicKey,
+        from: signerATA,
+        to: distributorATA,
+        funder: signer.publicKey,
+        payer: signer.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([signer])
+      .rpc({ commitment });
     claims = innerClaims;
   });
 

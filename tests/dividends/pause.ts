@@ -1,9 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
 import { Dividends } from "../../target/types/dividends";
-import {
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { assert } from "chai";
 import { solToLamports, topUpWallet } from "../utils";
@@ -29,8 +27,8 @@ describe(`pause distribution`, () => {
   const decimals = 6;
   let mintKeypair: Keypair;
 
-  const MAX_NUM_NODES = new BN(3);
-  const MAX_TOTAL_CLAIM = new BN(1_000_000_000_000);
+  const NUM_NODES = new BN(3);
+  const TOTAL_CLAIM_AMOUNT = new BN(1_000_000_000_000);
   let distributor: PublicKey;
   let bump: number;
   let baseKey: Keypair;
@@ -57,15 +55,14 @@ describe(`pause distribution`, () => {
     signer = testEnvironment.contractAdmin;
 
     await topUpWallet(connection, signer.publicKey, solToLamports(1));
-    ({ mintKeypair, baseKey, distributor, bump } =
-      await createDistributor(
-        connection,
-        decimals,
-        signer,
-        dividendsProgram.programId,
-        tokenProgramId,
-        commitment
-      ));
+    ({ mintKeypair, baseKey, distributor, bump } = await createDistributor(
+      connection,
+      decimals,
+      signer,
+      dividendsProgram.programId,
+      tokenProgramId,
+      commitment
+    ));
 
     const kpOne = Keypair.generate();
     const kpTwo = Keypair.generate();
@@ -85,15 +82,15 @@ describe(`pause distribution`, () => {
       { account: kpTwo.publicKey, amount: claimAmountTwo },
       { account: kpThree.publicKey, amount: claimAmountThree },
     ]);
-    const maxTotalClaim = MAX_TOTAL_CLAIM;
-    const maxNumNodes = MAX_NUM_NODES;
+    const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+    const numNodes = NUM_NODES;
 
     await dividendsProgram.methods
       .newDistributor(
         bump,
         toBytes32Array(tree.getRoot()),
-        maxTotalClaim,
-        maxNumNodes
+        totalClaimAmount,
+        numNodes
       )
       .accountsStrict({
         base: baseKey.publicKey,

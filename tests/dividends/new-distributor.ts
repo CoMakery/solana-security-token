@@ -34,16 +34,16 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     const decimals = 6;
     let mintKeypair: Keypair;
 
-    const MAX_NUM_NODES = new BN(3);
-    const MAX_TOTAL_CLAIM = new BN(1_000_000_000_000);
+    const NUM_NODES = new BN(3);
+    const TOTAL_CLAIM_AMOUNT = new BN(1_000_000_000_000);
     const ZERO_BYTES32 = Buffer.alloc(32);
     let distributor: PublicKey;
     let bump: number;
     let baseKey: Keypair;
     let signer;
     const root = ZERO_BYTES32;
-    const maxTotalClaim = MAX_TOTAL_CLAIM;
-    const maxNumNodes = MAX_NUM_NODES;
+    const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+    const numNodes = NUM_NODES;
 
     const testEnvironmentParams: TestEnvironmentParams = {
       mint: {
@@ -76,7 +76,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
 
     it("initializes new distributor", async () => {
       await dividendsProgram.methods
-        .newDistributor(bump, toBytes32Array(root), maxTotalClaim, maxNumNodes)
+        .newDistributor(bump, toBytes32Array(root), totalClaimAmount, numNodes)
         .accountsStrict({
           base: baseKey.publicKey,
           distributor,
@@ -96,13 +96,10 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       const distributorData =
         await dividendsProgram.account.merkleDistributor.fetch(distributor);
       assert.equal(distributorData.bump, bump);
+      assert.equal(distributorData.numNodes.toString(), NUM_NODES.toString());
       assert.equal(
-        distributorData.maxNumNodes.toString(),
-        MAX_NUM_NODES.toString()
-      );
-      assert.equal(
-        distributorData.maxTotalClaim.toString(),
-        MAX_TOTAL_CLAIM.toString()
+        distributorData.totalClaimAmount.toString(),
+        TOTAL_CLAIM_AMOUNT.toString()
       );
       assert.deepEqual(distributorData.base, baseKey.publicKey);
       assert.deepEqual(distributorData.mint, mintKeypair.publicKey);
@@ -110,13 +107,14 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         distributorData.accessControl,
         testEnvironment.accessControlHelper.accessControlPubkey
       );
-      assert.equal(distributorData.paused, false);
+      assert.isFalse(distributorData.paused);
       assert.equal(distributorData.numNodesClaimed.toNumber(), 0);
       assert.deepEqual(
         distributorData.root,
         Array.from(new Uint8Array(ZERO_BYTES32))
       );
       assert.equal(distributorData.totalAmountClaimed.toNumber(), 0);
+      assert.isFalse(distributorData.readyToClaim);
     });
 
     it("fails to initialize new distributor without contract admin role", async () => {
@@ -136,8 +134,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           .newDistributor(
             bump,
             toBytes32Array(root),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: baseKey.publicKey,

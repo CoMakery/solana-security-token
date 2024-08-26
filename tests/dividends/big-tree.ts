@@ -81,7 +81,8 @@ describe("big tree", () => {
     let distributorATA: PublicKey;
     let bump: number;
     let signer: Keypair;
-    const maxTotalClaim = 100 * NUM_LEAVES;
+    const totalClaimAmount = 100 * NUM_LEAVES;
+    let signerATA: PublicKey;
 
     before(async () => {
       testEnvironment = new TestEnvironment(testEnvironmentParams);
@@ -103,7 +104,7 @@ describe("big tree", () => {
         .newDistributor(
           bump,
           toBytes32Array(tree.getRoot()),
-          new BN(maxTotalClaim),
+          new BN(totalClaimAmount),
           new BN(NUM_LEAVES)
         )
         .accountsStrict({
@@ -122,16 +123,34 @@ describe("big tree", () => {
         .signers([signer, baseKey])
         .rpc({ commitment });
 
+      signerATA = await mintHelper.createAssociatedTokenAccount(
+        signer.publicKey,
+        signer
+      );
       await mintTo(
         connection,
         signer,
         mintKeypair.publicKey,
-        distributorATA,
+        signerATA,
         signer,
-        BigInt(maxTotalClaim),
+        BigInt(totalClaimAmount.toString()),
         [],
-        { commitment }
+        { commitment },
+        TOKEN_PROGRAM_ID
       );
+      await dividendsProgram.methods
+        .fundDividends(new BN(totalClaimAmount))
+        .accounts({
+          distributor,
+          mint: mintKeypair.publicKey,
+          from: signerATA,
+          to: distributorATA,
+          funder: signer.publicKey,
+          payer: signer.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([signer])
+        .rpc({ commitment });
     });
 
     it("claim deep node", async () => {
