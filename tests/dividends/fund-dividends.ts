@@ -38,8 +38,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     const decimals = 6;
     let mintKeypair: Keypair;
 
-    const MAX_NUM_NODES = new BN(3);
-    const MAX_TOTAL_CLAIM = new BN(1_000_000_000_000);
+    const NUM_NODES = new BN(3);
+    const TOTAL_CLAIM_AMOUNT = new BN(1_000_000_000_000);
     const ZERO_BYTES32 = Buffer.alloc(32);
     let distributor: PublicKey;
     let bump: number;
@@ -80,11 +80,11 @@ testCases.forEach(({ tokenProgramId, programName }) => {
 
     it("Is initialized!", async () => {
       const root = ZERO_BYTES32;
-      const maxTotalClaim = MAX_TOTAL_CLAIM;
-      const maxNumNodes = MAX_NUM_NODES;
+      const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+      const numNodes = NUM_NODES;
 
       await dividendsProgram.methods
-        .newDistributor(bump, toBytes32Array(root), maxTotalClaim, maxNumNodes)
+        .newDistributor(bump, toBytes32Array(root), totalClaimAmount, numNodes)
         .accountsStrict({
           base: baseKey.publicKey,
           distributor,
@@ -104,13 +104,10 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       const distributorData =
         await dividendsProgram.account.merkleDistributor.fetch(distributor);
       assert.equal(distributorData.bump, bump);
+      assert.equal(distributorData.numNodes.toString(), NUM_NODES.toString());
       assert.equal(
-        distributorData.maxNumNodes.toString(),
-        MAX_NUM_NODES.toString()
-      );
-      assert.equal(
-        distributorData.maxTotalClaim.toString(),
-        MAX_TOTAL_CLAIM.toString()
+        distributorData.totalClaimAmount.toString(),
+        TOTAL_CLAIM_AMOUNT.toString()
       );
       assert.deepEqual(distributorData.base, baseKey.publicKey);
       assert.deepEqual(distributorData.mint, mintKeypair.publicKey);
@@ -120,12 +117,13 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         Array.from(new Uint8Array(ZERO_BYTES32))
       );
       assert.equal(distributorData.totalAmountClaimed.toNumber(), 0);
+      assert.isFalse(distributorData.readyToClaim);
     });
 
     context("fundDividends", () => {
       const root = ZERO_BYTES32;
-      const maxTotalClaim = MAX_TOTAL_CLAIM;
-      const maxNumNodes = MAX_NUM_NODES;
+      const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+      const numNodes = NUM_NODES;
       let funderKP: Keypair;
       let funderATA: PublicKey;
 
@@ -134,8 +132,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           .newDistributor(
             bump,
             toBytes32Array(root),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -164,7 +162,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           mintKeypair.publicKey,
           funderATA,
           signer,
-          BigInt(MAX_TOTAL_CLAIM.muln(2).toString()),
+          BigInt(TOTAL_CLAIM_AMOUNT.muln(2).toString()),
           [],
           { commitment },
           tokenProgramId
@@ -232,7 +230,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       });
 
       it("fails for amount greater than max total claim", async () => {
-        const fundingAmount = maxTotalClaim.addn(1);
+        const fundingAmount = totalClaimAmount.addn(1);
         try {
           await dividendsProgram.methods
             .fundDividends(fundingAmount)
@@ -255,7 +253,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       });
 
       it("fails when sum of funding amount greater than max total claim", async () => {
-        const fundingAmount = maxTotalClaim;
+        const fundingAmount = totalClaimAmount;
 
         await dividendsProgram.methods
           .fundDividends(fundingAmount)
@@ -313,8 +311,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           .newDistributor(
             anotherBump,
             toBytes32Array(root),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: anotherBaseKey.publicKey,
@@ -356,8 +354,73 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         }
       });
 
+      it("ready to claim after fund dividends twice", async () => {
+        const funderATADataBefore = await mintHelper.getAccount(funderATA);
+        const distributorATADataBefore = await mintHelper.getAccount(
+          distributorATA
+        );
+
+        const fundingAmountLeft = 1;
+        const fundingAmount = totalClaimAmount.subn(fundingAmountLeft);
+        await dividendsProgram.methods
+          .fundDividends(fundingAmount)
+          .accountsStrict({
+            distributor,
+            mint: mintKeypair.publicKey,
+            from: funderATA,
+            to: distributorATA,
+            funder: funderKP.publicKey,
+            payer: signer.publicKey,
+            tokenProgram: tokenProgramId,
+          })
+          .signers([funderKP, signer])
+          .rpc({ commitment });
+        const distributorATADataAfterFirstFund = await mintHelper.getAccount(
+          distributorATA
+        );
+        assert.equal(
+          distributorATADataBefore.amount,
+          distributorATADataAfterFirstFund.amount -
+            BigInt(fundingAmount.toString())
+        );
+        let distributorData =
+          await dividendsProgram.account.merkleDistributor.fetch(distributor);
+        assert.isFalse(distributorData.readyToClaim);
+
+        await dividendsProgram.methods
+          .fundDividends(new BN(fundingAmountLeft))
+          .accountsStrict({
+            distributor,
+            mint: mintKeypair.publicKey,
+            from: funderATA,
+            to: distributorATA,
+            funder: funderKP.publicKey,
+            payer: signer.publicKey,
+            tokenProgram: tokenProgramId,
+          })
+          .signers([funderKP, signer])
+          .rpc({ commitment });
+        const funderATADataAfter = await mintHelper.getAccount(funderATA);
+        const distributorATADataAfterSecondFund = await mintHelper.getAccount(
+          distributorATA
+        );
+        distributorData =
+          await dividendsProgram.account.merkleDistributor.fetch(distributor);
+        assert.isTrue(distributorData.readyToClaim);
+        assert.equal(
+          funderATADataBefore.amount,
+          funderATADataAfter.amount +
+            BigInt(fundingAmountLeft) +
+            BigInt(fundingAmount.toString())
+        );
+        assert.equal(
+          distributorATADataAfterFirstFund.amount + BigInt(fundingAmountLeft),
+          distributorATADataAfterSecondFund.amount
+        );
+      });
+
       it("funds dividends", async () => {
-        const fundingAmount = maxTotalClaim;
+        const fundingAmount = totalClaimAmount;
         const funderATADataBefore = await mintHelper.getAccount(funderATA);
         const distributorATADataBefore = await mintHelper.getAccount(
           distributorATA
@@ -381,6 +444,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         const distributorATADataAfter = await mintHelper.getAccount(
           distributorATA
         );
+        const distributorData =
+          await dividendsProgram.account.merkleDistributor.fetch(distributor);
 
         assert.equal(
           funderATADataBefore.amount,
@@ -390,6 +455,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           distributorATADataBefore.amount,
           distributorATADataAfter.amount - BigInt(fundingAmount.toString())
         );
+        assert.isTrue(distributorData.readyToClaim);
       });
     });
   });

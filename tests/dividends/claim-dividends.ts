@@ -42,8 +42,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     const decimals = 6;
     let mintKeypair: Keypair;
 
-    const MAX_NUM_NODES = new BN(3);
-    const MAX_TOTAL_CLAIM = new BN(1_000_000_000_000);
+    const NUM_NODES = new BN(3);
+    const TOTAL_CLAIM_AMOUNT = new BN(1_000_000_000_000);
     const ZERO_BYTES32 = Buffer.alloc(32);
     let distributor: PublicKey;
     let bump: number;
@@ -65,6 +65,10 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     };
     let testEnvironment: TestEnvironment;
 
+    const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+    const numNodes = NUM_NODES;
+    let signerATA: PublicKey;
+
     beforeEach(async () => {
       testEnvironment = new TestEnvironment(testEnvironmentParams);
       await testEnvironment.setupAccessControl();
@@ -80,20 +84,33 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           tokenProgramId,
           commitment
         ));
+
+      signerATA = await mintHelper.createAssociatedTokenAccount(
+        signer.publicKey,
+        signer
+      );
+      await mintTo(
+        connection,
+        signer,
+        mintKeypair.publicKey,
+        signerATA,
+        signer,
+        BigInt(totalClaimAmount.toString()),
+        [],
+        { commitment },
+        tokenProgramId
+      );
     });
 
     context("claim", () => {
       it("fails for empty proof", async () => {
         const root = ZERO_BYTES32;
-        const maxTotalClaim = MAX_TOTAL_CLAIM;
-        const maxNumNodes = MAX_NUM_NODES;
-
         await dividendsProgram.methods
           .newDistributor(
             bump,
             toBytes32Array(root),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -114,6 +131,21 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         const claimantKP = Keypair.generate();
         const index = new BN(0);
         const claimAmount = new BN(1_000_000);
+
+        await dividendsProgram.methods
+          .fundDividends(totalClaimAmount)
+          .accounts({
+            distributor,
+            mint: mintKeypair.publicKey,
+            from: signerATA,
+            to: distributorATA,
+            funder: signer.publicKey,
+            payer: signer.publicKey,
+            tokenProgram: tokenProgramId,
+          })
+          .signers([signer])
+          .rpc({ commitment });
+
         try {
           await claim(
             dividendsProgram,
@@ -136,15 +168,15 @@ testCases.forEach(({ tokenProgramId, programName }) => {
 
       it("fails for paused distribution", async () => {
         const root = ZERO_BYTES32;
-        const maxTotalClaim = MAX_TOTAL_CLAIM;
-        const maxNumNodes = MAX_NUM_NODES;
+        const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+        const numNodes = NUM_NODES;
 
         await dividendsProgram.methods
           .newDistributor(
             bump,
             toBytes32Array(root),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -221,15 +253,15 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           { account: kpThree.publicKey, amount: claimAmountThree },
         ]);
 
-        const maxTotalClaim = MAX_TOTAL_CLAIM;
-        const maxNumNodes = MAX_NUM_NODES;
+        const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+        const numNodes = NUM_NODES;
 
         await dividendsProgram.methods
           .newDistributor(
             bump,
             toBytes32Array(tree.getRoot()),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -246,17 +278,19 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           })
           .signers([signer, baseKey])
           .rpc({ commitment });
-        await mintTo(
-          connection,
-          signer,
-          mintKeypair.publicKey,
-          distributorATA,
-          signer,
-          BigInt(MAX_TOTAL_CLAIM.toString()),
-          [],
-          { commitment },
-          tokenProgramId
-        );
+        await dividendsProgram.methods
+          .fundDividends(totalClaimAmount)
+          .accounts({
+            distributor,
+            mint: mintKeypair.publicKey,
+            from: signerATA,
+            to: distributorATA,
+            funder: signer.publicKey,
+            payer: signer.publicKey,
+            tokenProgram: tokenProgramId,
+          })
+          .signers([signer])
+          .rpc({ commitment });
 
         await Promise.all(
           allKps.map(async (kp, index) => {
@@ -304,7 +338,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         const tokenAccountInfo = await mintHelper.getAccount(distributorATA);
         assert.equal(
           tokenAccountInfo.amount.toString(),
-          MAX_TOTAL_CLAIM.sub(expectedTotalClaimed).toString()
+          TOTAL_CLAIM_AMOUNT.sub(expectedTotalClaimed).toString()
         );
 
         const distributorData =
@@ -324,15 +358,15 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         const tree = new BalanceTree([
           { account: userKP.publicKey, amount: claimAmount },
         ]);
-        const maxTotalClaim = MAX_TOTAL_CLAIM;
-        const maxNumNodes = MAX_NUM_NODES;
+        const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+        const numNodes = NUM_NODES;
 
         await dividendsProgram.methods
           .newDistributor(
             bump,
             toBytes32Array(tree.getRoot()),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -349,17 +383,19 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           })
           .signers([signer, baseKey])
           .rpc({ commitment });
-        await mintTo(
-          connection,
-          signer,
-          mintKeypair.publicKey,
-          distributorATA,
-          signer,
-          BigInt(MAX_TOTAL_CLAIM.toString()),
-          [],
-          { commitment },
-          tokenProgramId
-        );
+        await dividendsProgram.methods
+          .fundDividends(totalClaimAmount)
+          .accounts({
+            distributor,
+            mint: mintKeypair.publicKey,
+            from: signerATA,
+            to: distributorATA,
+            funder: signer.publicKey,
+            payer: signer.publicKey,
+            tokenProgram: tokenProgramId,
+          })
+          .signers([signer])
+          .rpc({ commitment });
 
         const index = new BN(0);
         const proof = tree.getProof(
@@ -419,15 +455,15 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         const tree = new BalanceTree([
           { account: userKP.publicKey, amount: new BN(1_000_000) },
         ]);
-        const maxTotalClaim = MAX_TOTAL_CLAIM;
-        const maxNumNodes = MAX_NUM_NODES;
+        const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+        const numNodes = NUM_NODES;
 
         await dividendsProgram.methods
           .newDistributor(
             bump,
             toBytes32Array(tree.getRoot()),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -444,17 +480,19 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           })
           .signers([signer, baseKey])
           .rpc({ commitment });
-        await mintTo(
-          connection,
-          signer,
-          mintKeypair.publicKey,
-          distributorATA,
-          signer,
-          BigInt(MAX_TOTAL_CLAIM.toString()),
-          [],
-          { commitment },
-          tokenProgramId
-        );
+        await dividendsProgram.methods
+          .fundDividends(totalClaimAmount)
+          .accounts({
+            distributor,
+            mint: mintKeypair.publicKey,
+            from: signerATA,
+            to: distributorATA,
+            funder: signer.publicKey,
+            payer: signer.publicKey,
+            tokenProgram: tokenProgramId,
+          })
+          .signers([signer])
+          .rpc({ commitment });
 
         const index = new BN(0);
         const proof = tree.getProof(
@@ -491,15 +529,15 @@ testCases.forEach(({ tokenProgramId, programName }) => {
         const tree = new BalanceTree([
           { account: claimant, amount: claimAmount },
         ]);
-        const maxTotalClaim = MAX_TOTAL_CLAIM;
-        const maxNumNodes = MAX_NUM_NODES;
+        const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
+        const numNodes = NUM_NODES;
 
         await dividendsProgram.methods
           .newDistributor(
             bump,
             toBytes32Array(tree.getRoot()),
-            maxTotalClaim,
-            maxNumNodes
+            totalClaimAmount,
+            numNodes
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -516,17 +554,19 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           })
           .signers([signer, baseKey])
           .rpc({ commitment });
-        await mintTo(
-          connection,
-          signer,
-          mintKeypair.publicKey,
-          distributorATA,
-          signer,
-          BigInt(MAX_TOTAL_CLAIM.toString()),
-          [],
-          { commitment },
-          tokenProgramId
-        );
+        await dividendsProgram.methods
+          .fundDividends(totalClaimAmount)
+          .accounts({
+            distributor,
+            mint: mintKeypair.publicKey,
+            from: signerATA,
+            to: distributorATA,
+            funder: signer.publicKey,
+            payer: signer.publicKey,
+            tokenProgram: tokenProgramId,
+          })
+          .signers([signer])
+          .rpc({ commitment });
 
         const index = new BN(0);
         const proof = tree.getProof(index.toNumber(), claimant, claimAmount);
