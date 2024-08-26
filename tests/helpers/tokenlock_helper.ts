@@ -502,15 +502,17 @@ export async function initializeTimelock(
   targetAccount: PublicKey,
   accessControl: PublicKey,
   authorityWalletRole: PublicKey,
-  signer: Keypair
+  signer: Keypair,
+  commitment: Commitment = "confirmed"
 ): Promise<PublicKey> {
   const timelockAccount = getTimelockAccount(
     program.programId,
     tokenlockAccount,
     targetAccount
   );
-  await program.rpc.initializeTimelock({
-    accounts: {
+  await program.methods
+    .initializeTimelock()
+    .accountsStrict({
       tokenlockAccount,
       timelockAccount: timelockAccount,
       authorityWalletRole,
@@ -519,9 +521,9 @@ export async function initializeTimelock(
       targetAccount,
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
-    },
-    signers: [signer],
-  });
+    })
+    .signers([signer])
+    .rpc({ commitment });
 
   return timelockAccount;
 }
@@ -724,7 +726,8 @@ export async function getOrCreateTimelockAccount(
   target: PublicKey,
   accessControl: PublicKey,
   authorityWalletRole: PublicKey,
-  signer: Keypair
+  signer: Keypair,
+  commitment: Commitment = "confirmed"
 ): Promise<PublicKey> {
   let timelockAccount = getTimelockAccount(
     program.programId,
@@ -732,7 +735,8 @@ export async function getOrCreateTimelockAccount(
     target
   );
   const accInfo = await program.provider.connection.getAccountInfo(
-    timelockAccount
+    timelockAccount,
+    commitment
   );
 
   if (accInfo == null) {
@@ -742,7 +746,8 @@ export async function getOrCreateTimelockAccount(
       target,
       accessControl,
       authorityWalletRole,
-      signer
+      signer,
+      commitment
     );
   }
   return timelockAccount;
