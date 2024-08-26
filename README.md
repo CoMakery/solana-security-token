@@ -570,7 +570,7 @@ In general, it is possible to allow Group 0 transfers. They are configurable in 
 
 If there is a regulatory issue with the token, all transfers may be paused by the Transfer Admin calling `pause()`. During normal functioning of the contract `pause()` should never need to be called.
 
-The `pause()` mechanism has been implemented into the `TransferRestrictions` program.
+The `pause()` mechanism has been implemented into the `TransferRestrictions` and `Dividends` program.
 
 ## Law Enforcement Recovery of Stolen Assets
 
@@ -849,8 +849,6 @@ After smart contract deployment, there are certain configurations to complete be
 
 1. Grant Transfer Admin Role
 
-    Although Transfer Admin is a required deployment parameter for the Dividends contract, it still must be specifically set in the Token contract separately, by the Contract Admin. 
-    
     This is important so that an admin exists which can configure group transfers. 
 
 1. Allow Group Transfers
@@ -891,7 +889,7 @@ To enable transfers between wallets, ensure that:
 
 Note that `balance` property of AssociatedTokenAccount typically used by wallet providers (ie Phantom) will display wallet balance that includes the amount of simple tokens. Any locked, staked tokens are held by related Tokenlockup program escrow account.
 
-## Program Deploy and Upgrade 
+# Program Deploy and Upgrade 
 
 The programs deployed are not immutable until they are marked as "final" (i.e., not upgradeable) on the Solana blockchain by the admin team. The upgrade authority has super power to change program.
 In order to deploy not upgradable program use an option `--final` to use [BPFLoader2](https://explorer.solana.com/address/BPFLoader2111111111111111111111111111111111) at the deployment time (when --final is provided and the program will not be upgradeable).
@@ -899,3 +897,110 @@ If any changes are required to the finalized program (features, patches, etc…)
 To verify that program is not upgradable can be done on https://explorer.solana.com/ by checking Upgradeable property or not belong to *Owner: BPFLoaderUpgradeab1e11111111111111111111111U*
 
 Otherwise program ownership, upgrades and changes must be shared with users. 
+
+# Dividends
+
+Dividends functionality provides the administrators of the Primary security token the ability to make dividend distributions at certain points in time. Each moment of time is recorded as a Merkle tree root proof, total claim amount and number of nodes of a snapshot that captures the relative ownership of each token holder (invoking `newDistributor()` method manually by Contract Admin on the `Dividends` program). Snapshot and Merkle tree are built off-chain in advance and can be stored on IPFS or any other distributed storage. Dividends can be payed in any SPL or SPL 2022 standard tokens. 
+
+Investor can claim only all dividends amount for one distribution in 1 instruction.
+
+Anyone can `fundDividends` who owns dividends distribution tokens.
+
+Investor can start claiming dividends as soon as treasury has enough balance to distribute with `readyToClaim` distributor parameters `true`.
+
+See below for the Dividends payment distribution and claim flow utilizing USDC. 
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor R as Recipient
+    actor TA as Anyone
+    actor CA as ContractAdmin
+
+    participant D as DividendsContract
+
+    CA ->> D: Invoke `newDistributor()` method to create new distribution (1)
+    TA ->> D: Invoke `fundDividend()` for specific distribution (1) using USDC
+    R ->> D: Invoke `claimDividend()` to claim dividend for distribution (1)
+    D ->> R: Transfer dividend payment token
+```
+
+1. Contract Admin chooses to create new distribution to fund a dividend. Note that this is Contract Admin on the `AccessControl` data and Security mint. Each security mint has its own set of admins. A `distributor` account will be generated. 
+
+1. Anyone can fund the dividend using a payment token of specified distribution. This example uses USDC. The dividend must be funded for a specific `distributor`. Sender wallet must hold the payment token in order to fund the dividend. The payment token is extracted and sent to the `Distribution` PDA upon successful funding.
+
+1. Recipient is free to claim the dividend by invoking `claimDividend` from the `Dividends` program. Note that claiming is available only when dividends treasury balance has anough tokens to distribute dividends to all investors. 
+
+1. Amount of entitled dividend token is transferred from the `Dividends` PDA to the rightful recipient.
+
+## Relevant Methods
+
+### New Distribution Creation Code
+
+A new distribution can be created with a call to the Solana program like this.
+
+**Solana Web3 TS call:**
+```typescript
+await program.methods
+  .newDistributor(
+    bump,
+    toBytes32Array(rootProof),
+    totalClaimAmount,
+    numNodes
+  )
+  .accountsStrict({
+    base: baseKey.publicKey,
+    distributor,
+    mint: dividendsMintPubkey,
+    authorityWalletRole,
+    accessControl: accessControlPubkey,
+    payer: signer.publicKey,
+    systemProgram: SystemProgram.programId,
+  })
+  .signers([signer, baseKey])
+  .rpc({ commitment });
+```
+
+### Fund dividends
+
+Anyone can fund dividends for specific distribution.
+
+**Solana Web3 TS call:**
+```typescript
+await program.methods
+  .fundDividends(amount)
+  .accountsStrict({
+    distributor,
+    mint: dividendsMintPubkey,
+    from: funderATA,
+    to: distributorATA,
+    funder: funderPublicKey,
+    payer: signer.publicKey,
+    tokenProgram: tokenProgramId,
+  })
+  .signers([funderKeypair, signer])
+  .rpc({ commitment });
+```
+
+### Claim dividends
+
+Recipient claim dividends by providing proof, index and amount.
+
+**Solana Web3 TS call:**
+```typescript
+await program.methods
+    .claim(claimBump, index, amount, proofBytes)
+    .accountsStrict({
+      distributor,
+      claimStatus: claimStatusPubkey,
+      from: distributorATA,
+      to: claimantATA,
+      claimant: claimant.publicKey,
+      payer: payer.publicKey,
+      mint: dividendsMintPubkey,
+      tokenProgram: tokenProgramId,
+      systemProgram: SystemProgram.programId,
+    })
+    .signers([claimant, payer])
+    .rpc({ commitment });
+```
