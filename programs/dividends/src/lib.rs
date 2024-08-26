@@ -20,10 +20,10 @@ pub mod dividends {
         ctx: Context<NewDistributor>,
         _bump: u8,
         root: [u8; 32],
-        max_total_claim: u64,
-        max_num_nodes: u64,
+        total_claim_amount: u64,
+        num_nodes: u64,
     ) -> Result<()> {
-      instructions::new_distributor(ctx, _bump, root, max_total_claim, max_num_nodes)
+      instructions::new_distributor(ctx, _bump, root, total_claim_amount, num_nodes)
     }
 
     /// Claims tokens from the [MerkleDistributor].

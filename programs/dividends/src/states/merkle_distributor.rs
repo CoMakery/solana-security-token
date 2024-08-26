@@ -15,10 +15,10 @@ pub struct MerkleDistributor {
 
     /// [Mint] of the token to be distributed.
     pub mint: Pubkey,
-    /// Maximum number of tokens that can ever be claimed from this [MerkleDistributor].
-    pub max_total_claim: u64,
-    /// Maximum number of nodes that can ever be claimed from this [MerkleDistributor].
-    pub max_num_nodes: u64,
+    /// Number of tokens that can be claimed from this [MerkleDistributor].
+    pub total_claim_amount: u64,
+    /// Number of nodes that can be claimed from this [MerkleDistributor].
+    pub num_nodes: u64,
     /// Total amount of tokens that have been claimed.
     pub total_amount_claimed: u64,
     /// Number of nodes that have been claimed.
@@ -27,4 +27,6 @@ pub struct MerkleDistributor {
     pub access_control: Pubkey,
     /// The [MerkleDistributor] is paused.
     pub paused: bool,
+    /// The [MerkleDistributor] is ready to claim.
+    pub ready_to_claim: bool,
 }

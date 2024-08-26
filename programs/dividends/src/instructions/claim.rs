@@ -88,6 +88,10 @@ pub fn claim<'info>(
     let claimant_account = &ctx.accounts.claimant;
     let distributor = &ctx.accounts.distributor;
     require!(claimant_account.is_signer, DividendsErrorCode::Unauthorized);
+    require!(
+        distributor.ready_to_claim,
+        DividendsErrorCode::DistributorNotReadyToClaim
+    );
 
     // Verify the merkle proof.
     let node = anchor_lang::solana_program::keccak::hashv(&[
@@ -137,13 +141,13 @@ pub fn claim<'info>(
         .checked_add(amount)
         .unwrap();
     require!(
-        distributor.total_amount_claimed <= distributor.max_total_claim,
+        distributor.total_amount_claimed <= distributor.total_claim_amount,
         DividendsErrorCode::ExceededMaxClaim
     );
     distributor.num_nodes_claimed = distributor.num_nodes_claimed.checked_add(1).unwrap();
     require!(
-        distributor.num_nodes_claimed <= distributor.max_num_nodes,
-        DividendsErrorCode::ExceededMaxNumNodes
+        distributor.num_nodes_claimed <= distributor.num_nodes,
+        DividendsErrorCode::ExceededNumNodes
     );
 
     emit!(ClaimedEvent {
