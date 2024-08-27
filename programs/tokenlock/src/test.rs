@@ -1,7 +1,6 @@
 use super::*;
 use access_control::{AccessControl, Roles, WalletRole};
-use anchor_lang::Discriminator;
-use tokenlock_accounts::{common::PUBKEY_SIZE, states::{Timelock, TimelockData, TokenLockData}};
+use anchor_lang::{solana_program::pubkey::PUBKEY_BYTES, Discriminator};
 use core::result::Result;
 use solana_sdk::{
     account::{create_account_for_test, Account as SolanaAccount},
@@ -13,6 +12,7 @@ use solana_sdk::{
 };
 use spl_token_2022::state::{Account as TokenAccount, Mint};
 use std::str::FromStr;
+use tokenlock_accounts::states::{Timelock, TimelockData, TokenLockData};
 use transfer_restrictions::{SecurityAssociatedAccount, TransferRestrictionData, TransferRule};
 const TOKENLOCK_SIZE: usize = 10 * 1024 * 1024;
 
@@ -511,17 +511,17 @@ impl TestFixture {
             sol_memcpy(
                 &mut account_data[discriminator.len()..],
                 &access_control_address.to_bytes(),
-                PUBKEY_SIZE,
+                PUBKEY_BYTES,
             );
             sol_memcpy(
                 &mut account_data[TokenLockData::ESCROW_ACCOUNT_OFFSET..],
                 &escrow_account_address.to_bytes(),
-                PUBKEY_SIZE,
+                PUBKEY_BYTES,
             );
             sol_memcpy(
                 &mut account_data[TokenLockData::TRANSFER_RESTRICTIONS_DATA_OFFSET..],
                 &transfer_restrictions_address.to_bytes(),
-                PUBKEY_SIZE,
+                PUBKEY_BYTES,
             );
         }
 

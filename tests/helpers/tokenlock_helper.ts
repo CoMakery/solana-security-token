@@ -434,29 +434,30 @@ export async function createReleaseSchedule(
   periodBetweenReleasesInSeconds: BN,
   accessControlPubkey: PublicKey,
   authorityWalletRolePubkey: PublicKey,
-  signer: Keypair
+  signer: Keypair,
+  commitment: Commitment = "confirmed"
 ): Promise<string | number> {
   const uuid = uuidBytes();
   const signerHash = calcSignerHash(signer.publicKey, uuid);
   let result;
 
   try {
-    await program.rpc.createReleaseSchedule(
-      uuid,
-      releaseCount,
-      delayUntilFirstReleaseInSeconds,
-      initialReleasePortionInBips,
-      periodBetweenReleasesInSeconds,
-      {
-        accounts: {
-          tokenlockAccount: tokenlockDataPubkey,
-          authority: signer.publicKey,
-          authorityWalletRole: authorityWalletRolePubkey,
-          accessControl: accessControlPubkey,
-        },
-        signers: [signer],
-      }
-    );
+    await program.methods
+      .createReleaseSchedule(
+        uuid,
+        releaseCount,
+        delayUntilFirstReleaseInSeconds,
+        initialReleasePortionInBips,
+        periodBetweenReleasesInSeconds
+      )
+      .accountsStrict({
+        tokenlockAccount: tokenlockDataPubkey,
+        authority: signer.publicKey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        accessControl: accessControlPubkey,
+      })
+      .signers([signer])
+      .rpc({ commitment });
     const account = await program.account.tokenLockData.fetch(
       tokenlockDataPubkey
     );
@@ -483,6 +484,7 @@ export async function createReleaseSchedule(
       }
     }
   } catch (e) {
+    console.error("ERROR: [createReleaseSchedule]", e);
     if (!e.error && !e.error.errorCode && !e.error.errorMessage) {
       result = parseCustomProgramErrorNumber(
         program.idl.errors,

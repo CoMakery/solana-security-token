@@ -1,6 +1,9 @@
-use anchor_lang::{prelude::*, solana_program::program_memory::sol_memcmp};
+use anchor_lang::{
+    prelude::*,
+    solana_program::{program_memory::sol_memcmp, pubkey::PUBKEY_BYTES},
+};
 
-use crate::{common::PUBKEY_SIZE, ReleaseSchedule, TokenLockDataWrapper};
+use crate::{ReleaseSchedule, TokenLockDataWrapper};
 
 pub const VEC_LEN_SIZE: usize = 4;
 
@@ -49,9 +52,9 @@ pub struct TimelockData {
 impl TimelockData {
     pub const BIPS_PRECISION: u32 = 10000;
 
-    pub const HEADERS_LEN: usize = 8 + PUBKEY_SIZE + PUBKEY_SIZE;
+    pub const HEADERS_LEN: usize = 8 + PUBKEY_BYTES + PUBKEY_BYTES;
     pub fn space(&self, total_size: usize) -> Option<usize> {
-        let cancelable_by_used_size = self.cancelables.len().checked_mul(PUBKEY_SIZE)?;
+        let cancelable_by_used_size = self.cancelables.len().checked_mul(PUBKEY_BYTES)?;
         let timelock_used_size = Timelock::DEFAULT_SIZE.checked_mul(self.timelocks.len())?;
         let total_used: usize = timelock_used_size
             .checked_add(cancelable_by_used_size)?

@@ -126,16 +126,11 @@ export class TestEnvironment {
       initializeExtraAccountMetaListInstr
     );
 
-    // Send transaction
-    const transactionSignature = await sendAndConfirmTransaction(
+    await sendAndConfirmTransaction(
       this.connection,
       transaction,
       [this.contractAdmin, this.mintKeypair], // Signers
       { commitment: this.commitment }
-    );
-    console.log(
-      "Setup Mint, AccessControl and TransferRestriction data Transaction Signature",
-      transactionSignature
     );
   }
 

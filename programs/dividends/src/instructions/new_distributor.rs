@@ -1,0 +1,57 @@
+use anchor_lang::prelude::*;
+use anchor_spl::token::Mint;
+
+use crate::MerkleDistributor;
+
+/// Accounts for [merkle_distributor::new_distributor].
+#[derive(Accounts)]
+pub struct NewDistributor<'info> {
+    /// Base key of the distributor.
+    pub base: Signer<'info>,
+
+    /// [MerkleDistributor].
+    #[account(
+        init,
+        seeds = [
+            b"MerkleDistributor".as_ref(),
+            base.key().to_bytes().as_ref()
+        ],
+        bump,
+        space = 8 + MerkleDistributor::INIT_SPACE,
+        payer = payer
+    )]
+    pub distributor: Account<'info, MerkleDistributor>,
+
+    /// The mint to distribute.
+    pub mint: Account<'info, Mint>,
+
+    /// Payer to create the distributor.
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// The [System] program.
+    pub system_program: Program<'info, System>,
+}
+
+pub fn new_distributor(
+    ctx: Context<NewDistributor>,
+    _bump: u8,
+    root: [u8; 32],
+    max_total_claim: u64,
+    max_num_nodes: u64,
+) -> Result<()> {
+    let distributor = &mut ctx.accounts.distributor;
+
+    distributor.base = ctx.accounts.base.key();
+    distributor.bump = ctx.bumps.distributor;
+
+    distributor.root = root;
+    distributor.mint = ctx.accounts.mint.key();
+
+    distributor.max_total_claim = max_total_claim;
+    distributor.max_num_nodes = max_num_nodes;
+    distributor.total_amount_claimed = 0;
+    distributor.num_nodes_claimed = 0;
+
+    Ok(())
+}

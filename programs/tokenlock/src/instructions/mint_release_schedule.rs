@@ -1,17 +1,18 @@
 use access_control::{
     program::AccessControl as AccessControlProgram, AccessControl, WalletRole,
+    cpi::accounts::MintSecurities,
 };
-use access_control::cpi::accounts::MintSecurities;
-use anchor_lang::{prelude::*, Discriminator};
+use anchor_lang::{
+    prelude::*, Discriminator,
+    solana_program::{program_memory::{sol_memcmp, sol_memcpy}, pubkey::PUBKEY_BYTES},
+};
 use anchor_spl::token_interface::{Mint, Token2022, TokenAccount};
-use anchor_lang::solana_program::program_memory::{sol_memcmp, sol_memcpy};
 
 use crate::error::TokenlockErrors;
 use crate::{TOKENLOCK_PDA_SEED, utils};
 use tokenlock_accounts::{
     states::{TimelockData, TokenLockData, Timelock},
     wrappers::TokenLockDataWrapper,
-    common::PUBKEY_SIZE
 };
 
 #[derive(Accounts)]
@@ -199,7 +200,7 @@ pub fn mint_release_schedule<'info>(
     }
 
     let need_space = (cancelable_by_new_count as usize)
-        .checked_mul(PUBKEY_SIZE)
+        .checked_mul(PUBKEY_BYTES)
         .unwrap()
         .checked_add(Timelock::DEFAULT_SIZE)
         .unwrap();
