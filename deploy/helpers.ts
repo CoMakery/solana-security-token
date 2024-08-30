@@ -20,6 +20,8 @@ import {
   TransferRestrictionsIdlTypes,
   TokenlockIdl,
   TokenlockIdlTypes,
+  DividendsIdl,
+  DividendsIdlTypes,
 } from "../app/src";
 
 export const getAccessControlProgram = (provider: Provider) =>
@@ -37,6 +39,11 @@ export const getTokenlockProgram = (provider: Provider) =>
     TokenlockIdl as Idl,
     provider
   ) as unknown as Program<TokenlockIdlTypes>;
+export const getDividendsProgram = (provider: Provider) =>
+  new Program(
+    DividendsIdl as Idl,
+    provider
+  ) as unknown as Program<DividendsIdlTypes>;
 
 export function loadKeypairFromFile(filePath: string): Keypair {
   const fullPath = path.resolve(filePath);

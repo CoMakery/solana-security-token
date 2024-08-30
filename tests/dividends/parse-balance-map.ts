@@ -12,6 +12,10 @@ import {
 } from "../../app/src/merkle-distributor/utils";
 import { findClaimStatusKey } from "../../app/src/merkle-distributor";
 import { claim, createDistributor } from "./utils";
+import {
+  TestEnvironment,
+  TestEnvironmentParams,
+} from "../helpers/test_environment";
 
 describe("parse BalanceMap", () => {
   const provider = AnchorProvider.env();
@@ -41,7 +45,21 @@ describe("parse BalanceMap", () => {
   let baseKey: Keypair;
   let mintHelper: MintHelper;
   let distributorATA: PublicKey;
-  const signer = Keypair.generate();
+  let signer: Keypair;
+  let signerATA: PublicKey;
+
+  const testEnvironmentParams: TestEnvironmentParams = {
+    mint: {
+      decimals: 6,
+      name: "XYZ Token",
+      symbol: "XYZ",
+      uri: "https://example.com",
+    },
+    initialSupply: 1_000_000_000_000,
+    maxHolders: 10000,
+    maxTotalSupply: 100_000_000_000_000,
+  };
+  let testEnvironment: TestEnvironment;
 
   before(async () => {
     await Promise.all(
@@ -62,8 +80,11 @@ describe("parse BalanceMap", () => {
     );
     assert.equal(tokenTotal, "6000000");
 
-    await topUpWallet(connection, signer.publicKey, solToLamports(10));
+    testEnvironment = new TestEnvironment(testEnvironmentParams);
+    await testEnvironment.setupAccessControl();
+    signer = testEnvironment.contractAdmin;
 
+    await topUpWallet(connection, signer.publicKey, solToLamports(1));
     ({ mintKeypair, mintHelper, baseKey, distributor, bump, distributorATA } =
       await createDistributor(
         connection,
@@ -85,22 +106,44 @@ describe("parse BalanceMap", () => {
         base: baseKey.publicKey,
         distributor,
         mint: mintKeypair.publicKey,
+        authorityWalletRole: testEnvironment.accessControlHelper.walletRolePDA(
+          signer.publicKey
+        )[0],
+        accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
         payer: signer.publicKey,
         systemProgram: SystemProgram.programId,
       })
       .signers([signer, baseKey])
       .rpc({ commitment });
 
+    signerATA = await mintHelper.createAssociatedTokenAccount(
+      signer.publicKey,
+      signer
+    );
     await mintTo(
       connection,
       signer,
       mintKeypair.publicKey,
-      distributorATA,
+      signerATA,
       signer,
       BigInt(tokenTotal),
       [],
-      { commitment }
+      { commitment },
+      TOKEN_PROGRAM_ID
     );
+    await dividendsProgram.methods
+      .fundDividends(new BN(tokenTotal))
+      .accounts({
+        distributor,
+        mint: mintKeypair.publicKey,
+        from: signerATA,
+        to: distributorATA,
+        funder: signer.publicKey,
+        payer: signer.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([signer])
+      .rpc({ commitment });
     claims = innerClaims;
   });
 
@@ -173,6 +216,7 @@ describe("parse BalanceMap", () => {
           distributor,
           mintHelper,
           signer,
+          TOKEN_PROGRAM_ID,
           commitment
         );
 
@@ -195,6 +239,7 @@ describe("parse BalanceMap", () => {
             distributor,
             mintHelper,
             signer,
+            TOKEN_PROGRAM_ID,
             commitment
           );
           assert.fail("Expected an error");

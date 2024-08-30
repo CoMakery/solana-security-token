@@ -20,20 +20,33 @@ pub mod dividends {
         ctx: Context<NewDistributor>,
         _bump: u8,
         root: [u8; 32],
-        max_total_claim: u64,
-        max_num_nodes: u64,
+        total_claim_amount: u64,
+        num_nodes: u64,
     ) -> Result<()> {
-      instructions::new_distributor(ctx, _bump, root, max_total_claim, max_num_nodes)
+      instructions::new_distributor(ctx, _bump, root, total_claim_amount, num_nodes)
     }
 
     /// Claims tokens from the [MerkleDistributor].
-    pub fn claim(
-        ctx: Context<Claim>,
+    pub fn claim<'info>(
+        ctx: Context<'_, '_, '_, 'info, Claim<'info>>,
         _bump: u8,
         index: u64,
         amount: u64,
         proof: Vec<[u8; 32]>,
     ) -> Result<()> {
         instructions::claim(ctx, _bump, index, amount, proof)
+    }
+
+    /// Fund dividend tokens to the [MerkleDistributor].
+    pub fn fund_dividends<'info>(
+        ctx: Context<'_, '_, '_, 'info, FundDividends<'info>>,
+        amount: u64,
+    ) -> Result<()> {
+        instructions::fund_dividends(ctx, amount)
+    }
+
+    /// Pause the [MerkleDistributor].
+    pub fn pause<'info>(ctx: Context<Pause>, paused: bool) -> Result<()> {
+        instructions::pause(ctx, paused)
     }
 }

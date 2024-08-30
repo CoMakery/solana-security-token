@@ -108,8 +108,7 @@
           "name": "token_program",
           "docs": [
             "SPL [Token] program."
-          ],
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          ]
         }
       ],
       "args": [
@@ -135,6 +134,75 @@
               ]
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "fund_dividends",
+      "docs": [
+        "Fund dividend tokens to the [MerkleDistributor]."
+      ],
+      "discriminator": [
+        80,
+        231,
+        140,
+        123,
+        85,
+        15,
+        70,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "distributor",
+          "docs": [
+            "The [MerkleDistributor]."
+          ],
+          "writable": true
+        },
+        {
+          "name": "from",
+          "docs": [
+            "Account which send the funding tokens."
+          ],
+          "writable": true
+        },
+        {
+          "name": "to",
+          "docs": [
+            "Distributor ATA containing the tokens to distribute."
+          ],
+          "writable": true
+        },
+        {
+          "name": "funder",
+          "docs": [
+            "Who is funding the tokens."
+          ],
+          "signer": true
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "Payer of the fund dividends."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "token_program",
+          "docs": [
+            "SPL [Token] program."
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
         }
       ]
     },
@@ -206,6 +274,18 @@
           ]
         },
         {
+          "name": "authority_wallet_role",
+          "docs": [
+            "Authority wallet role to create the distributor."
+          ]
+        },
+        {
+          "name": "access_control",
+          "docs": [
+            "Access Control for Security Token."
+          ]
+        },
+        {
           "name": "payer",
           "docs": [
             "Payer to create the distributor."
@@ -236,17 +316,81 @@
           }
         },
         {
-          "name": "max_total_claim",
+          "name": "total_claim_amount",
           "type": "u64"
         },
         {
-          "name": "max_num_nodes",
+          "name": "num_nodes",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "pause",
+      "docs": [
+        "Pause the [MerkleDistributor]."
+      ],
+      "discriminator": [
+        211,
+        22,
+        221,
+        251,
+        74,
+        121,
+        193,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "distributor",
+          "docs": [
+            "The [MerkleDistributor]."
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority_wallet_role",
+          "docs": [
+            "Authority wallet role to pause the distributor."
+          ]
+        },
+        {
+          "name": "access_control",
+          "docs": [
+            "Access Control for Security Token."
+          ]
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Payer and authority to pause the distributor."
+          ],
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
         }
       ]
     }
   ],
   "accounts": [
+    {
+      "name": "AccessControl",
+      "discriminator": [
+        147,
+        81,
+        178,
+        92,
+        223,
+        66,
+        181,
+        132
+      ]
+    },
     {
       "name": "ClaimStatus",
       "discriminator": [
@@ -272,6 +416,19 @@
         12,
         26
       ]
+    },
+    {
+      "name": "WalletRole",
+      "discriminator": [
+        219,
+        71,
+        35,
+        217,
+        102,
+        248,
+        173,
+        9
+      ]
     }
   ],
   "events": [
@@ -286,6 +443,19 @@
         87,
         84,
         115
+      ]
+    },
+    {
+      "name": "FundedEvent",
+      "discriminator": [
+        184,
+        241,
+        25,
+        25,
+        217,
+        159,
+        102,
+        174
       ]
     }
   ],
@@ -307,7 +477,7 @@
     },
     {
       "code": 6003,
-      "name": "ExceededMaxNumNodes",
+      "name": "ExceededNumNodes",
       "msg": "Exceeded maximum number of claimed nodes"
     },
     {
@@ -324,9 +494,50 @@
       "code": 6006,
       "name": "KeysMustNotMatch",
       "msg": "Keys must not match"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidFundingAmount",
+      "msg": "Invalid funding amount"
+    },
+    {
+      "code": 6008,
+      "name": "DistributionPaused",
+      "msg": "Distribution is paused"
+    },
+    {
+      "code": 6009,
+      "name": "DistributorNotReadyToClaim",
+      "msg": "Distributor is not ready to claim"
     }
   ],
   "types": [
+    {
+      "name": "AccessControl",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "max_total_supply",
+            "type": "u64"
+          },
+          {
+            "name": "lockup_escrow_account",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "ClaimStatus",
       "docs": [
@@ -401,6 +612,35 @@
       }
     },
     {
+      "name": "FundedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "distributor",
+            "docs": [
+              "Distribution which funded."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "funder",
+            "docs": [
+              "User that funded."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "docs": [
+              "Amount of tokens funded."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "MerkleDistributor",
       "docs": [
         "State for the account which distributes tokens."
@@ -442,16 +682,16 @@
             "type": "pubkey"
           },
           {
-            "name": "max_total_claim",
+            "name": "total_claim_amount",
             "docs": [
-              "Maximum number of tokens that can ever be claimed from this [MerkleDistributor]."
+              "Number of tokens that can be claimed from this [MerkleDistributor]."
             ],
             "type": "u64"
           },
           {
-            "name": "max_num_nodes",
+            "name": "num_nodes",
             "docs": [
-              "Maximum number of nodes that can ever be claimed from this [MerkleDistributor]."
+              "Number of nodes that can be claimed from this [MerkleDistributor]."
             ],
             "type": "u64"
           },
@@ -468,6 +708,47 @@
               "Number of nodes that have been claimed."
             ],
             "type": "u64"
+          },
+          {
+            "name": "access_control",
+            "docs": [
+              "Access control for the [MerkleDistributor] and Security Token."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "paused",
+            "docs": [
+              "The [MerkleDistributor] is paused."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "ready_to_claim",
+            "docs": [
+              "The [MerkleDistributor] is ready to claim."
+            ],
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WalletRole",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "access_control",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": "u8"
           }
         ]
       }

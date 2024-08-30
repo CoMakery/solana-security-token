@@ -15,8 +15,12 @@ import {
   toBytes32Array,
 } from "../../app/src/merkle-distributor/utils";
 import { claim, createDistributor } from "./utils";
+import {
+  TestEnvironment,
+  TestEnvironmentParams,
+} from "../helpers/test_environment";
 
-describe("claim-dividends", () => {
+describe("big tree", () => {
   const provider = AnchorProvider.env();
   const connection = provider.connection;
   anchor.setProvider(provider);
@@ -42,6 +46,19 @@ describe("claim-dividends", () => {
   }
   const tree = new BalanceTree(elements);
 
+  const testEnvironmentParams: TestEnvironmentParams = {
+    mint: {
+      decimals: 6,
+      name: "XYZ Token",
+      symbol: "XYZ",
+      uri: "https://example.com",
+    },
+    initialSupply: 1_000_000_000_000,
+    maxHolders: 10000,
+    maxTotalSupply: 100_000_000_000_000,
+  };
+  let testEnvironment: TestEnvironment;
+
   it("proof verification works", () => {
     const root = tree.getRoot();
 
@@ -63,11 +80,16 @@ describe("claim-dividends", () => {
     let distributor: PublicKey;
     let distributorATA: PublicKey;
     let bump: number;
-    const signer = Keypair.generate();
-    const maxTotalClaim = 100 * NUM_LEAVES;
+    let signer: Keypair;
+    const totalClaimAmount = 100 * NUM_LEAVES;
+    let signerATA: PublicKey;
 
     before(async () => {
-      await topUpWallet(connection, signer.publicKey, solToLamports(10));
+      testEnvironment = new TestEnvironment(testEnvironmentParams);
+      await testEnvironment.setupAccessControl();
+      signer = testEnvironment.contractAdmin;
+
+      await topUpWallet(connection, signer.publicKey, solToLamports(1));
       ({ mintKeypair, mintHelper, baseKey, distributor, bump, distributorATA } =
         await createDistributor(
           connection,
@@ -82,29 +104,53 @@ describe("claim-dividends", () => {
         .newDistributor(
           bump,
           toBytes32Array(tree.getRoot()),
-          new BN(maxTotalClaim),
+          new BN(totalClaimAmount),
           new BN(NUM_LEAVES)
         )
         .accountsStrict({
           base: baseKey.publicKey,
           distributor,
           mint: mintKeypair.publicKey,
+          authorityWalletRole:
+            testEnvironment.accessControlHelper.walletRolePDA(
+              signer.publicKey
+            )[0],
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
           payer: signer.publicKey,
           systemProgram: SystemProgram.programId,
         })
         .signers([signer, baseKey])
         .rpc({ commitment });
 
+      signerATA = await mintHelper.createAssociatedTokenAccount(
+        signer.publicKey,
+        signer
+      );
       await mintTo(
         connection,
         signer,
         mintKeypair.publicKey,
-        distributorATA,
+        signerATA,
         signer,
-        BigInt(maxTotalClaim),
+        BigInt(totalClaimAmount.toString()),
         [],
-        { commitment }
+        { commitment },
+        TOKEN_PROGRAM_ID
       );
+      await dividendsProgram.methods
+        .fundDividends(new BN(totalClaimAmount))
+        .accounts({
+          distributor,
+          mint: mintKeypair.publicKey,
+          from: signerATA,
+          to: distributorATA,
+          funder: signer.publicKey,
+          payer: signer.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([signer])
+        .rpc({ commitment });
     });
 
     it("claim deep node", async () => {

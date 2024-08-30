@@ -76,7 +76,6 @@ export type Dividends = {
         {
           name: "tokenProgram";
           docs: ["SPL [Token] program."];
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
         }
       ];
       args: [
@@ -99,6 +98,52 @@ export type Dividends = {
               array: ["u8", 32];
             };
           };
+        }
+      ];
+    },
+    {
+      name: "fundDividends";
+      docs: ["Fund dividend tokens to the [MerkleDistributor]."];
+      discriminator: [80, 231, 140, 123, 85, 15, 70, 166];
+      accounts: [
+        {
+          name: "distributor";
+          docs: ["The [MerkleDistributor]."];
+          writable: true;
+        },
+        {
+          name: "from";
+          docs: ["Account which send the funding tokens."];
+          writable: true;
+        },
+        {
+          name: "to";
+          docs: ["Distributor ATA containing the tokens to distribute."];
+          writable: true;
+        },
+        {
+          name: "funder";
+          docs: ["Who is funding the tokens."];
+          signer: true;
+        },
+        {
+          name: "payer";
+          docs: ["Payer of the fund dividends."];
+          writable: true;
+          signer: true;
+        },
+        {
+          name: "mint";
+        },
+        {
+          name: "tokenProgram";
+          docs: ["SPL [Token] program."];
+        }
+      ];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
         }
       ];
     },
@@ -155,6 +200,14 @@ export type Dividends = {
           docs: ["The mint to distribute."];
         },
         {
+          name: "authorityWalletRole";
+          docs: ["Authority wallet role to create the distributor."];
+        },
+        {
+          name: "accessControl";
+          docs: ["Access Control for Security Token."];
+        },
+        {
           name: "payer";
           docs: ["Payer to create the distributor."];
           writable: true;
@@ -178,17 +231,53 @@ export type Dividends = {
           };
         },
         {
-          name: "maxTotalClaim";
+          name: "totalClaimAmount";
           type: "u64";
         },
         {
-          name: "maxNumNodes";
+          name: "numNodes";
           type: "u64";
+        }
+      ];
+    },
+    {
+      name: "pause";
+      docs: ["Pause the [MerkleDistributor]."];
+      discriminator: [211, 22, 221, 251, 74, 121, 193, 47];
+      accounts: [
+        {
+          name: "distributor";
+          docs: ["The [MerkleDistributor]."];
+          writable: true;
+        },
+        {
+          name: "authorityWalletRole";
+          docs: ["Authority wallet role to pause the distributor."];
+        },
+        {
+          name: "accessControl";
+          docs: ["Access Control for Security Token."];
+        },
+        {
+          name: "authority";
+          docs: ["Payer and authority to pause the distributor."];
+          writable: true;
+          signer: true;
+        }
+      ];
+      args: [
+        {
+          name: "paused";
+          type: "bool";
         }
       ];
     }
   ];
   accounts: [
+    {
+      name: "accessControl";
+      discriminator: [147, 81, 178, 92, 223, 66, 181, 132];
+    },
     {
       name: "claimStatus";
       discriminator: [22, 183, 249, 157, 247, 95, 150, 96];
@@ -196,12 +285,20 @@ export type Dividends = {
     {
       name: "merkleDistributor";
       discriminator: [77, 119, 139, 70, 84, 247, 12, 26];
+    },
+    {
+      name: "walletRole";
+      discriminator: [219, 71, 35, 217, 102, 248, 173, 9];
     }
   ];
   events: [
     {
       name: "claimedEvent";
       discriminator: [144, 172, 209, 86, 144, 87, 84, 115];
+    },
+    {
+      name: "fundedEvent";
+      discriminator: [184, 241, 25, 25, 217, 159, 102, 174];
     }
   ];
   errors: [
@@ -222,7 +319,7 @@ export type Dividends = {
     },
     {
       code: 6003;
-      name: "exceededMaxNumNodes";
+      name: "exceededNumNodes";
       msg: "Exceeded maximum number of claimed nodes";
     },
     {
@@ -239,9 +336,50 @@ export type Dividends = {
       code: 6006;
       name: "keysMustNotMatch";
       msg: "Keys must not match";
+    },
+    {
+      code: 6007;
+      name: "invalidFundingAmount";
+      msg: "Invalid funding amount";
+    },
+    {
+      code: 6008;
+      name: "distributionPaused";
+      msg: "Distribution is paused";
+    },
+    {
+      code: 6009;
+      name: "distributorNotReadyToClaim";
+      msg: "Distributor is not ready to claim";
     }
   ];
   types: [
+    {
+      name: "accessControl";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "mint";
+            type: "pubkey";
+          },
+          {
+            name: "authority";
+            type: "pubkey";
+          },
+          {
+            name: "maxTotalSupply";
+            type: "u64";
+          },
+          {
+            name: "lockupEscrowAccount";
+            type: {
+              option: "pubkey";
+            };
+          }
+        ];
+      };
+    },
     {
       name: "claimStatus";
       docs: [
@@ -300,6 +438,29 @@ export type Dividends = {
       };
     },
     {
+      name: "fundedEvent";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "distributor";
+            docs: ["Distribution which funded."];
+            type: "pubkey";
+          },
+          {
+            name: "funder";
+            docs: ["User that funded."];
+            type: "pubkey";
+          },
+          {
+            name: "amount";
+            docs: ["Amount of tokens funded."];
+            type: "u64";
+          }
+        ];
+      };
+    },
+    {
       name: "merkleDistributor";
       docs: ["State for the account which distributes tokens."];
       type: {
@@ -328,16 +489,16 @@ export type Dividends = {
             type: "pubkey";
           },
           {
-            name: "maxTotalClaim";
+            name: "totalClaimAmount";
             docs: [
-              "Maximum number of tokens that can ever be claimed from this [MerkleDistributor]."
+              "Number of tokens that can be claimed from this [MerkleDistributor]."
             ];
             type: "u64";
           },
           {
-            name: "maxNumNodes";
+            name: "numNodes";
             docs: [
-              "Maximum number of nodes that can ever be claimed from this [MerkleDistributor]."
+              "Number of nodes that can be claimed from this [MerkleDistributor]."
             ];
             type: "u64";
           },
@@ -350,6 +511,43 @@ export type Dividends = {
             name: "numNodesClaimed";
             docs: ["Number of nodes that have been claimed."];
             type: "u64";
+          },
+          {
+            name: "accessControl";
+            docs: [
+              "Access control for the [MerkleDistributor] and Security Token."
+            ];
+            type: "pubkey";
+          },
+          {
+            name: "paused";
+            docs: ["The [MerkleDistributor] is paused."];
+            type: "bool";
+          },
+          {
+            name: "readyToClaim";
+            docs: ["The [MerkleDistributor] is ready to claim."];
+            type: "bool";
+          }
+        ];
+      };
+    },
+    {
+      name: "walletRole";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "owner";
+            type: "pubkey";
+          },
+          {
+            name: "accessControl";
+            type: "pubkey";
+          },
+          {
+            name: "role";
+            type: "u8";
           }
         ];
       };
