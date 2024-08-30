@@ -237,6 +237,10 @@ export type Dividends = {
         {
           name: "numNodes";
           type: "u64";
+        },
+        {
+          name: "ipfsHash";
+          type: "string";
         }
       ];
     },
@@ -351,6 +355,11 @@ export type Dividends = {
       code: 6009;
       name: "distributorNotReadyToClaim";
       msg: "Distributor is not ready to claim";
+    },
+    {
+      code: 6010;
+      name: "invalidIpfsHashSize";
+      msg: "Invalid IPFS hash size";
     }
   ];
   types: [
@@ -528,6 +537,11 @@ export type Dividends = {
             name: "readyToClaim";
             docs: ["The [MerkleDistributor] is ready to claim."];
             type: "bool";
+          },
+          {
+            name: "ipfsHash";
+            docs: ["IPFS hash of the serialized merkle tree."];
+            type: "string";
           }
         ];
       };

@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+pub const MAX_IPFS_HASH_LEN: usize = 64;
 /// State for the account which distributes tokens.
 #[account]
 #[derive(Default)]
@@ -29,4 +30,7 @@ pub struct MerkleDistributor {
     pub paused: bool,
     /// The [MerkleDistributor] is ready to claim.
     pub ready_to_claim: bool,
+    /// IPFS hash of the serialized merkle tree.
+    #[max_len(MAX_IPFS_HASH_LEN)]
+    pub ipfs_hash: String,
 }

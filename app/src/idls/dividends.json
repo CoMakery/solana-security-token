@@ -322,6 +322,10 @@
         {
           "name": "num_nodes",
           "type": "u64"
+        },
+        {
+          "name": "ipfs_hash",
+          "type": "string"
         }
       ]
     },
@@ -509,6 +513,11 @@
       "code": 6009,
       "name": "DistributorNotReadyToClaim",
       "msg": "Distributor is not ready to claim"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidIPFSHashSize",
+      "msg": "Invalid IPFS hash size"
     }
   ],
   "types": [
@@ -729,6 +738,13 @@
               "The [MerkleDistributor] is ready to claim."
             ],
             "type": "bool"
+          },
+          {
+            "name": "ipfs_hash",
+            "docs": [
+              "IPFS hash of the serialized merkle tree."
+            ],
+            "type": "string"
           }
         ]
       }

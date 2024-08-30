@@ -4,8 +4,8 @@ pub mod states;
 use states::*;
 pub mod errors;
 pub mod events;
-pub mod merkle_proof;
 pub mod instructions;
+pub mod merkle_proof;
 use instructions::*;
 
 declare_id!("BvQwgkeevtxXrUsWtZU3fUu5R3qTYne2XfrQp8dXXut3");
@@ -22,8 +22,9 @@ pub mod dividends {
         root: [u8; 32],
         total_claim_amount: u64,
         num_nodes: u64,
+        ipfs_hash: String,
     ) -> Result<()> {
-      instructions::new_distributor(ctx, _bump, root, total_claim_amount, num_nodes)
+        instructions::new_distributor(ctx, _bump, root, total_claim_amount, num_nodes, ipfs_hash)
     }
 
     /// Claims tokens from the [MerkleDistributor].
