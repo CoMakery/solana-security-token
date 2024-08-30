@@ -60,6 +60,8 @@ describe("parse BalanceMap", () => {
     maxTotalSupply: 100_000_000_000_000,
   };
   let testEnvironment: TestEnvironment;
+  const ipfsHash =
+    "QmQ9Q5Q6Q7Q8Q9QaQbQcQdQeQfQgQhQiQjQkQlQmQnQoQpQqQrQsQtQuQvQwQxQy";
 
   before(async () => {
     await Promise.all(
@@ -100,7 +102,8 @@ describe("parse BalanceMap", () => {
         bump,
         toBytes32Array(merkleRoot),
         new BN(tokenTotal),
-        new BN(keypairs.length)
+        new BN(keypairs.length),
+        ipfsHash
       )
       .accountsStrict({
         base: baseKey.publicKey,

@@ -33,6 +33,8 @@ describe(`pause distribution`, () => {
   let bump: number;
   let baseKey: Keypair;
   let signer: Keypair;
+  const ipfsHash =
+    "QmQ9Q5Q6Q7Q8Q9QaQbQcQdQeQfQgQhQiQjQkQlQmQnQoQpQqQrQsQtQuQvQwQxQy";
 
   const testEnvironmentParams: TestEnvironmentParams = {
     mint: {
@@ -90,7 +92,8 @@ describe(`pause distribution`, () => {
         bump,
         toBytes32Array(tree.getRoot()),
         totalClaimAmount,
-        numNodes
+        numNodes,
+        ipfsHash
       )
       .accountsStrict({
         base: baseKey.publicKey,

@@ -44,6 +44,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     const root = ZERO_BYTES32;
     const totalClaimAmount = TOTAL_CLAIM_AMOUNT;
     const numNodes = NUM_NODES;
+    const ipfsHash =
+      "QmQ9Q5Q6Q7Q8Q9QaQbQcQdQeQfQgQhQiQjQkQlQmQnQoQpQqQrQsQtQuQvQwQxQy";
 
     const testEnvironmentParams: TestEnvironmentParams = {
       mint: {
@@ -76,7 +78,13 @@ testCases.forEach(({ tokenProgramId, programName }) => {
 
     it("initializes new distributor", async () => {
       await dividendsProgram.methods
-        .newDistributor(bump, toBytes32Array(root), totalClaimAmount, numNodes)
+        .newDistributor(
+          bump,
+          toBytes32Array(root),
+          totalClaimAmount,
+          numNodes,
+          ipfsHash
+        )
         .accountsStrict({
           base: baseKey.publicKey,
           distributor,
@@ -117,6 +125,39 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       assert.isFalse(distributorData.readyToClaim);
     });
 
+    it("fails to initialize new distributor when ipfs hash is too long", async () => {
+      const oversizeIpfsHash = String.fromCharCode(0).repeat(65);
+      try {
+        await dividendsProgram.methods
+          .newDistributor(
+            bump,
+            toBytes32Array(root),
+            totalClaimAmount,
+            numNodes,
+            oversizeIpfsHash
+          )
+          .accountsStrict({
+            base: baseKey.publicKey,
+            distributor,
+            mint: mintKeypair.publicKey,
+            authorityWalletRole:
+              testEnvironment.accessControlHelper.walletRolePDA(
+                signer.publicKey
+              )[0],
+            accessControl:
+              testEnvironment.accessControlHelper.accessControlPubkey,
+            payer: signer.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([signer, baseKey])
+          .rpc({ commitment });
+        assert.fail("Expected to throw an error");
+      } catch ({ error }) {
+        assert.equal(error.errorCode.code, "InvalidIPFSHashSize");
+        assert.equal(error.errorMessage, "Invalid IPFS hash size");
+      }
+    });
+
     it("fails to initialize new distributor without contract admin role", async () => {
       const wallet = Keypair.generate();
       const [walletRole] = testEnvironment.accessControlHelper.walletRolePDA(
@@ -135,7 +176,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             bump,
             toBytes32Array(root),
             totalClaimAmount,
-            numNodes
+            numNodes,
+            ipfsHash
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -149,6 +191,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
           })
           .signers([wallet, baseKey])
           .rpc({ commitment });
+        assert.fail("Expected to throw an error");
       } catch ({ error }) {
         assert.equal(error.errorCode.code, "Unauthorized");
         assert.equal(
