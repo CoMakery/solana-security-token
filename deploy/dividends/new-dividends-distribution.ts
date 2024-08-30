@@ -13,13 +13,13 @@ import {
   getAccessControlProgram,
   getDividendsProgram,
   loadKeypairFromFile,
-} from "./helpers";
+} from "../helpers";
 import { AnchorProvider, Wallet } from "@coral-xyz/anchor";
-import { options } from "./commands";
-import { findDistributorKey } from "../app/src/merkle-distributor";
-import { toBytes32Array } from "../_sdk/merkle-distributor/utils";
-import { AccessControlHelper } from "../tests/helpers/access-control_helper";
-import { MintHelper } from "../tests/helpers/mint_helper";
+import { options } from "../commands";
+import { findDistributorKey } from "../../app/src/merkle-distributor";
+import { toBytes32Array } from "../../_sdk/merkle-distributor/utils";
+import { AccessControlHelper } from "../../tests/helpers/access-control_helper";
+import { MintHelper } from "../../tests/helpers/mint_helper";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 type DividendsConfig = {
@@ -31,6 +31,7 @@ type DividendsConfig = {
   claimantsCount: BN;
   commitment: Commitment;
   dividendsTokenProgramId: PublicKey;
+  ipfsHash: string;
 };
 
 const config: DividendsConfig = {
@@ -42,6 +43,7 @@ const config: DividendsConfig = {
   claimantsCount: new BN(10),
   commitment: "confirmed",
   dividendsTokenProgramId: TOKEN_PROGRAM_ID,
+  ipfsHash: "QmQ9Q5Q6Q7Q8Q9QaQbQcQdQeQfQgQhQiQjQkQlQmQnQoQpQqQrQsQtQuQvQwQxQy",
 };
 const deployerKeypairPath = `deploy/${options.cluster}/keys/deployer.json`;
 
@@ -78,7 +80,8 @@ const deployerKeypairPath = `deploy/${options.cluster}/keys/deployer.json`;
       bump,
       toBytes32Array(config.rootProof),
       config.dividendsAmount,
-      config.claimantsCount
+      config.claimantsCount,
+      config.ipfsHash
     )
     .accountsStrict({
       base: baseKey.publicKey,
