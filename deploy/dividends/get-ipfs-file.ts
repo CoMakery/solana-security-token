@@ -7,9 +7,7 @@ import { Command } from "commander";
 import fs from "fs";
 import { PublicKey } from "@solana/web3.js";
 
-import {
-  BalanceTree,
-} from "../../app/src/merkle-distributor/utils";
+import { BalanceTree } from "../../app/src/merkle-distributor/utils";
 import BN from "bn.js";
 const program = new Command();
 program
@@ -42,9 +40,8 @@ type IpfsDataTypes = {
   const ipfsGatewayUrl = options.gateway_url;
   console.log("Downloading file from IPFS", ipfsHash);
   const response = await fetch(`${ipfsGatewayUrl}/${ipfsHash}`);
-  const result = await response.json() as IpfsDataTypes;
+  const result = (await response.json()) as IpfsDataTypes;
 
   fs.writeFileSync(`ipfs_${ipfsHash}.json`, JSON.stringify(result));
   console.log(`File has been downloaded and saved to ipfs_${ipfsHash}.json`);
 })();
-

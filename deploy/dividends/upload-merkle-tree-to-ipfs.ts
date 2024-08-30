@@ -76,7 +76,7 @@ function loadCSVFile(filePath: string): void {
   const formData = new FormData();
   formData.append("file", blob, "merkle-tree-distribution-info.json");
 
-  const result = await ifpsHelper.add(formData)
+  const result = await ifpsHelper.add(formData);
   console.log(result);
   console.log("*".repeat(50));
 })();

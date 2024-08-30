@@ -35,15 +35,15 @@ type DividendsConfig = {
 };
 
 const config: DividendsConfig = {
-  accessControl: new PublicKey("FxpEmMdLUXHv7qmvbGeB7JEyVzkScvr1wZXR6K2nPjSy"),
-  securityMint: new PublicKey("HgbQJA9h17oJZzSpHoHRQ5zL1xugifVWgnifseAECxzn"),
-  dividendsMint: new PublicKey("HU2SxhuawUkLMznhc5Ew5Xkbm7UsEVXCNe6zWZb92sjn"),
-  dividendsAmount: new BN(10000000),
-  rootProof: Buffer.alloc(32),
-  claimantsCount: new BN(10),
-  commitment: "confirmed",
-  dividendsTokenProgramId: TOKEN_PROGRAM_ID,
-  ipfsHash: "QmQ9Q5Q6Q7Q8Q9QaQbQcQdQeQfQgQhQiQjQkQlQmQnQoQpQqQrQsQtQuQvQwQxQy",
+  accessControl: new PublicKey("FxpEmMdLUXHv7qmvbGeB7JEyVzkScvr1wZXR6K2nPjSy"), // AccessControl Data Account for Security Mint
+  securityMint: new PublicKey("HgbQJA9h17oJZzSpHoHRQ5zL1xugifVWgnifseAECxzn"), // Security Mint
+  dividendsMint: new PublicKey("HU2SxhuawUkLMznhc5Ew5Xkbm7UsEVXCNe6zWZb92sjn"), // Dividends Mint
+  dividendsAmount: new BN(10000000), // Distribution amount with decimals
+  rootProof: Buffer.alloc(32), // root proof for the distribution merkle tree
+  claimantsCount: new BN(10), // Number of claimants
+  commitment: "confirmed", // Commitment level
+  dividendsTokenProgramId: TOKEN_PROGRAM_ID, // Token program ID for dividends mint
+  ipfsHash: "QmQ9Q5Q6Q7Q8Q9QaQbQcQdQeQfQgQhQiQjQkQlQmQnQoQpQqQrQsQtQuQvQwQxQy", // IPFS hash for the distribution merkle tree data
 };
 const deployerKeypairPath = `deploy/${options.cluster}/keys/deployer.json`;
 
