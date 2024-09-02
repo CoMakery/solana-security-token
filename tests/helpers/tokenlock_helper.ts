@@ -459,7 +459,8 @@ export async function createReleaseSchedule(
       .signers([signer])
       .rpc({ commitment });
     const account = await program.account.tokenLockData.fetch(
-      tokenlockDataPubkey
+      tokenlockDataPubkey,
+      commitment
     );
     // check contents
     for (let i = account.releaseSchedules.length - 1; i >= 0; i--) {
@@ -800,20 +801,19 @@ export async function batchMintReleaseSchedule(
   )
     return "more than max mint total supply!";
 
-  const timelockAccounts = [];
-  for (let i = 0; i < to.length; i++) {
-    // eslint-disable-next-line no-await-in-loop
-    const timelockAcc = await getOrCreateTimelockAccount(
-      program,
-      tokenlockAccount,
-      to[i],
-      accessControlPubkey,
-      authorityWalletRolePubkey,
-      signer
-    );
-    // todo: Promise.all
-    timelockAccounts.push(timelockAcc);
-  }
+  const timelockAccounts = await Promise.all(
+    to.map(async (target) => {
+      const timelockAcc = await getOrCreateTimelockAccount(
+        program,
+        tokenlockAccount,
+        target,
+        accessControlPubkey,
+        authorityWalletRolePubkey,
+        signer
+      );
+      return timelockAcc;
+    })
+  );
 
   const cancelBy = [];
   for (let i = 0; i < cancelByCount; i++) cancelBy.push(cancelableBy[i]);

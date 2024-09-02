@@ -66,6 +66,23 @@ $ yarn deploy:CLUSTER
 Deployment script generates mint.json with keypair and tokenlock-data-pubkey.json with public key.
 Print information about deployment into console.
 
+## Dividends data
+Before deploying a new dividends distributor, the following steps are required:
+1. Obtain Investor Balances:
+- Capture investor balances for a specific block.
+- Store the data in a CSV file with the format: `wallet_address, balance_amount_in_base_unit`.
+1. Build and Upload the Merkle Tree:
+Build the Merkle tree and upload it to IPFS. Use the following command to upload the Merkle tree:
+```bash
+ts-node deploy/dividends/upload-merkle-tree-to-ipfs.ts -f path_to_snapshot.csv
+```
+1. Configure the Distribution:
+- Specify all parameters for the `config` object inside the `new-dividends-distribution.ts` script.
+- Deploy the new dividends distribution using the following command:
+```bash
+ts-node deploy/new-dividends-distribution.ts --cluster localnet
+```
+
 # Overview
 This is a Security Token smart contract implementation from Upside. 
 The core purpose of the token is to enforce transfer restrictions for certain groups.
@@ -900,7 +917,8 @@ Otherwise program ownership, upgrades and changes must be shared with users.
 
 # Dividends
 
-Dividends functionality provides the administrators of the Primary security token the ability to make dividend distributions at certain points in time. Each moment of time is recorded as a Merkle tree root proof, total claim amount and number of nodes of a snapshot that captures the relative ownership of each token holder (invoking `newDistributor()` method manually by Contract Admin on the `Dividends` program). Snapshot and Merkle tree are built off-chain in advance and can be stored on IPFS or any other distributed storage. Dividends can be payed in any SPL or SPL 2022 standard tokens. 
+Dividends program is based on [merkle-distributor program](https://github.com/saber-hq/merkle-distributor) but with access control and support of Token22.
+Dividends functionality provides the administrators of the Primary security token the ability to make dividend distributions at certain points in time. Each moment of time is recorded as a Merkle tree root proof, total claim amount and number of nodes of a snapshot that captures the relative ownership of each token holder (invoking `newDistributor()` method manually by Contract Admin on the `Dividends` program). Snapshot and Merkle tree are built off-chain in advance and can be stored on IPFS or any other distributed storage. Dividends can be payed in any SPL or SPL 2022 standard tokens. The distributor creator can upload the IPFS hash containing the Merkle tree and all proofs for eligible claimants. It will allow anyone to obtain an on-chain link to the distribution information and claim it themselves.
 
 Investor can claim only all dividends amount for one distribution in 1 instruction.
 
@@ -946,7 +964,8 @@ await program.methods
     bump,
     toBytes32Array(rootProof),
     totalClaimAmount,
-    numNodes
+    numNodes,
+    ipfsHash
   )
   .accountsStrict({
     base: baseKey.publicKey,

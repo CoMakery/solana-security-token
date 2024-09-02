@@ -51,6 +51,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
     let mintHelper: MintHelper;
     let distributorATA: PublicKey;
     let signer: Keypair;
+    const ipfsHash =
+      "QmQ9Q5Q6Q7Q8Q9QaQbQcQdQeQfQgQhQiQjQkQlQmQnQoQpQqQrQsQtQuQvQwQxQy";
 
     const testEnvironmentParams: TestEnvironmentParams = {
       mint: {
@@ -110,7 +112,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             bump,
             toBytes32Array(root),
             totalClaimAmount,
-            numNodes
+            numNodes,
+            ipfsHash
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -176,7 +179,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             bump,
             toBytes32Array(root),
             totalClaimAmount,
-            numNodes
+            numNodes,
+            ipfsHash
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -261,7 +265,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             bump,
             toBytes32Array(tree.getRoot()),
             totalClaimAmount,
-            numNodes
+            numNodes,
+            ipfsHash
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -366,7 +371,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             bump,
             toBytes32Array(tree.getRoot()),
             totalClaimAmount,
-            numNodes
+            numNodes,
+            ipfsHash
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -463,7 +469,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             bump,
             toBytes32Array(tree.getRoot()),
             totalClaimAmount,
-            numNodes
+            numNodes,
+            ipfsHash
           )
           .accountsStrict({
             base: baseKey.publicKey,
@@ -537,7 +544,8 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             bump,
             toBytes32Array(tree.getRoot()),
             totalClaimAmount,
-            numNodes
+            numNodes,
+            ipfsHash
           )
           .accountsStrict({
             base: baseKey.publicKey,

@@ -2,10 +2,17 @@ use access_control::{program::AccessControl as AccessControlProgram, AccessContr
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::Mint;
 
-use crate::{errors::DividendsErrorCode, MerkleDistributor};
+use crate::{errors::DividendsErrorCode, MerkleDistributor, MAX_IPFS_HASH_LEN};
 
 /// Accounts for [merkle_distributor::new_distributor].
 #[derive(Accounts)]
+#[instruction(
+    bump: u8,
+    root: [u8; 32],
+    total_claim_amount: u64,
+    num_nodes: u64,
+    ipfs_hash: String
+)]
 pub struct NewDistributor<'info> {
     /// Base key of the distributor.
     pub base: Signer<'info>,
@@ -47,14 +54,18 @@ pub struct NewDistributor<'info> {
     pub system_program: Program<'info, System>,
 }
 
-// TODO: only contract admin can create a new distributor
 pub fn new_distributor(
     ctx: Context<NewDistributor>,
     _bump: u8,
     root: [u8; 32],
     total_claim_amount: u64,
     num_nodes: u64,
+    ipfs_hash: String,
 ) -> Result<()> {
+    if ipfs_hash.len() > MAX_IPFS_HASH_LEN {
+        return Err(DividendsErrorCode::InvalidIPFSHashSize.into());
+    }
+
     let distributor = &mut ctx.accounts.distributor;
 
     distributor.base = ctx.accounts.base.key();
@@ -70,6 +81,7 @@ pub fn new_distributor(
     distributor.num_nodes_claimed = 0;
     distributor.paused = false;
     distributor.ready_to_claim = false;
+    distributor.ipfs_hash = ipfs_hash;
 
     Ok(())
 }

@@ -22,4 +22,6 @@ pub enum DividendsErrorCode {
     DistributionPaused,
     #[msg("Distributor is not ready to claim")]
     DistributorNotReadyToClaim,
+    #[msg("Invalid IPFS hash size")]
+    InvalidIPFSHashSize,
 }

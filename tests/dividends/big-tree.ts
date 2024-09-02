@@ -58,6 +58,8 @@ describe("big tree", () => {
     maxTotalSupply: 100_000_000_000_000,
   };
   let testEnvironment: TestEnvironment;
+  const ipfsHash =
+    "QmQ9Q5Q6Q7Q8Q9QaQbQcQdQeQfQgQhQiQjQkQlQmQnQoQpQqQrQsQtQuQvQwQxQy";
 
   it("proof verification works", () => {
     const root = tree.getRoot();
@@ -105,7 +107,8 @@ describe("big tree", () => {
           bump,
           toBytes32Array(tree.getRoot()),
           new BN(totalClaimAmount),
-          new BN(NUM_LEAVES)
+          new BN(NUM_LEAVES),
+          ipfsHash
         )
         .accountsStrict({
           base: baseKey.publicKey,
