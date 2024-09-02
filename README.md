@@ -70,7 +70,7 @@ Print information about deployment into console.
 Before deploying a new dividends distributor, the following steps are required:
 1. Obtain Investor Balances:
 - Capture investor balances for a specific block.
-- Store the data in a CSV file with the format: `wallet_address, balance_amount_with_decimals`.
+- Store the data in a CSV file with the format: `wallet_address, balance_amount_in_base_unit`.
 1. Build and Upload the Merkle Tree:
 Build the Merkle tree and upload it to IPFS. Use the following command to upload the Merkle tree:
 ```bash

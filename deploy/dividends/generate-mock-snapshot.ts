@@ -3,10 +3,10 @@ import fs from "fs";
 
 const WALLETS_COUNT = 100000;
 const decimals = 6;
-const distributionAmount = 1000000 * 10 ** decimals;
+const distributionAmountInBaseUnit = 1000000 * 10 ** decimals;
 
 const csvFilePath = `snapshot_${WALLETS_COUNT}.csv`;
-let amountLeft = distributionAmount;
+let amountLeft = distributionAmountInBaseUnit;
 for (let index = 0; index < WALLETS_COUNT; index++) {
   const investor = Keypair.generate();
   const randomNumber =
@@ -16,4 +16,4 @@ for (let index = 0; index < WALLETS_COUNT; index++) {
   fs.appendFileSync(csvFilePath, csvData);
   amountLeft -= randomNumber;
 }
-console.log(`Total amount distributed: ${distributionAmount - amountLeft}`);
+console.log(`Total amount distributed: ${distributionAmountInBaseUnit - amountLeft}`);
