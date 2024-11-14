@@ -560,7 +560,7 @@ describe("token lockup", () => {
       investorGroupId,
       transferAdminWalletRole,
       testEnvironment.transferAdmin
-    );  
+    );
     const lockedUntil = new anchor.BN(
       await getNowTs(testEnvironment.connection)
     );
