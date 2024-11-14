@@ -28,12 +28,48 @@ export type TransferRestrictions = {
         },
         {
           name: "transferRestrictionData";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [116, 114, 100];
+              },
+              {
+                kind: "account";
+                path: "mint";
+              }
+            ];
+          };
         },
         {
           name: "securityAssociatedAccountFrom";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [115, 97, 97];
+              },
+              {
+                kind: "account";
+                path: "sourceAccount";
+              }
+            ];
+          };
         },
         {
           name: "securityAssociatedAccountTo";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [115, 97, 97];
+              },
+              {
+                kind: "account";
+                path: "destinationAccount";
+              }
+            ];
+          };
         },
         {
           name: "transferRule";

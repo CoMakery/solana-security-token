@@ -123,7 +123,7 @@ pub fn cancel_timelock<'info>(
     enforce_transfer_restrictions_cpi(
         ctx.accounts.target_assoc.to_account_info().clone(),
         ctx.accounts.mint_address.to_account_info(),
-        ctx.accounts.reclaimer.to_account_info().to_account_info(),
+        ctx.accounts.reclaimer.to_account_info(),
         ctx.remaining_accounts[0].clone(),
         ctx.accounts
             .security_associated_account_from
