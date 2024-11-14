@@ -125,6 +125,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
               )[0],
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
+            securityMint: testEnvironment.mintKeypair.publicKey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -192,6 +193,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
               )[0],
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
+            securityMint: testEnvironment.mintKeypair.publicKey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -278,6 +280,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
               )[0],
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
+            securityMint: testEnvironment.mintKeypair.publicKey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -384,6 +387,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
               )[0],
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
+            securityMint: testEnvironment.mintKeypair.publicKey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -482,6 +486,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
               )[0],
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
+            securityMint: testEnvironment.mintKeypair.publicKey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -557,6 +562,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
               )[0],
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
+            securityMint: testEnvironment.mintKeypair.publicKey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })

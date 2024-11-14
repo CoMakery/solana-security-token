@@ -358,7 +358,7 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | Function                   | Contract Admin | Reserve Admin | Transfer Admin | Wallets Admin |
 | -------------------------- | -------------- | ------------- | -------------- | ------------- |
 | upgradeTransferRules()     | **yes**        | no            | no             | no            |
-| snapshot()                 | **yes**        | no            | no             | no            |
+| newDistributor()           | **yes**        | no            | **yes**        | no            |
 | mint()                     | no             | **yes**       | no             | no            |
 | burn()                     | no             | **yes**       | no             | no            |
 | forceTransferBetween()     | no             | **yes**       | no             | no            |
@@ -975,6 +975,7 @@ await program.methods
     mint: dividendsMintPubkey,
     authorityWalletRole,
     accessControl: accessControlPubkey,
+    securityMint: securityMintPubkey,
     payer: signer.publicKey,
     systemProgram: SystemProgram.programId,
   })
