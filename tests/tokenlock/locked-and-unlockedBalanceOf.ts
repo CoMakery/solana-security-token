@@ -609,6 +609,15 @@ describe("TokenLockup timelock balances", () => {
       authorityWalletRole,
       testEnvironment.walletsAdmin
     );
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
+      new anchor.BN(1),
+      group0,
+      group0,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
+      testEnvironment.transferAdmin
+    );
 
     const balanceEscrow = (
       await testEnvironment.mintHelper.getAccount(escrowAccount)
