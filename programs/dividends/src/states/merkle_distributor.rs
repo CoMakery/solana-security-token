@@ -3,8 +3,7 @@ use anchor_lang::prelude::*;
 pub const MAX_IPFS_HASH_LEN: usize = 64;
 /// State for the account which distributes tokens.
 #[account]
-#[derive(Default)]
-#[derive(InitSpace)]
+#[derive(Default, InitSpace)]
 pub struct MerkleDistributor {
     /// Base key used to generate the PDA.
     pub base: Pubkey,
