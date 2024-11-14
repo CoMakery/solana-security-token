@@ -126,38 +126,36 @@ pub fn transfer<'info>(
         return Err(TokenlockErrors::BadTransfer.into());
     }
 
-    let to = &ctx.accounts.to;
-    // if recipient owner is a signer we skip enforcing transfer restrictions
-    if ctx.accounts.authority.key() != to.owner {
-        if ctx.remaining_accounts.len() == 0
-            || ctx.remaining_accounts[0].key()
-                != TokenLockDataWrapper::transfer_restriction_data(&tokenlock_account_data)
-        {
-            return Err(TokenlockErrors::InvalidTransferRestrictionData.into());
-        }
+    if ctx.remaining_accounts.len() == 0
+        || ctx.remaining_accounts[0].key()
+            != TokenLockDataWrapper::transfer_restriction_data(&tokenlock_account_data)
+    {
+        return Err(TokenlockErrors::InvalidTransferRestrictionData.into());
+    }
 
+    {
         let authority_account_info = ctx.accounts.authority_account.clone();
         let mut account_data: &[u8] = &authority_account_info.try_borrow_data()?;
         let authority_account_data = TokenAccount::try_deserialize(&mut account_data)?;
         if authority_account_data.owner != ctx.accounts.authority.key() {
             return Err(TokenlockErrors::InvalidAccountOwner.into());
         }
+    } // free borrowed account
 
-        enforce_transfer_restrictions_cpi(
-            ctx.accounts.authority_account.clone(),
-            ctx.accounts.mint_address.to_account_info(),
-            to.to_account_info(),
-            ctx.remaining_accounts[0].clone(),
-            ctx.accounts
-                .security_associated_account_from
-                .to_account_info(),
-            ctx.accounts
-                .security_associated_account_to
-                .to_account_info(),
-            ctx.accounts.transfer_rule.to_account_info(),
-            ctx.accounts.transfer_restrictions_program.to_account_info(),
-        )?;
-    }
+    enforce_transfer_restrictions_cpi(
+        ctx.accounts.authority_account.clone(),
+        ctx.accounts.mint_address.to_account_info(),
+        ctx.accounts.to.to_account_info(),
+        ctx.remaining_accounts[0].clone(),
+        ctx.accounts
+            .security_associated_account_from
+            .to_account_info(),
+        ctx.accounts
+            .security_associated_account_to
+            .to_account_info(),
+        ctx.accounts.transfer_rule.to_account_info(),
+        ctx.accounts.transfer_restrictions_program.to_account_info(),
+    )?;
 
     transfer_spl_from_escrow(
         &ctx.accounts.token_program,

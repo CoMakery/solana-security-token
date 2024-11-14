@@ -555,6 +555,24 @@ describe("token lockup", () => {
       investorGroupId,
       investorGroupId
     );
+  it("creates transfer rule for new wallet", async () => {
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
+      investorGroupId,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
+    );  
+    const lockedUntil = new anchor.BN(
+      await getNowTs(testEnvironment.connection)
+    );
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
+      lockedUntil,
+      investorGroupId,
+      investorGroupId,
+      transferAdminWalletRole,
+      testEnvironment.transferAdmin
+    );
+  });
+
   it("transfers for recipient", async () => {
     const timelockAccount = getTimelockAccount(
       tokenlockProgram.programId,
@@ -605,13 +623,13 @@ describe("token lockup", () => {
               investor.publicKey
             ),
           securityAssociatedAccountFrom:
-            testEnvironment.mintHelper.getAssocciatedTokenAddress(
-              investor.publicKey
-            ),
+            testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+              investorTokenAccountPubkey
+            )[0],
           securityAssociatedAccountTo:
-            testEnvironment.mintHelper.getAssocciatedTokenAddress(
-              investor.publicKey
-            ),
+            testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+              investorTokenAccountPubkey
+            )[0],
           transferRule: transferRulePubkey,
         },
         signers: [investor],
@@ -624,11 +642,6 @@ describe("token lockup", () => {
     // create transfer rule escrow -> investorTokenAccountPubkey
     await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionHolder(
       investorHolderId,
-      transferAdminWalletRole,
-      testEnvironment.transferAdmin
-    );
-    await testEnvironment.transferRestrictionsHelper.initializeTransferRestrictionGroup(
-      investorGroupId,
       transferAdminWalletRole,
       testEnvironment.transferAdmin
     );
@@ -650,21 +663,6 @@ describe("token lockup", () => {
         testEnvironment.walletsAdmin.publicKey
       )[0],
       testEnvironment.walletsAdmin
-    );
-    // Initialize Transfer Restrictions Rule
-    const lockedUntil = new anchor.BN(tsNow);
-    const escrowGroupId = new anchor.BN(2);
-    const initializeTransferRuleTxSignature =
-      await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
-        lockedUntil,
-        escrowGroupId,
-        investorGroupId,
-        transferAdminWalletRole,
-        testEnvironment.transferAdmin
-      );
-    console.log(
-      "Initialze transfer rule tx:",
-      initializeTransferRuleTxSignature
     );
 
     await addExtraAccountMetasForExecute(
@@ -749,13 +747,13 @@ describe("token lockup", () => {
                 investor.publicKey
               ),
             securityAssociatedAccountFrom:
-              testEnvironment.mintHelper.getAssocciatedTokenAddress(
-                investor.publicKey
-              ),
+              testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+                investorTokenAccountPubkey
+              )[0],
             securityAssociatedAccountTo:
-              testEnvironment.mintHelper.getAssocciatedTokenAddress(
-                investor.publicKey
-              ),
+              testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+                investorTokenAccountPubkey
+              )[0],
             transferRule: transferRulePubkey,
           },
           signers: [investor],
@@ -823,24 +821,6 @@ describe("token lockup", () => {
     );
   });
 
-  const [transferRuleInvestorPubkey] =
-    testEnvironment.transferRestrictionsHelper.transferRulePDA(
-      investorGroupId,
-      investorGroupId
-    );
-  it("creates transfer rule for new wallet", async () => {
-    const lockedUntil = new anchor.BN(
-      await getNowTs(testEnvironment.connection)
-    );
-    await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
-      lockedUntil,
-      investorGroupId,
-      investorGroupId,
-      transferAdminWalletRole,
-      testEnvironment.transferAdmin
-    );
-  });
-
   it("transfers from timelock to new wallet", async () => {
     const timelockAccount = getTimelockAccount(
       tokenlockProgram.programId,
@@ -891,7 +871,7 @@ describe("token lockup", () => {
               testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
                 newinvestorTokenAccountPubkey
               )[0],
-            transferRule: transferRuleInvestorPubkey,
+            transferRule: transferRulePubkey,
           },
           signers: [investor],
         }

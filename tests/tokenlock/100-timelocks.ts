@@ -298,6 +298,15 @@ describe("TokenLockup stress test", () => {
       authorityWalletRole,
       testEnvironment.walletsAdmin
     );
+    await testEnvironment.transferRestrictionsHelper.initializeTransferRule(
+      new anchor.BN(1),
+      group0,
+      group0,
+      testEnvironment.accessControlHelper.walletRolePDA(
+        testEnvironment.transferAdmin.publicKey
+      )[0],
+      testEnvironment.transferAdmin,
+    )
 
     const transferAmount = new anchor.BN(unlockedBalance);
     const withdrawTxSignature = await withdraw(
