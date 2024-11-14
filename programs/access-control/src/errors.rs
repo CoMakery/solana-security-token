@@ -16,4 +16,6 @@ pub enum AccessControlError {
     CantBurnSecuritiesWithinLockup,
     #[msg("Cannot force transfer between lockup accounts")]
     CantForceTransferBetweenLockup,
+    #[msg("New max total supply must exceed current total supply")]
+    NewMaxTotalSupplyMustExceedCurrentTotalSupply,
 }

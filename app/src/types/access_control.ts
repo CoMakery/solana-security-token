@@ -735,6 +735,45 @@ export type AccessControl = {
       args: [];
     },
     {
+      name: "setMaxTotalSupply";
+      discriminator: [249, 164, 34, 254, 160, 89, 214, 12];
+      accounts: [
+        {
+          name: "accessControlAccount";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [97, 99];
+              },
+              {
+                kind: "account";
+                path: "mint";
+              }
+            ];
+          };
+        },
+        {
+          name: "mint";
+        },
+        {
+          name: "authorityWalletRole";
+        },
+        {
+          name: "payer";
+          writable: true;
+          signer: true;
+        }
+      ];
+      args: [
+        {
+          name: "maxTotalSupply";
+          type: "u64";
+        }
+      ];
+    },
+    {
       name: "thawWallet";
       discriminator: [79, 251, 128, 221, 55, 172, 181, 221];
       accounts: [
@@ -974,6 +1013,11 @@ export type AccessControl = {
       code: 6006;
       name: "cantForceTransferBetweenLockup";
       msg: "Cannot force transfer between lockup accounts";
+    },
+    {
+      code: 6007;
+      name: "newMaxTotalSupplyMustExceedCurrentTotalSupply";
+      msg: "New max total supply must exceed current total supply";
     }
   ];
   types: [
