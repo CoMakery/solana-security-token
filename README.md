@@ -362,7 +362,7 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | mint()                     | no             | **yes**       | no             | no            |
 | burn()                     | no             | **yes**       | no             | no            |
 | forceTransferBetween()     | no             | **yes**       | no             | no            |
-| pause() or unpause (ie pause(false)) | no   | no            |  **yes**       | no            |           
+| pause() or unpause (ie pause(false)) | **yes** | no         |  **yes**       | no            |           
 | setAllowGroupTransfer()    | no             | no            | **yes**        | no            |
 | setHolderMax()             | no             | no            | **yes**        | no            |
 | setHolderGroupMax()        | no             | no            | **yes**        | no            |

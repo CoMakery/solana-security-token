@@ -13,8 +13,8 @@ pub struct Pause<'info> {
 
     /// Authority wallet role to pause the distributor.
     #[account(
-      constraint = authority_wallet_role.owner == authority.key(),
-        constraint = authority_wallet_role.has_role(access_control::Roles::ContractAdmin) @ DividendsErrorCode::Unauthorized,
+        constraint = authority_wallet_role.owner == authority.key(),
+        constraint = authority_wallet_role.has_any_role(access_control::Roles::ContractAdmin as u8 | access_control::Roles::TransferAdmin as u8) @ DividendsErrorCode::Unauthorized,
         constraint = authority_wallet_role.access_control == access_control.key(),
     )]
     pub authority_wallet_role: Account<'info, WalletRole>,
