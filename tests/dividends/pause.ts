@@ -103,6 +103,7 @@ describe(`pause distribution`, () => {
           signer.publicKey
         )[0],
         accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+        securityMint: testEnvironment.mintKeypair.publicKey,
         payer: signer.publicKey,
         systemProgram: SystemProgram.programId,
       })

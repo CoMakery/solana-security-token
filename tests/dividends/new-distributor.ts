@@ -76,7 +76,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       ));
     });
 
-    it("initializes new distributor", async () => {
+    it("initializes new distributor with contract admin role", async () => {
       await dividendsProgram.methods
         .newDistributor(
           bump,
@@ -95,10 +95,69 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             )[0],
           accessControl:
             testEnvironment.accessControlHelper.accessControlPubkey,
+          securityMint: testEnvironment.mintKeypair.publicKey,
           payer: signer.publicKey,
           systemProgram: SystemProgram.programId,
         })
         .signers([signer, baseKey])
+        .rpc({ commitment });
+
+      const distributorData =
+        await dividendsProgram.account.merkleDistributor.fetch(distributor);
+      assert.equal(distributorData.bump, bump);
+      assert.equal(distributorData.numNodes.toString(), NUM_NODES.toString());
+      assert.equal(
+        distributorData.totalClaimAmount.toString(),
+        TOTAL_CLAIM_AMOUNT.toString()
+      );
+      assert.deepEqual(distributorData.base, baseKey.publicKey);
+      assert.deepEqual(distributorData.mint, mintKeypair.publicKey);
+      assert.deepEqual(
+        distributorData.accessControl,
+        testEnvironment.accessControlHelper.accessControlPubkey
+      );
+      assert.isFalse(distributorData.paused);
+      assert.equal(distributorData.numNodesClaimed.toNumber(), 0);
+      assert.deepEqual(
+        distributorData.root,
+        Array.from(new Uint8Array(ZERO_BYTES32))
+      );
+      assert.equal(distributorData.totalAmountClaimed.toNumber(), 0);
+      assert.isFalse(distributorData.readyToClaim);
+    });
+
+    it("initializes new distributor with transferAdmin wallet role", async () => {
+      const wallet = Keypair.generate();
+      const [walletRole] = testEnvironment.accessControlHelper.walletRolePDA(
+        wallet.publicKey
+      );
+      await testEnvironment.accessControlHelper.initializeWalletRole(
+        wallet.publicKey,
+        Roles.TransferAdmin,
+        testEnvironment.contractAdmin
+      );
+      await topUpWallet(connection, wallet.publicKey, solToLamports(1));
+
+      await dividendsProgram.methods
+        .newDistributor(
+          bump,
+          toBytes32Array(root),
+          totalClaimAmount,
+          numNodes,
+          ipfsHash
+        )
+        .accountsStrict({
+          base: baseKey.publicKey,
+          distributor,
+          mint: mintKeypair.publicKey,
+          authorityWalletRole: walletRole,
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          securityMint: testEnvironment.mintKeypair.publicKey,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([wallet, baseKey])
         .rpc({ commitment });
 
       const distributorData =
@@ -146,6 +205,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
               )[0],
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
+            securityMint: testEnvironment.mintKeypair.publicKey,
             payer: signer.publicKey,
             systemProgram: SystemProgram.programId,
           })
@@ -158,14 +218,14 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       }
     });
 
-    it("fails to initialize new distributor without contract admin role", async () => {
+    it("fails to initialize new distributor without contract or transfer admin role", async () => {
       const wallet = Keypair.generate();
       const [walletRole] = testEnvironment.accessControlHelper.walletRolePDA(
         wallet.publicKey
       );
       await testEnvironment.accessControlHelper.initializeWalletRole(
         wallet.publicKey,
-        Roles.ReserveAdmin | Roles.TransferAdmin | Roles.WalletsAdmin,
+        Roles.ReserveAdmin | Roles.WalletsAdmin,
         testEnvironment.contractAdmin
       );
       await topUpWallet(connection, wallet.publicKey, solToLamports(1));
@@ -186,6 +246,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
             authorityWalletRole: walletRole,
             accessControl:
               testEnvironment.accessControlHelper.accessControlPubkey,
+            securityMint: testEnvironment.mintKeypair.publicKey,
             payer: wallet.publicKey,
             systemProgram: SystemProgram.programId,
           })

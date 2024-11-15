@@ -1,6 +1,8 @@
-use access_control::{program::AccessControl as AccessControlProgram, AccessControl, WalletRole};
-use anchor_lang::prelude::*;
-use anchor_spl::token_interface::Mint;
+use access_control::{
+    program::AccessControl as AccessControlProgram, AccessControl, WalletRole, ACCESS_CONTROL_SEED,
+};
+use anchor_lang::{prelude::*, solana_program::program_option::COption};
+use anchor_spl::{token_2022::ID as TOKEN_2022_PROGRAM_ID, token_interface::Mint};
 
 use crate::{errors::DividendsErrorCode, MerkleDistributor, MAX_IPFS_HASH_LEN};
 
@@ -36,15 +38,29 @@ pub struct NewDistributor<'info> {
     /// Authority wallet role to create the distributor.
     #[account(
         constraint = authority_wallet_role.owner == payer.key(),
-        constraint = authority_wallet_role.has_role(access_control::Roles::ContractAdmin) @ DividendsErrorCode::Unauthorized,
+        constraint = authority_wallet_role.has_any_role(access_control::Roles::ContractAdmin as u8 | access_control::Roles::TransferAdmin as u8) @ DividendsErrorCode::Unauthorized,
         constraint = authority_wallet_role.access_control == access_control.key(),
         owner = AccessControlProgram::id(),
     )]
     pub authority_wallet_role: Account<'info, WalletRole>,
 
     /// Access Control for Security Token.
-    #[account(owner = AccessControlProgram::id())]
+    #[account(
+        constraint = security_mint.key() == access_control.mint,
+        seeds = [
+          ACCESS_CONTROL_SEED,
+          security_mint.key().as_ref(),
+        ],
+        bump,
+        seeds::program = AccessControlProgram::id(),
+      )]
     pub access_control: Account<'info, AccessControl>,
+
+    #[account(mut,
+        mint::token_program = TOKEN_2022_PROGRAM_ID,
+        constraint = security_mint.mint_authority == COption::Some(access_control.key()),
+    )]
+    pub security_mint: Box<InterfaceAccount<'info, Mint>>,
 
     /// Payer to create the distributor.
     #[account(mut)]

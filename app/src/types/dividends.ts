@@ -206,6 +206,22 @@ export type Dividends = {
         {
           name: "accessControl";
           docs: ["Access Control for Security Token."];
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [97, 99];
+              },
+              {
+                kind: "account";
+                path: "securityMint";
+              }
+            ];
+          };
+        },
+        {
+          name: "securityMint";
+          writable: true;
         },
         {
           name: "payer";
