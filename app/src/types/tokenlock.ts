@@ -633,6 +633,11 @@ export type Tokenlock = {
       code: 6036;
       name: "invalidAccountOwner";
       msg: "Invalid account owner";
+    },
+    {
+      code: 6037;
+      name: "cantVestAllForMultipleReleases";
+      msg: "Cannot vest all for multiple releases";
     }
   ];
   types: [

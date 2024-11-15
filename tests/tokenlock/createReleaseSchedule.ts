@@ -396,4 +396,20 @@ describe("TokenLockup create release schedule", () => {
 
     assert(scheduleId === "Release period is zero");
   });
+
+  it("cannot vest all for multiple releases", async () => {
+    const scheduleId = await createReleaseSchedule(
+      tokenlockProgram,
+      tokenlockDataPubkey,
+      2,
+      new anchor.BN(2),
+      10000,
+      new anchor.BN(10),
+      testEnvironment.accessControlHelper.accessControlPubkey,
+      reserveAdminWalletRolePubkey,
+      reserveAdmin
+    );
+
+    assert(scheduleId === "Cannot vest all for multiple releases");
+  });
 });
