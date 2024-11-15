@@ -20,7 +20,7 @@ type TestCase = {
 
 const testCases: TestCase[] = [
   { tokenProgramId: TOKEN_PROGRAM_ID, programName: "SPL Token" },
-  // { tokenProgramId: TOKEN_2022_PROGRAM_ID, programName: "SPL Token 2022" },
+  { tokenProgramId: TOKEN_2022_PROGRAM_ID, programName: "SPL Token 2022" },
 ];
 
 testCases.forEach(({ tokenProgramId, programName }) => {
