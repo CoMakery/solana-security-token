@@ -30,13 +30,61 @@
           "name": "destination_account"
         },
         {
-          "name": "transfer_restriction_data"
+          "name": "transfer_restriction_data",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
         },
         {
-          "name": "security_associated_account_from"
+          "name": "security_associated_account_from",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "source_account"
+              }
+            ]
+          }
         },
         {
-          "name": "security_associated_account_to"
+          "name": "security_associated_account_to",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "destination_account"
+              }
+            ]
+          }
         },
         {
           "name": "transfer_rule",
@@ -2054,6 +2102,11 @@
       "code": 6020,
       "name": "ZeroGroupHolderGroupMaxCannotBeNonZero",
       "msg": "Zero group holder group max cannot be non-zero"
+    },
+    {
+      "code": 6021,
+      "name": "ValueUnchanged",
+      "msg": "The provided value is already set. No changes were made"
     }
   ],
   "types": [
