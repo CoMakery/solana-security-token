@@ -37,31 +37,46 @@ describe("Pause transfers", () => {
     await testEnvironment.setupTransferRestrictions();
   });
 
-  it("fails to pause by contract admin", async () => {
+  it("pause/unpause transfers by contract admin", async () => {
     const signer = testEnvironment.contractAdmin;
     const [authorityWalletRolePubkey] =
       testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
 
-    try {
-      await testEnvironment.transferRestrictionsHelper.program.methods
-        .pause(true)
-        .accountsStrict({
-          securityMint: testEnvironment.mintKeypair.publicKey,
-          transferRestrictionData:
-            testEnvironment.transferRestrictionsHelper
-              .transferRestrictionDataPubkey,
-          accessControlAccount:
-            testEnvironment.accessControlHelper.accessControlPubkey,
-          authorityWalletRole: authorityWalletRolePubkey,
-          payer: signer.publicKey,
-        })
-        .signers([signer])
-        .rpc({ commitment: testEnvironment.commitment });
-      assert.fail("Expect an error");
-    } catch ({ error }) {
-      assert.equal(error.errorCode.code, "Unauthorized");
-      assert.equal(error.errorMessage, "Unauthorized");
-    }
+    await testEnvironment.transferRestrictionsHelper.program.methods
+      .pause(true)
+      .accountsStrict({
+        securityMint: testEnvironment.mintKeypair.publicKey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
+        accessControlAccount:
+          testEnvironment.accessControlHelper.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: signer.publicKey,
+      })
+      .signers([signer])
+      .rpc({ commitment: testEnvironment.commitment });
+    const { paused } =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    assert.isTrue(paused);
+
+    await testEnvironment.transferRestrictionsHelper.program.methods
+      .pause(false)
+      .accountsStrict({
+        securityMint: testEnvironment.mintKeypair.publicKey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
+        accessControlAccount:
+          testEnvironment.accessControlHelper.accessControlPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: signer.publicKey,
+      })
+      .signers([signer])
+      .rpc({ commitment: testEnvironment.commitment });
+    const { paused: pausedAfter } =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    assert.isFalse(pausedAfter);
   });
 
   it("fails to pause by reserve admin", async () => {

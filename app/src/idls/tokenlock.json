@@ -757,6 +757,11 @@
       "code": 6036,
       "name": "InvalidAccountOwner",
       "msg": "Invalid account owner"
+    },
+    {
+      "code": 6037,
+      "name": "CantVestAllForMultipleReleases",
+      "msg": "Cannot vest all for multiple releases"
     }
   ],
   "types": [

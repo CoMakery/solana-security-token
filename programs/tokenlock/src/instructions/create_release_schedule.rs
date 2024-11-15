@@ -69,8 +69,13 @@ pub fn create_release_schedule(
         return Err(TokenlockErrors::InitReleasePortionBiggerThan100Percent.into());
     }
 
-    if release_count > 1 && period_between_releases_in_seconds == 0 {
-        return Err(TokenlockErrors::ReleasePeriodZero.into());
+    if release_count > 1 {
+        if period_between_releases_in_seconds == 0 {
+            return Err(TokenlockErrors::ReleasePeriodZero.into());
+        }
+        if initial_release_portion_in_bips == TimelockData::BIPS_PRECISION {
+            return Err(TokenlockErrors::CantVestAllForMultipleReleases.into());
+        }
     }
 
     if release_count == 1 && initial_release_portion_in_bips != TimelockData::BIPS_PRECISION {

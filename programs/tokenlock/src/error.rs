@@ -112,4 +112,7 @@ pub enum TokenlockErrors {
 
     #[msg("Invalid account owner")]
     InvalidAccountOwner,
+
+    #[msg("Cannot vest all for multiple releases")]
+    CantVestAllForMultipleReleases,
 }
