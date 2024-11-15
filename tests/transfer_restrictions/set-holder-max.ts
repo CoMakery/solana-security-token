@@ -132,6 +132,37 @@ describe("Set holder max", () => {
     assert.equal(groupData.maxHolders.toNumber(), maxHolders.toNumber());
   });
 
+  it("fails to set the same holder max as on-chain", async () => {
+    const signer = testEnvironment.transferAdmin;
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const maxHolders = new anchor.BN(777);
+
+    try {
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .setHolderMax(maxHolders)
+        .accountsStrict({
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          mint: testEnvironment.mintKeypair.publicKey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+      assert.fail("Expect an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "ValueUnchanged");
+      assert.equal(
+        error.errorMessage,
+        "The provided value is already set. No changes were made"
+      );
+    }
+  });
+
   describe("when current holders count is greater than new max holders", () => {
     before(async () => {
       let { holderIds: currentHolderIndex } =

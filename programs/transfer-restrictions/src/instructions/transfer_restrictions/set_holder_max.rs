@@ -12,6 +12,10 @@ pub fn set_holder_max(
     }
     let transfer_restriction_data = &mut ctx.accounts.transfer_restriction_data;
     require!(
+        transfer_restriction_data.max_holders != holder_max,
+        TransferRestrictionsError::ValueUnchanged
+    );
+    require!(
         holder_max >= transfer_restriction_data.current_holders_count,
         TransferRestrictionsError::NewHolderMaxMustExceedCurrentHolderCount
     );

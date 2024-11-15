@@ -222,4 +222,30 @@ describe("Set lockup escrow account", () => {
       await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
     assert.equal(lockupEscrowAccountAfter.toString(), escrowAccount.toString());
   });
+
+  it("fails to set same lockup escrow account as it is on-chain", async () => {
+    const signer = testEnvironment.contractAdmin;
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+
+    try {
+      await testEnvironment.transferRestrictionsHelper.setLockupEscrowAccount(
+        escrowAccount,
+        tokenlockDataPubkey,
+        authorityWalletRolePubkey,
+        signer
+      );
+      assert.fail("Expect an error");
+    } catch (error) {
+      const [escrowSecurityAssociatedAccountPubkey] =
+        testEnvironment.transferRestrictionsHelper.securityAssociatedAccountPDA(
+          escrowAccount
+        );
+      const errorMessage = `Allocate: account Address { address: ${escrowSecurityAssociatedAccountPubkey.toString()}, base: None } already in use`;
+      const containsError = error.logs.some((log: string | string[]) =>
+        log.includes(errorMessage)
+      );
+      assert.isTrue(containsError);
+    }
+  });
 });
