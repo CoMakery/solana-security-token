@@ -16,4 +16,6 @@ pub enum AccessControlError {
     CantBurnSecuritiesWithinLockup,
     #[msg("Cannot force transfer between lockup accounts")]
     CantForceTransferBetweenLockup,
+    #[msg("The provided value is already set. No changes were made")]
+    ValueUnchanged,
 }

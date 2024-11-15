@@ -223,4 +223,43 @@ describe(`pause distribution`, () => {
     );
     assert.equal(distributorData.paused, false);
   });
+
+  it("fails to pause when already paused", async () => {
+    await dividendsProgram.methods
+      .pause(true)
+      .accountsStrict({
+        distributor,
+        accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+        authorityWalletRole: testEnvironment.accessControlHelper.walletRolePDA(
+          signer.publicKey
+        )[0],
+        authority: signer.publicKey,
+      })
+      .signers([signer])
+      .rpc({ commitment });
+
+    try {
+      await dividendsProgram.methods
+        .pause(true)
+        .accountsStrict({
+          distributor,
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          authorityWalletRole:
+            testEnvironment.accessControlHelper.walletRolePDA(
+              signer.publicKey
+            )[0],
+          authority: signer.publicKey,
+        })
+        .signers([signer])
+        .rpc({ commitment });
+      assert.fail("Expected an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "ValueUnchanged");
+      assert.equal(
+        error.errorMessage,
+        "The provided value is already set. No changes were made"
+      );
+    }
+  });
 });

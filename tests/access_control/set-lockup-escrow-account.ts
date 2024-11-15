@@ -204,4 +204,22 @@ describe("Set lockup escrow account", () => {
       await testEnvironment.accessControlHelper.accessControlData();
     assert.equal(lockupEscrowAccountAfter.toString(), escrowAccount.toString());
   });
+
+  it("fails to set lockup escrow account when it is already set", async () => {
+    const signer = testEnvironment.contractAdmin;
+    try {
+      await testEnvironment.accessControlHelper.setLockupEscrowAccount(
+        escrowAccount,
+        tokenlockDataPubkey,
+        signer
+      );
+      assert.fail("Expect an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "ValueUnchanged");
+      assert.equal(
+        error.errorMessage,
+        "The provided value is already set. No changes were made"
+      );
+    }
+  });
 });

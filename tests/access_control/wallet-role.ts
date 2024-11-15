@@ -194,4 +194,21 @@ describe("Access Control wallet role", () => {
       assert.equal(error.errorMessage, "Invalid role");
     }
   });
+
+  it("fails to update wallet role to the same role", async () => {
+    try {
+      await testEnvironment.accessControlHelper.updateWalletRole(
+        investor.publicKey,
+        Roles.TransferAdmin,
+        testEnvironment.contractAdmin
+      );
+      assert.fail("Expected an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "ValueUnchanged");
+      assert.equal(
+        error.errorMessage,
+        "The provided value is already set. No changes were made"
+      );
+    }
+  });
 });

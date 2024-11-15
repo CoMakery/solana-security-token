@@ -24,4 +24,6 @@ pub enum DividendsErrorCode {
     DistributorNotReadyToClaim,
     #[msg("Invalid IPFS hash size")]
     InvalidIPFSHashSize,
+    #[msg("The provided value is already set. No changes were made")]
+    ValueUnchanged,
 }

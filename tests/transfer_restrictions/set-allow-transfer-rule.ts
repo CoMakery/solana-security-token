@@ -172,4 +172,36 @@ describe("Set allow transfer rule", () => {
       );
     assert.equal(transferRuleData.lockedUntil.toNumber(), 0);
   });
+
+  it("fails to set allow transfer rule with the same locked until", async () => {
+    const signer = testEnvironment.transferAdmin;
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const lockedUntil = new anchor.BN(0);
+    try {
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .setAllowTransferRule(lockedUntil)
+        .accountsStrict({
+          transferRule: transferRulePubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          transferRestrictionGroupFrom: groupFromPubkey,
+          transferRestrictionGroupTo: groupToPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+      assert.fail("Expect an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "ValueUnchanged");
+      assert.equal(
+        error.errorMessage,
+        "The provided value is already set. No changes were made"
+      );
+    }
+  });
 });

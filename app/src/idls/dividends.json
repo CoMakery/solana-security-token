@@ -283,7 +283,26 @@
           "name": "access_control",
           "docs": [
             "Access Control for Security Token."
-          ]
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "security_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "security_mint",
+          "writable": true
         },
         {
           "name": "payer",
@@ -518,6 +537,11 @@
       "code": 6010,
       "name": "InvalidIPFSHashSize",
       "msg": "Invalid IPFS hash size"
+    },
+    {
+      "code": 6011,
+      "name": "ValueUnchanged",
+      "msg": "The provided value is already set. No changes were made"
     }
   ],
   "types": [

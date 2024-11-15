@@ -10,6 +10,9 @@ pub fn pause(ctx: Context<Pause>, paused: bool) -> Result<()> {
     {
         return Err(TransferRestrictionsError::Unauthorized.into());
     }
+    if paused == ctx.accounts.transfer_restriction_data.paused {
+        return Err(TransferRestrictionsError::ValueUnchanged.into());
+    }
 
     let transfer_restriction_data = &mut ctx.accounts.transfer_restriction_data;
     transfer_restriction_data.paused = paused;
