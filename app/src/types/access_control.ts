@@ -974,6 +974,11 @@ export type AccessControl = {
       code: 6006;
       name: "cantForceTransferBetweenLockup";
       msg: "Cannot force transfer between lockup accounts";
+    },
+    {
+      code: 6007;
+      name: "cannotFreezeLockupEscrowAccount";
+      msg: "Cannot freeze lockup escrow account";
     }
   ];
   types: [
