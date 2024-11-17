@@ -6,7 +6,7 @@ use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct RevokeHolderGroup<'info> {
-    #[account(
+    #[account(mut,
         seeds = [
             TRANSFER_RESTRICTION_HOLDER_PREFIX.as_bytes(),
             &transfer_restriction_data.key().to_bytes(),

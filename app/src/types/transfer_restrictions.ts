@@ -296,6 +296,7 @@ export type TransferRestrictions = {
         },
         {
           name: "holder";
+          writable: true;
         },
         {
           name: "authorityWalletRole";
@@ -848,6 +849,7 @@ export type TransferRestrictions = {
       accounts: [
         {
           name: "holder";
+          writable: true;
           pda: {
             seeds: [
               {
@@ -1706,6 +1708,16 @@ export type TransferRestrictions = {
       code: 6020;
       name: "zeroGroupHolderGroupMaxCannotBeNonZero";
       msg: "Zero group holder group max cannot be non-zero";
+    },
+    {
+      code: 6021;
+      name: "nonPositiveHolderGroupCount";
+      msg: "Non-positive holder group count";
+    },
+    {
+      code: 6022;
+      name: "currentHolderGroupCountMustBeZero";
+      msg: "Current holder group count must be zero";
     }
   ];
   types: [
@@ -1846,6 +1858,10 @@ export type TransferRestrictions = {
           },
           {
             name: "currentWalletsCount";
+            type: "u64";
+          },
+          {
+            name: "currentHolderGroupCount";
             type: "u64";
           },
           {
