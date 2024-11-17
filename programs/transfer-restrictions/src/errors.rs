@@ -44,4 +44,8 @@ pub enum TransferRestrictionsError {
     NewHolderGroupMaxMustExceedCurrentHolderGroupCount,
     #[msg("Zero group holder group max cannot be non-zero")]
     ZeroGroupHolderGroupMaxCannotBeNonZero,
+    #[msg("Non-positive holder group count")]
+    NonPositiveHolderGroupCount,
+    #[msg("Current holder group count must be zero")]
+    CurrentHolderGroupCountMustBeZero,
 }
