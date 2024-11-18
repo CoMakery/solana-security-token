@@ -160,6 +160,43 @@ describe("Set holder group max", () => {
       });
     });
 
+    describe("when current holders count is equal to new holder group max", () => {
+      it("fails to set holder group max", async () => {
+        const signer = testEnvironment.transferAdmin;
+        const [authorityWalletRolePubkey] =
+          testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+        try {
+          const { maxHolders } =
+            await testEnvironment.transferRestrictionsHelper.groupData(
+              groupPubkey
+            );
+
+          await testEnvironment.transferRestrictionsHelper.program.methods
+            .setHolderGroupMax(maxHolders)
+            .accountsStrict({
+              transferRestrictionData:
+                testEnvironment.transferRestrictionsHelper
+                  .transferRestrictionDataPubkey,
+              accessControlAccount:
+                testEnvironment.accessControlHelper.accessControlPubkey,
+              mint: testEnvironment.mintKeypair.publicKey,
+              authorityWalletRole: authorityWalletRolePubkey,
+              group: groupPubkey,
+              payer: signer.publicKey,
+            })
+            .signers([signer])
+            .rpc({ commitment: testEnvironment.commitment });
+          assert.fail("Expect an error");
+        } catch ({ error }) {
+          assert.equal(error.errorCode.code, "ValueUnchanged");
+          assert.equal(
+            error.errorMessage,
+            "The provided value is already set. No changes were made"
+          );
+        }
+      });
+    });
+
     describe("when current holders count is greater than new holder group max", () => {
       before(async () => {
         const investors = [Keypair.generate(), Keypair.generate()];

@@ -18,4 +18,6 @@ pub enum AccessControlError {
     CantForceTransferBetweenLockup,
     #[msg("Cannot freeze lockup escrow account")]
     CannotFreezeLockupEscrowAccount,
+    #[msg("The provided value is already set. No changes were made")]
+    ValueUnchanged,
 }

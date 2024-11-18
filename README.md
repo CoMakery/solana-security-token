@@ -362,12 +362,11 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | mint()                     | no             | **yes**       | no             | no            |
 | burn()                     | no             | **yes**       | no             | no            |
 | forceTransferBetween()     | no             | **yes**       | no             | no            |
-| pause() or unpause (ie pause(false)) | no   | no            |  **yes**       | no            |           
-| setAllowGroupTransfer()    | no             | no            | **yes**        | no            |
+| pause() or unpause (ie pause(false)) | no   | no            | **yes**        | no            |           
+| setAllowTransferRule()     | no             | no            | **yes**        | no            |
 | setHolderMax()             | no             | no            | **yes**        | no            |
 | setHolderGroupMax()        | no             | no            | **yes**        | no            |
-| fundDividend()             | no             | no            | **yes**        | no            |
-| initilizeTransferRule()    | no             | no            | **yes**        | **yes**       |
+| initilizeTransferRule()    | no             | no            | **yes**        | no            |
 | freezeWallet()             | no             | no            | **yes**        | **yes**       |
 | thawWallet()               | no             | no            | **yes**        | **yes**       |
 | setTransferGroup()         | no             | no            | **yes**        | **yes**       |
