@@ -348,8 +348,14 @@ describe("new-distributor with transferFeeConfig", () => {
         .rpc({ commitment });
       assert.fail("Expected to throw an error");
     } catch ({ error }) {
-      assert.equal(error.errorCode.code, "TransferFeeIsNotAllowedForPaymentMint");
-      assert.equal(error.errorMessage, "Transfer fee is not allowed for payment mint");
+      assert.equal(
+        error.errorCode.code,
+        "TransferFeeIsNotAllowedForPaymentMint"
+      );
+      assert.equal(
+        error.errorMessage,
+        "Transfer fee is not allowed for payment mint"
+      );
     }
   });
 
@@ -378,12 +384,10 @@ describe("new-distributor with transferFeeConfig", () => {
         base: baseKey.publicKey,
         distributor,
         mint: paymentMintPubkey,
-        authorityWalletRole:
-          testEnvironment.accessControlHelper.walletRolePDA(
-            signer.publicKey
-          )[0],
-        accessControl:
-          testEnvironment.accessControlHelper.accessControlPubkey,
+        authorityWalletRole: testEnvironment.accessControlHelper.walletRolePDA(
+          signer.publicKey
+        )[0],
+        accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
         securityMint: testEnvironment.mintKeypair.publicKey,
         payer: signer.publicKey,
         systemProgram: SystemProgram.programId,
