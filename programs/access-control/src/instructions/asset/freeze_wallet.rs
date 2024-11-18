@@ -7,9 +7,13 @@ pub fn freeze_wallet(ctx: Context<FreezeWallet>) -> Result<()> {
     if !ctx
         .accounts
         .authority_wallet_role
-        .has_any_role(crate::Roles::TransferAdmin as u8 | crate ::Roles::WalletsAdmin as u8)
+        .has_any_role(crate::Roles::TransferAdmin as u8 | crate::Roles::WalletsAdmin as u8)
     {
         return Err(AccessControlError::Unauthorized.into());
+    }
+    if ctx.accounts.access_control.lockup_escrow_account == Some(ctx.accounts.target_account.key())
+    {
+        return Err(AccessControlError::CannotFreezeLockupEscrowAccount.into());
     }
 
     let mint = ctx.accounts.security_mint.to_account_info();

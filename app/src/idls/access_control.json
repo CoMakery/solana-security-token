@@ -1217,6 +1217,11 @@
     },
     {
       "code": 6007,
+      "name": "CannotFreezeLockupEscrowAccount",
+      "msg": "Cannot freeze lockup escrow account"
+      },
+    {
+      "code": 6008,
       "name": "ValueUnchanged",
       "msg": "The provided value is already set. No changes were made"
     }

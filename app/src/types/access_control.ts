@@ -977,6 +977,11 @@ export type AccessControl = {
     },
     {
       code: 6007;
+      name: "cannotFreezeLockupEscrowAccount";
+      msg: "Cannot freeze lockup escrow account";
+    },
+    {
+      code: 6008;
       name: "valueUnchanged";
       msg: "The provided value is already set. No changes were made";
     }

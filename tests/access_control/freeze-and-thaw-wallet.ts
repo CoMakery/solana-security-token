@@ -6,8 +6,12 @@ import {
   TestEnvironment,
   TestEnvironmentParams,
 } from "../helpers/test_environment";
-import { solToLamports, topUpWallet } from "../utils";
-import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { Tokenlock } from "../../target/types/tokenlock";
+import { createAccount, solToLamports, topUpWallet } from "../utils";
+import {
+  initializeTokenlock,
+  MAX_RELEASE_DELAY,
+} from "../helpers/tokenlock_helper";
 
 describe("Access Control freeze wallet", () => {
   const testEnvironmentParams: TestEnvironmentParams = {
@@ -146,5 +150,82 @@ describe("Access Control freeze wallet", () => {
       target2TokenAccount
     );
     assert.isFalse(targetTokenAccountData.isFrozen);
+  });
+
+  describe("when token lockup escrow account ", () => {
+    const tokenlockProgram = anchor.workspace
+      .Tokenlock as anchor.Program<Tokenlock>;
+    let tokenlockDataPubkey: anchor.web3.PublicKey;
+    let escrowAccount: anchor.web3.PublicKey;
+    let escrowOwnerPubkey: anchor.web3.PublicKey;
+    before(async () => {
+      await topUpWallet(
+        testEnvironment.connection,
+        testEnvironment.contractAdmin.publicKey,
+        solToLamports(10)
+      );
+      const space = 1 * 1024 * 1024; // 1MB
+
+      tokenlockDataPubkey = await createAccount(
+        testEnvironment.connection,
+        testEnvironment.contractAdmin,
+        space,
+        tokenlockProgram.programId
+      );
+      [escrowOwnerPubkey] = anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("tokenlock"),
+          testEnvironment.mintKeypair.publicKey.toBuffer(),
+          tokenlockDataPubkey.toBuffer(),
+        ],
+        tokenlockProgram.programId
+      );
+      escrowAccount =
+        await testEnvironment.mintHelper.createAssociatedTokenAccount(
+          escrowOwnerPubkey,
+          testEnvironment.contractAdmin,
+          true
+        );
+      const maxReleaseDelay = new anchor.BN(MAX_RELEASE_DELAY);
+      const minTimelockAmount = new anchor.BN(100);
+      await initializeTokenlock(
+        tokenlockProgram,
+        maxReleaseDelay,
+        minTimelockAmount,
+        tokenlockDataPubkey,
+        escrowAccount,
+        testEnvironment.transferRestrictionsHelper
+          .transferRestrictionDataPubkey,
+        testEnvironment.mintKeypair.publicKey,
+        testEnvironment.accessControlHelper.walletRolePDA(
+          testEnvironment.contractAdmin.publicKey
+        )[0],
+        testEnvironment.accessControlHelper.accessControlPubkey,
+        testEnvironment.contractAdmin
+      );
+
+      await testEnvironment.accessControlHelper.setLockupEscrowAccount(
+        escrowAccount,
+        tokenlockDataPubkey,
+        testEnvironment.contractAdmin
+      );
+
+      const accessControlData =
+        await testEnvironment.accessControlHelper.accessControlData();
+    });
+
+    it("does not allow freeze token lockup escrow account ", async () => {
+      try {
+        await testEnvironment.accessControlHelper.freezeWallet(
+          escrowOwnerPubkey,
+          escrowAccount,
+          testEnvironment.transferAdmin
+        );
+        assert.fail("Expected an error");
+      } catch ({ error }) {
+        assert.equal(error.errorCode.code, "CannotFreezeLockupEscrowAccount");
+        assert.equal(error.errorMessage, "Cannot freeze lockup escrow account");
+      }
+    });
   });
 });
