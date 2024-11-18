@@ -11,6 +11,11 @@ pub fn set_lockup_escrow_account(ctx: Context<SetLockupEscrowAccount>) -> Result
     {
         return Err(AccessControlError::Unauthorized.into());
     }
+    if ctx.accounts.access_control_account.lockup_escrow_account
+        == Some(ctx.accounts.escrow_account.key())
+    {
+        return Err(AccessControlError::ValueUnchanged.into());
+    }
 
     let discriminator = TokenLockData::discriminator();
     let tokenlock_account = &ctx.accounts.tokenlock_account;

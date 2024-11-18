@@ -1706,6 +1706,11 @@ export type TransferRestrictions = {
       code: 6020;
       name: "zeroGroupHolderGroupMaxCannotBeNonZero";
       msg: "Zero group holder group max cannot be non-zero";
+    },
+    {
+      code: 6021;
+      name: "valueUnchanged";
+      msg: "The provided value is already set. No changes were made";
     }
   ];
   types: [

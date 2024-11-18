@@ -1202,7 +1202,7 @@
     },
     {
       "code": 6004,
-      "name": "MisMatchedEscrow",
+      "name": "MismatchedEscrowAccount",
       "msg": "Mismatched escrow account"
     },
     {
@@ -1214,6 +1214,11 @@
       "code": 6006,
       "name": "CantForceTransferBetweenLockup",
       "msg": "Cannot force transfer between lockup accounts"
+    },
+    {
+      "code": 6007,
+      "name": "ValueUnchanged",
+      "msg": "The provided value is already set. No changes were made"
     }
   ],
   "types": [
