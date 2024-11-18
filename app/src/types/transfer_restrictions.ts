@@ -296,6 +296,7 @@ export type TransferRestrictions = {
         },
         {
           name: "holder";
+          writable: true;
         },
         {
           name: "authorityWalletRole";
@@ -848,6 +849,7 @@ export type TransferRestrictions = {
       accounts: [
         {
           name: "holder";
+          writable: true;
           pda: {
             seeds: [
               {
@@ -1709,6 +1711,16 @@ export type TransferRestrictions = {
     },
     {
       code: 6021;
+      name: "nonPositiveHolderGroupCount";
+      msg: "Non-positive holder group count";
+    },
+    {
+      code: 6022;
+      name: "currentHolderGroupCountMustBeZero";
+      msg: "Current holder group count must be zero";
+    },
+    {
+      code: 6023;
       name: "valueUnchanged";
       msg: "The provided value is already set. No changes were made";
     }
@@ -1851,6 +1863,10 @@ export type TransferRestrictions = {
           },
           {
             name: "currentWalletsCount";
+            type: "u64";
+          },
+          {
+            name: "currentHolderGroupCount";
             type: "u64";
           },
           {

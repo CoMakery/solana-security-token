@@ -147,6 +147,7 @@ describe("Initialize transfer restriction Holder", () => {
     assert.isTrue(holderData.active);
     assert.equal(holderData.id.toString(), zeroHolderIdx.toString());
     assert.equal(holderData.currentWalletsCount.toNumber(), 0);
+    assert.equal(holderData.currentHolderGroupCount.toNumber(), 0);
     assert.equal(
       holderData.transferRestrictionData.toString(),
       testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toString()
@@ -184,6 +185,7 @@ describe("Initialize transfer restriction Holder", () => {
     assert.isTrue(holderData.active);
     assert.equal(holderData.id.toString(), firstHolderIdx.toString());
     assert.equal(holderData.currentWalletsCount.toNumber(), 0);
+    assert.equal(holderData.currentHolderGroupCount.toNumber(), 0);
     assert.equal(
       holderData.transferRestrictionData.toString(),
       testEnvironment.transferRestrictionsHelper.transferRestrictionDataPubkey.toString()
