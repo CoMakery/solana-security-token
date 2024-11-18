@@ -1718,6 +1718,11 @@ export type TransferRestrictions = {
       code: 6022;
       name: "currentHolderGroupCountMustBeZero";
       msg: "Current holder group count must be zero";
+    },
+    {
+      code: 6023;
+      name: "valueUnchanged";
+      msg: "The provided value is already set. No changes were made";
     }
   ];
   types: [
