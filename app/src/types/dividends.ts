@@ -376,6 +376,11 @@ export type Dividends = {
       code: 6010;
       name: "invalidIpfsHashSize";
       msg: "Invalid IPFS hash size";
+    },
+    {
+      code: 6011;
+      name: "valueUnchanged";
+      msg: "The provided value is already set. No changes were made";
     }
   ];
   types: [

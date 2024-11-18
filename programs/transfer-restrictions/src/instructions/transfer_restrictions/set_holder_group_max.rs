@@ -13,6 +13,10 @@ pub fn set_holder_group_max(
 
     let group = &mut ctx.accounts.group;
     require!(
+        group.max_holders != holder_max,
+        TransferRestrictionsError::ValueUnchanged
+    );
+    require!(
         group.id != 0,
         TransferRestrictionsError::ZeroGroupHolderGroupMaxCannotBeNonZero
     );

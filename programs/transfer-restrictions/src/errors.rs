@@ -48,4 +48,6 @@ pub enum TransferRestrictionsError {
     NonPositiveHolderGroupCount,
     #[msg("Current holder group count must be zero")]
     CurrentHolderGroupCountMustBeZero,
+    #[msg("The provided value is already set. No changes were made")]
+    ValueUnchanged,
 }
