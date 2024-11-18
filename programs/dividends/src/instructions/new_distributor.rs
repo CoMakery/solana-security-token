@@ -2,7 +2,11 @@ use access_control::{
     program::AccessControl as AccessControlProgram, AccessControl, WalletRole, ACCESS_CONTROL_SEED,
 };
 use anchor_lang::{prelude::*, solana_program::program_option::COption};
-use anchor_spl::{token_2022::ID as TOKEN_2022_PROGRAM_ID, token_interface::Mint};
+use anchor_spl::{
+    token_2022::spl_token_2022::extension::transfer_fee::TransferFeeConfig,
+    token_2022::ID as TOKEN_2022_PROGRAM_ID,
+    token_interface::{get_mint_extension_data, Mint},
+};
 
 use crate::{errors::DividendsErrorCode, MerkleDistributor, MAX_IPFS_HASH_LEN};
 
@@ -80,6 +84,19 @@ pub fn new_distributor(
 ) -> Result<()> {
     if ipfs_hash.len() > MAX_IPFS_HASH_LEN {
         return Err(DividendsErrorCode::InvalidIPFSHashSize.into());
+    }
+    let mint_data: &AccountInfo = &ctx.accounts.mint.to_account_info();
+    let transfer_fee_extension = get_mint_extension_data::<TransferFeeConfig>(mint_data);
+    if let Ok(extension) = transfer_fee_extension {
+        let clock = Clock::get()?;
+        let transfer_fee_basis_points = u16::from(
+            extension
+                .get_epoch_fee(clock.epoch)
+                .transfer_fee_basis_points,
+        ) as u128;
+        if transfer_fee_basis_points > 0 {
+            return Err(DividendsErrorCode::TransferFeeIsNotAllowedForPaymentMint.into());
+        }
     }
 
     let distributor = &mut ctx.accounts.distributor;
