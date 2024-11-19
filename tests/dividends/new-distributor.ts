@@ -310,7 +310,7 @@ describe("new-distributor with transferFeeConfig", () => {
 
   it("fails to initialize new distributor with non-zero transferFee", async () => {
     const feeBasicPoints = 1000;
-    const paymentMintObjects = await createMockTokenWithTransferFee(
+    const { mint: paymentMintPubkey } = await createMockTokenWithTransferFee(
       connection,
       decimals,
       feeBasicPoints
@@ -333,7 +333,7 @@ describe("new-distributor with transferFeeConfig", () => {
         .accountsStrict({
           base: baseKey.publicKey,
           distributor,
-          mint: paymentMintObjects.mint,
+          mint: paymentMintPubkey,
           authorityWalletRole:
             testEnvironment.accessControlHelper.walletRolePDA(
               signer.publicKey
@@ -359,7 +359,7 @@ describe("new-distributor with transferFeeConfig", () => {
     }
   });
 
-  it("initializes new distributor with zero transferFee", async () => {
+  it("failse to initializes new distributor with zero transferFee", async () => {
     const feeBasicPoints = 0;
     const { mint: paymentMintPubkey } = await createMockTokenWithTransferFee(
       connection,
@@ -372,50 +372,41 @@ describe("new-distributor with transferFeeConfig", () => {
       dividendsProgram.programId
     );
 
-    await dividendsProgram.methods
-      .newDistributor(
-        bump,
-        toBytes32Array(root),
-        totalClaimAmount,
-        numNodes,
-        ipfsHash
-      )
-      .accountsStrict({
-        base: baseKey.publicKey,
-        distributor,
-        mint: paymentMintPubkey,
-        authorityWalletRole: testEnvironment.accessControlHelper.walletRolePDA(
-          signer.publicKey
-        )[0],
-        accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
-        securityMint: testEnvironment.mintKeypair.publicKey,
-        payer: signer.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([signer, baseKey])
-      .rpc({ commitment });
-
-    const distributorData =
-      await dividendsProgram.account.merkleDistributor.fetch(distributor);
-    assert.equal(distributorData.bump, bump);
-    assert.equal(distributorData.numNodes.toString(), NUM_NODES.toString());
-    assert.equal(
-      distributorData.totalClaimAmount.toString(),
-      TOTAL_CLAIM_AMOUNT.toString()
-    );
-    assert.deepEqual(distributorData.base, baseKey.publicKey);
-    assert.deepEqual(distributorData.mint, paymentMintPubkey);
-    assert.deepEqual(
-      distributorData.accessControl,
-      testEnvironment.accessControlHelper.accessControlPubkey
-    );
-    assert.isFalse(distributorData.paused);
-    assert.equal(distributorData.numNodesClaimed.toNumber(), 0);
-    assert.deepEqual(
-      distributorData.root,
-      Array.from(new Uint8Array(ZERO_BYTES32))
-    );
-    assert.equal(distributorData.totalAmountClaimed.toNumber(), 0);
-    assert.isFalse(distributorData.readyToClaim);
+    try {
+      await dividendsProgram.methods
+        .newDistributor(
+          bump,
+          toBytes32Array(root),
+          totalClaimAmount,
+          numNodes,
+          ipfsHash
+        )
+        .accountsStrict({
+          base: baseKey.publicKey,
+          distributor,
+          mint: paymentMintPubkey,
+          authorityWalletRole:
+            testEnvironment.accessControlHelper.walletRolePDA(
+              signer.publicKey
+            )[0],
+          accessControl:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          securityMint: testEnvironment.mintKeypair.publicKey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer, baseKey])
+        .rpc({ commitment });
+      assert.fail("Expected to throw an error");
+    } catch ({ error }) {
+      assert.equal(
+        error.errorCode.code,
+        "TransferFeeIsNotAllowedForPaymentMint"
+      );
+      assert.equal(
+        error.errorMessage,
+        "Transfer fee is not allowed for payment mint"
+      );
+    }
   });
 });
