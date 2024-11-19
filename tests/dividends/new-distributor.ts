@@ -25,7 +25,7 @@ const testCases: TestCase[] = [
 ];
 
 testCases.forEach(({ tokenProgramId, programName }) => {
-  describe(`claim-dividends for ${programName}`, () => {
+  describe(`new distributor for ${programName}`, () => {
     const provider = AnchorProvider.env();
     const connection = provider.connection;
     anchor.setProvider(provider);

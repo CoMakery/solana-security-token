@@ -141,6 +141,8 @@ export async function createMockTokenWithTransferFee(
   mint: PublicKey;
   payer: Keypair;
   feeReceiver: PublicKey;
+  mintAuthority: Keypair;
+  transferFeeConfigAuthority: Keypair;
 }> {
   // Create a payer keypair for testing
   const payer = Keypair.generate();
@@ -204,5 +206,11 @@ export async function createMockTokenWithTransferFee(
     [payer, mintKeypair] // Signers
   );
 
-  return { mint, payer, feeReceiver: withdrawWithheldAuthority.publicKey };
+  return {
+    mint,
+    payer,
+    feeReceiver: withdrawWithheldAuthority.publicKey,
+    mintAuthority,
+    transferFeeConfigAuthority,
+  };
 }
