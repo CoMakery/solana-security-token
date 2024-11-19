@@ -329,7 +329,7 @@ testCases.forEach(({ tokenProgramId, programName }) => {
       }
     });
 
-    it("ready to claim after fund dividends twice", async () => {
+    it("fails when fund less than required", async () => {
       const funderATADataBefore = await mintHelper.getAccount(funderATA);
       const distributorATADataBefore = await mintHelper.getAccount(
         distributorATA
@@ -337,61 +337,31 @@ testCases.forEach(({ tokenProgramId, programName }) => {
 
       const fundingAmountLeft = 1;
       const fundingAmount = totalClaimAmount.subn(fundingAmountLeft);
-      await dividendsProgram.methods
-        .fundDividends(fundingAmount)
-        .accountsStrict({
-          distributor,
-          mint: mintKeypair.publicKey,
-          from: funderATA,
-          to: distributorATA,
-          funder: funderKP.publicKey,
-          payer: signer.publicKey,
-          tokenProgram: tokenProgramId,
-        })
-        .signers([funderKP, signer])
-        .rpc({ commitment });
+      try {
+        await dividendsProgram.methods
+          .fundDividends(fundingAmount)
+          .accountsStrict({
+            distributor,
+            mint: mintKeypair.publicKey,
+            from: funderATA,
+            to: distributorATA,
+            funder: funderKP.publicKey,
+            payer: signer.publicKey,
+            tokenProgram: tokenProgramId,
+          })
+          .signers([funderKP, signer])
+          .rpc({ commitment });
+      } catch ({ error }) {
+        assert.equal(error.errorCode.code, "InvalidFundingAmount");
+        assert.equal(error.errorMessage, "Invalid funding amount");
+      }
+
       const distributorATADataAfterFirstFund = await mintHelper.getAccount(
         distributorATA
       );
       assert.equal(
         distributorATADataBefore.amount,
-        distributorATADataAfterFirstFund.amount -
-          BigInt(fundingAmount.toString())
-      );
-      let distributorData =
-        await dividendsProgram.account.merkleDistributor.fetch(distributor);
-      assert.isFalse(distributorData.readyToClaim);
-
-      await dividendsProgram.methods
-        .fundDividends(new BN(fundingAmountLeft))
-        .accountsStrict({
-          distributor,
-          mint: mintKeypair.publicKey,
-          from: funderATA,
-          to: distributorATA,
-          funder: funderKP.publicKey,
-          payer: signer.publicKey,
-          tokenProgram: tokenProgramId,
-        })
-        .signers([funderKP, signer])
-        .rpc({ commitment });
-      const funderATADataAfter = await mintHelper.getAccount(funderATA);
-      const distributorATADataAfterSecondFund = await mintHelper.getAccount(
-        distributorATA
-      );
-      distributorData = await dividendsProgram.account.merkleDistributor.fetch(
-        distributor
-      );
-      assert.isTrue(distributorData.readyToClaim);
-      assert.equal(
-        funderATADataBefore.amount,
-        funderATADataAfter.amount +
-          BigInt(fundingAmountLeft) +
-          BigInt(fundingAmount.toString())
-      );
-      assert.equal(
-        distributorATADataAfterFirstFund.amount + BigInt(fundingAmountLeft),
-        distributorATADataAfterSecondFund.amount
+        distributorATADataAfterFirstFund.amount
       );
     });
 
