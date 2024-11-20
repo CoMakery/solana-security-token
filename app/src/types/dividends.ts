@@ -206,6 +206,22 @@ export type Dividends = {
         {
           name: "accessControl";
           docs: ["Access Control for Security Token."];
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [97, 99];
+              },
+              {
+                kind: "account";
+                path: "securityMint";
+              }
+            ];
+          };
+        },
+        {
+          name: "securityMint";
+          writable: true;
         },
         {
           name: "payer";
@@ -360,6 +376,11 @@ export type Dividends = {
       code: 6010;
       name: "invalidIpfsHashSize";
       msg: "Invalid IPFS hash size";
+    },
+    {
+      code: 6011;
+      name: "valueUnchanged";
+      msg: "The provided value is already set. No changes were made";
     }
   ];
   types: [

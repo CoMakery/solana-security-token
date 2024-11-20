@@ -1018,6 +1018,16 @@ export type AccessControl = {
       code: 6007;
       name: "newMaxTotalSupplyMustExceedCurrentTotalSupply";
       msg: "New max total supply must exceed current total supply";
+    },
+    {
+      code: 6008;
+      name: "cannotFreezeLockupEscrowAccount";
+      msg: "Cannot freeze lockup escrow account";
+    },
+    {
+      code: 6009;
+      name: "valueUnchanged";
+      msg: "The provided value is already set. No changes were made";
     }
   ];
   types: [

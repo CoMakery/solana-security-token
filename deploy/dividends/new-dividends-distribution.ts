@@ -91,6 +91,7 @@ const deployerKeypairPath = `deploy/${options.cluster}/keys/deployer.json`;
         deployerKeypair.publicKey
       )[0],
       accessControl: accessControlHelper.accessControlPubkey,
+      securityMint: config.securityMint,
       payer: deployerKeypair.publicKey,
       systemProgram: SystemProgram.programId,
     })

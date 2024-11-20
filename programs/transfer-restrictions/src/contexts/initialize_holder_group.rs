@@ -45,7 +45,7 @@ pub struct InitializeHolderGroup<'info> {
     )]
     pub group: Account<'info, TransferRestrictionGroup>,
 
-    #[account(
+    #[account(mut,
       constraint = holder.transfer_restriction_data == transfer_restriction_data.key(),
     )]
     pub holder: Account<'info, TransferRestrictionHolder>,

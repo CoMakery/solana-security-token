@@ -355,7 +355,8 @@
           }
         },
         {
-          "name": "holder"
+          "name": "holder",
+          "writable": true
         },
         {
           "name": "authority_wallet_role"
@@ -1040,6 +1041,7 @@
       "accounts": [
         {
           "name": "holder",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2102,6 +2104,21 @@
       "code": 6020,
       "name": "ZeroGroupHolderGroupMaxCannotBeNonZero",
       "msg": "Zero group holder group max cannot be non-zero"
+    },
+    {
+      "code": 6021,
+      "name": "NonPositiveHolderGroupCount",
+      "msg": "Non-positive holder group count"
+    },
+    {
+      "code": 6022,
+      "name": "CurrentHolderGroupCountMustBeZero",
+      "msg": "Current holder group count must be zero"
+    },
+    {
+      "code": 6023,
+      "name": "ValueUnchanged",
+      "msg": "The provided value is already set. No changes were made"
     }
   ],
   "types": [
@@ -2242,6 +2259,10 @@
           },
           {
             "name": "current_wallets_count",
+            "type": "u64"
+          },
+          {
+            "name": "current_holder_group_count",
             "type": "u64"
           },
           {

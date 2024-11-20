@@ -175,8 +175,8 @@ describe("Revoke holder group", () => {
     }
   });
 
-  it("revokes holder group by transfer admin", async () => {
-    const signer = testEnvironment.transferAdmin;
+  it("revokes holder group by wallets admin", async () => {
+    const signer = testEnvironment.walletsAdmin;
     const [authorityWalletRolePubkey] =
       testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
     const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
@@ -192,6 +192,8 @@ describe("Revoke holder group", () => {
     );
     assert.isNotNull(accountInfo);
 
+    const { currentHolderGroupCount: currentHolderGroupCountBefore } =
+      await testEnvironment.transferRestrictionsHelper.holderData(holderPubkey);
     await testEnvironment.transferRestrictionsHelper.program.methods
       .revokeHolderGroup()
       .accountsStrict({
@@ -212,6 +214,13 @@ describe("Revoke holder group", () => {
       holderGroupPubkey
     );
     assert.isNull(accountInfo);
+
+    const { currentHolderGroupCount } =
+      await testEnvironment.transferRestrictionsHelper.holderData(holderPubkey);
+    assert.equal(
+      currentHolderGroupCount.toNumber(),
+      currentHolderGroupCountBefore.subn(1).toNumber()
+    );
   });
 
   it("revokes holder group by transfer admin", async () => {
@@ -231,6 +240,8 @@ describe("Revoke holder group", () => {
     );
     assert.isNotNull(accountInfo);
 
+    const { currentHolderGroupCount: currentHolderGroupCountBefore } =
+      await testEnvironment.transferRestrictionsHelper.holderData(holderPubkey);
     await testEnvironment.transferRestrictionsHelper.program.methods
       .revokeHolderGroup()
       .accountsStrict({
@@ -251,6 +262,13 @@ describe("Revoke holder group", () => {
       holderGroupPubkey
     );
     assert.isNull(accountInfo);
+
+    const { currentHolderGroupCount } =
+      await testEnvironment.transferRestrictionsHelper.holderData(holderPubkey);
+    assert.equal(
+      currentHolderGroupCount.toNumber(),
+      currentHolderGroupCountBefore.subn(1).toNumber()
+    );
   });
 
   const investor = Keypair.generate();

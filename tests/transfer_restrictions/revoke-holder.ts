@@ -161,6 +161,52 @@ describe("Revoke holder", () => {
     }
   });
 
+  it("fails to revoke holder when holder group is not revoked in advance", async () => {
+    const signer = testEnvironment.transferAdmin;
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+    const [holderPubkey] = testEnvironment.transferRestrictionsHelper.holderPDA(
+      new anchor.BN(0)
+    );
+    let accountInfo = await testEnvironment.connection.getAccountInfo(
+      holderPubkey
+    );
+    assert.isNotNull(accountInfo);
+    const { currentHoldersCount: currentHoldersCountBefore } =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+
+    try {
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .revokeHolder()
+        .accountsStrict({
+          holder: holderPubkey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "CurrentHolderGroupCountMustBeZero");
+      assert.equal(
+        error.errorMessage,
+        "Current holder group count must be zero"
+      );
+    }
+
+    accountInfo = await testEnvironment.connection.getAccountInfo(holderPubkey);
+    assert.isNotNull(accountInfo);
+    const { currentHoldersCount: currentHoldersCountAfter } =
+      await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+    assert.equal(
+      currentHoldersCountAfter.toNumber(),
+      currentHoldersCountBefore.toNumber()
+    );
+  });
+
   it("revokes holder by transfer admin", async () => {
     const signer = testEnvironment.transferAdmin;
     const [authorityWalletRolePubkey] =
@@ -174,6 +220,27 @@ describe("Revoke holder", () => {
     assert.isNotNull(accountInfo);
     const { currentHoldersCount: currentHoldersCountBefore } =
       await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
+
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        groupId
+      );
+    await testEnvironment.transferRestrictionsHelper.program.methods
+      .revokeHolderGroup()
+      .accountsStrict({
+        holder: holderPubkey,
+        holderGroup: holderGroupPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
+        group: groupPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: signer.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([signer])
+      .rpc({ commitment: testEnvironment.commitment });
 
     await testEnvironment.transferRestrictionsHelper.program.methods
       .revokeHolder()
@@ -212,6 +279,26 @@ describe("Revoke holder", () => {
     const { currentHoldersCount: currentHoldersCountBefore } =
       await testEnvironment.transferRestrictionsHelper.transferRestrictionData();
 
+    const [holderGroupPubkey] =
+      testEnvironment.transferRestrictionsHelper.holderGroupPDA(
+        holderPubkey,
+        groupId
+      );
+    await testEnvironment.transferRestrictionsHelper.program.methods
+      .revokeHolderGroup()
+      .accountsStrict({
+        holder: holderPubkey,
+        holderGroup: holderGroupPubkey,
+        transferRestrictionData:
+          testEnvironment.transferRestrictionsHelper
+            .transferRestrictionDataPubkey,
+        group: groupPubkey,
+        authorityWalletRole: authorityWalletRolePubkey,
+        payer: signer.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([signer])
+      .rpc({ commitment: testEnvironment.commitment });
     await testEnvironment.transferRestrictionsHelper.program.methods
       .revokeHolder()
       .accountsStrict({

@@ -358,24 +358,25 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | Function                   | Contract Admin | Reserve Admin | Transfer Admin | Wallets Admin |
 | -------------------------- | -------------- | ------------- | -------------- | ------------- |
 | upgradeTransferRules()     | **yes**        | no            | no             | no            |
-| snapshot()                 | **yes**        | no            | no             | no            |
+| newDistributor()           | **yes**        | no            | **yes**        | no            |
 | mint()                     | no             | **yes**       | no             | no            |
 | burn()                     | no             | **yes**       | no             | no            |
 | forceTransferBetween()     | no             | **yes**       | no             | no            |
-| pause() or unpause (ie pause(false)) | **yes** | no         |  **yes**       | no            |
+| pause() or unpause (ie pause(false)) | **yes** | no         | **yes**        | no            |
 | setMaxTotalSuplly()        | no             | **yes**       | no             | no            |
-| setAllowGroupTransfer()    | no             | no            | **yes**        | no            |
+| setAllowTransferRule()     | no             | no            | **yes**        | no            |
 | setHolderMax()             | no             | no            | **yes**        | no            |
 | setHolderGroupMax()        | no             | no            | **yes**        | no            |
-| fundDividend()             | no             | no            | **yes**        | no            |
-| initilizeTransferRule()    | no             | no            | **yes**        | **yes**       |
+| initilizeTransferRule()    | no             | no            | **yes**        | no            |
 | freezeWallet()             | no             | no            | **yes**        | **yes**       |
 | thawWallet()               | no             | no            | **yes**        | **yes**       |
 | setTransferGroup()         | no             | no            | **yes**        | **yes**       |
 | createHolderFromAddress()  | no             | no            | **yes**        | **yes**       |
 | appendHolderAddress()      | no             | no            | **yes**        | **yes**       |
 | addHolderWithAddresses()   | no             | no            | **yes**        | **yes**       |
-| removeHolder()             | no             | no            | **yes**        | **yes**       |
+| revokeHolder()             | no             | no            | **yes**        | **yes**       |
+| revokeHolderGroup()        | no             | no            | **yes**        | **yes**       |
+| revokeSecurityAssociatedAccount() | no      | no            | **yes**        | **yes**       |
 | createReleaseSchedule()    | **yes**        | **yes**       | **yes**        | **yes**       |
 | mintReleaseSchedule()      | no             | **yes**       | no             | no            |
 
@@ -431,6 +432,16 @@ sequenceDiagram
 4. The Reserve Admin then provisions a Wallets Admin address for distributing tokens to investors or other stakeholders. The Wallets Admin uses `initializeTransferRestrictionHolder(investorAddress, holderId)`, `initializeHolderGroup(investorAddress, group)``initializeSecurityAssociatedAccount(investorAddress, transferGroup)` to set address restrictions.
 5. The Reserve Admin then transfers tokens to the Wallets Admin address.
 6. The Wallets Admin then transfers tokens to Investors or other stakeholders who are entitled to tokens.
+
+## Revoke Holder
+To redeem reserved SOL used for rent-exempt space allocation, you can utilize the `revoke*` methods. It is crucial to revoke accounts in the following sequence:
+
+1. *Revoke Security-Associated Accounts*: Revoke all security-associated accounts for the specified holder.
+2. *Revoke Holder Group Accounts*: Revoke all holder group accounts for the specified holder and associated groups.
+3. *Revoke the Holder*: Finally, revoke the holder account.
+
+A holder can only be revoked if it is not linked to any group or security-associated account. This condition is met when both `current_wallets_count` and `current_holder_group_count` are zero.
+
 
 # Setup For Separate Issuer Private Key Management Roles
 
@@ -976,6 +987,7 @@ await program.methods
     mint: dividendsMintPubkey,
     authorityWalletRole,
     accessControl: accessControlPubkey,
+    securityMint: securityMintPubkey,
     payer: signer.publicKey,
     systemProgram: SystemProgram.programId,
   })

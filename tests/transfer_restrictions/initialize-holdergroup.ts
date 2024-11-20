@@ -183,6 +183,11 @@ describe("Initialize transfer restriction HolderGroup", () => {
     assert.equal(holderGroup.group.toString(), zeroIdx.toString());
     assert.equal(holderGroup.currentWalletsCount.toNumber(), 0);
 
+    const holder = await testEnvironment.transferRestrictionsHelper.holderData(
+      holderPubkey
+    );
+    assert.equal(holder.currentHolderGroupCount.toNumber(), 1);
+
     const { currentHoldersCount: holderGroupCountAfter } =
       await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);
     assert.equal(
@@ -231,6 +236,10 @@ describe("Initialize transfer restriction HolderGroup", () => {
     assert.equal(holderGroup.holder.toString(), holderPubkey.toString());
     assert.equal(holderGroup.group.toString(), firstGroupIdx.toString());
     assert.equal(holderGroup.currentWalletsCount.toNumber(), 0);
+    const holder = await testEnvironment.transferRestrictionsHelper.holderData(
+      holderPubkey
+    );
+    assert.equal(holder.currentHolderGroupCount.toNumber(), 1);
 
     const { currentHoldersCount: holderGroupCountAfter } =
       await testEnvironment.transferRestrictionsHelper.groupData(groupPubkey);

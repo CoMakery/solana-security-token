@@ -1270,6 +1270,16 @@
       "code": 6007,
       "name": "NewMaxTotalSupplyMustExceedCurrentTotalSupply",
       "msg": "New max total supply must exceed current total supply"
+    },
+    {
+      "code": 6008,
+      "name": "CannotFreezeLockupEscrowAccount",
+      "msg": "Cannot freeze lockup escrow account"
+      },
+    {
+      "code": 6009,
+      "name": "ValueUnchanged",
+      "msg": "The provided value is already set. No changes were made"
     }
   ],
   "types": [

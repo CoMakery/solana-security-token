@@ -414,4 +414,34 @@ describe("Pause transfers", () => {
       (reserveAmountBeforeTransfer + BigInt(transferAmount)).toString()
     );
   });
+
+  it("fails to pause with the same value as it is on-chain", async () => {
+    const signer = testEnvironment.transferAdmin;
+    const [authorityWalletRolePubkey] =
+      testEnvironment.accessControlHelper.walletRolePDA(signer.publicKey);
+
+    try {
+      await testEnvironment.transferRestrictionsHelper.program.methods
+        .pause(false)
+        .accountsStrict({
+          securityMint: testEnvironment.mintKeypair.publicKey,
+          transferRestrictionData:
+            testEnvironment.transferRestrictionsHelper
+              .transferRestrictionDataPubkey,
+          accessControlAccount:
+            testEnvironment.accessControlHelper.accessControlPubkey,
+          authorityWalletRole: authorityWalletRolePubkey,
+          payer: signer.publicKey,
+        })
+        .signers([signer])
+        .rpc({ commitment: testEnvironment.commitment });
+      assert.fail("Expect an error");
+    } catch ({ error }) {
+      assert.equal(error.errorCode.code, "ValueUnchanged");
+      assert.equal(
+        error.errorMessage,
+        "The provided value is already set. No changes were made"
+      );
+    }
+  });
 });

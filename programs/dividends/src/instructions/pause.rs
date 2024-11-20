@@ -29,6 +29,10 @@ pub struct Pause<'info> {
 }
 
 pub fn pause(ctx: Context<Pause>, paused: bool) -> Result<()> {
+    if paused == ctx.accounts.distributor.paused {
+        return Err(DividendsErrorCode::ValueUnchanged.into());
+    }
+
     let distributor = &mut ctx.accounts.distributor;
     distributor.paused = paused;
 

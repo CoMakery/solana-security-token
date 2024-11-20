@@ -12,6 +12,9 @@ pub fn update_wallet_role(ctx: Context<UpdateWalletRole>, role: u8) -> Result<()
     if role > Roles::All as u8 {
         return Err(AccessControlError::InvalidRole.into());
     }
+    if role == ctx.accounts.wallet_role.role {
+        return Err(AccessControlError::ValueUnchanged.into());
+    }
 
     let wallet_role = &mut ctx.accounts.wallet_role;
     wallet_role.role = role;
