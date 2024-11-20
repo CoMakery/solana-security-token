@@ -897,6 +897,57 @@
       "args": []
     },
     {
+      "name": "set_max_total_supply",
+      "discriminator": [
+        249,
+        164,
+        34,
+        254,
+        160,
+        89,
+        214,
+        12
+      ],
+      "accounts": [
+        {
+          "name": "access_control_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "authority_wallet_role"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "max_total_supply",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "thaw_wallet",
       "discriminator": [
         79,
@@ -1217,11 +1268,16 @@
     },
     {
       "code": 6007,
+      "name": "NewMaxTotalSupplyMustExceedCurrentTotalSupply",
+      "msg": "New max total supply must exceed current total supply"
+    },
+    {
+      "code": 6008,
       "name": "CannotFreezeLockupEscrowAccount",
       "msg": "Cannot freeze lockup escrow account"
       },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "ValueUnchanged",
       "msg": "The provided value is already set. No changes were made"
     }

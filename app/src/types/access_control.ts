@@ -735,6 +735,45 @@ export type AccessControl = {
       args: [];
     },
     {
+      name: "setMaxTotalSupply";
+      discriminator: [249, 164, 34, 254, 160, 89, 214, 12];
+      accounts: [
+        {
+          name: "accessControlAccount";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [97, 99];
+              },
+              {
+                kind: "account";
+                path: "mint";
+              }
+            ];
+          };
+        },
+        {
+          name: "mint";
+        },
+        {
+          name: "authorityWalletRole";
+        },
+        {
+          name: "payer";
+          writable: true;
+          signer: true;
+        }
+      ];
+      args: [
+        {
+          name: "maxTotalSupply";
+          type: "u64";
+        }
+      ];
+    },
+    {
       name: "thawWallet";
       discriminator: [79, 251, 128, 221, 55, 172, 181, 221];
       accounts: [
@@ -977,11 +1016,16 @@ export type AccessControl = {
     },
     {
       code: 6007;
+      name: "newMaxTotalSupplyMustExceedCurrentTotalSupply";
+      msg: "New max total supply must exceed current total supply";
+    },
+    {
+      code: 6008;
       name: "cannotFreezeLockupEscrowAccount";
       msg: "Cannot freeze lockup escrow account";
     },
     {
-      code: 6008;
+      code: 6009;
       name: "valueUnchanged";
       msg: "The provided value is already set. No changes were made";
     }

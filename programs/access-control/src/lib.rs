@@ -55,4 +55,8 @@ pub mod access_control {
     pub fn set_lockup_escrow_account(ctx: Context<SetLockupEscrowAccount>) -> Result<()> {
         instructions::access_control::set_lockup_escrow_account(ctx)
     }
+
+    pub fn set_max_total_supply(ctx: Context<SetMaxTotalSupply>, max_total_supply: u64) -> Result<()> {
+        instructions::access_control::set_max_total_supply(ctx, max_total_supply)
+    }
 }

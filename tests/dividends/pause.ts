@@ -125,7 +125,7 @@ describe(`pause distribution`, () => {
 
     await testEnvironment.accessControlHelper.initializeWalletRole(
       wallet.publicKey,
-      Roles.ReserveAdmin | Roles.TransferAdmin | Roles.WalletsAdmin,
+      Roles.ReserveAdmin | Roles.WalletsAdmin,
       testEnvironment.contractAdmin
     );
     const [walletRole] = testEnvironment.accessControlHelper.walletRolePDA(
@@ -175,6 +175,60 @@ describe(`pause distribution`, () => {
       testEnvironment.accessControlHelper.accessControlPubkey
     );
     assert.equal(distributorData.paused, true);
+  });
+
+  it("pause and unpause distribution by transfer admin", async () => {
+    const wallet = Keypair.generate();
+    await topUpWallet(connection, wallet.publicKey, solToLamports(1));
+    await testEnvironment.accessControlHelper.initializeWalletRole(
+      wallet.publicKey,
+      Roles.TransferAdmin,
+      testEnvironment.contractAdmin
+    );
+    const [walletRole] = testEnvironment.accessControlHelper.walletRolePDA(
+      wallet.publicKey
+    );
+
+    await dividendsProgram.methods
+      .pause(true)
+      .accountsStrict({
+        distributor,
+        accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+        authorityWalletRole: walletRole,
+        authority: wallet.publicKey,
+      })
+      .signers([wallet])
+      .rpc({ commitment });
+
+    let distributorData =
+      await dividendsProgram.account.merkleDistributor.fetch(distributor);
+    assert.equal(distributorData.bump, bump);
+    assert.deepEqual(
+      distributorData.accessControl,
+      testEnvironment.accessControlHelper.accessControlPubkey
+    );
+    assert.equal(distributorData.paused, true);
+
+    await dividendsProgram.methods
+      .pause(false)
+      .accountsStrict({
+        distributor,
+        accessControl: testEnvironment.accessControlHelper.accessControlPubkey,
+        authorityWalletRole: walletRole,
+        authority: wallet.publicKey,
+      })
+      .signers([wallet])
+      .rpc({ commitment });
+
+    distributorData = await dividendsProgram.account.merkleDistributor.fetch(
+      distributor
+    );
+    assert.equal(distributorData.bump, bump);
+    assert.deepEqual(
+      distributorData.accessControl,
+      testEnvironment.accessControlHelper.accessControlPubkey
+    );
+    assert.equal(distributorData.paused, false);
   });
 
   it("unpauses dividends distribution by contract admin", async () => {
