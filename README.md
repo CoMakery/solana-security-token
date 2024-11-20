@@ -931,7 +931,7 @@ Otherwise program ownership, upgrades and changes must be shared with users.
 
 # Dividends
 
-Dividends program is based on [merkle-distributor program](https://github.com/saber-hq/merkle-distributor) but with access control and support of Token22.
+Dividends program is based on [merkle-distributor program](https://github.com/saber-hq/merkle-distributor) but with access control and support of Token22. Note that the transfer fee extension must remain disabled in this implementation for Token22 as a payment token.
 Dividends functionality provides the administrators of the Primary security token the ability to make dividend distributions at certain points in time. Each moment of time is recorded as a Merkle tree root proof, total claim amount and number of nodes of a snapshot that captures the relative ownership of each token holder (invoking `newDistributor()` method manually by Contract Admin on the `Dividends` program). Snapshot and Merkle tree are built off-chain in advance and can be stored on IPFS or any other distributed storage. Dividends can be payed in any SPL or SPL 2022 standard tokens. The distributor creator can upload the IPFS hash containing the Merkle tree and all proofs for eligible claimants. It will allow anyone to obtain an on-chain link to the distribution information and claim it themselves.
 
 Investor can claim only all dividends amount for one distribution in 1 instruction.

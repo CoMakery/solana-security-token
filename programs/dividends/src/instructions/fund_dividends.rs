@@ -3,6 +3,7 @@ use anchor_spl::token_2022::spl_token_2022::onchain::invoke_transfer_checked;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::events::FundedEvent;
+use crate::utils::validate_transfer_fee_mint_extension;
 use crate::{errors::DividendsErrorCode, MerkleDistributor};
 
 /// [merkle_distributor::fund_dividends] accounts.
@@ -57,14 +58,13 @@ pub fn fund_dividends<'info>(
         DividendsErrorCode::KeysMustNotMatch
     );
     require!(
-        amount > 0 && amount <= ctx.accounts.distributor.total_claim_amount,
-        DividendsErrorCode::InvalidFundingAmount
-    );
-    require!(
+        // Ensure the funded amount exactly matches the total claim amount
         ctx.accounts.to.amount.checked_add(amount).unwrap()
-            <= ctx.accounts.distributor.total_claim_amount,
+            == ctx.accounts.distributor.total_claim_amount,
         DividendsErrorCode::InvalidFundingAmount
     );
+    let mint_data = &ctx.accounts.mint.to_account_info();
+    validate_transfer_fee_mint_extension(mint_data)?;
 
     let distributor = &mut ctx.accounts.distributor;
     let treasury_amount_before = ctx.accounts.to.amount;

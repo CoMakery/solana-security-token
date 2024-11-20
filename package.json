@@ -12,7 +12,7 @@
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
-    "@solana/spl-token": "^0.4.6",
+    "@solana/spl-token": "^0.4.8",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",

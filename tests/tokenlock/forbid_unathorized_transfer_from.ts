@@ -54,6 +54,9 @@ describe("token lockup", () => {
   let holder0Pubkey: PublicKey,
     holder1Pubkey: PublicKey,
     holder2Pubkey: PublicKey;
+  let holder0Pubkey: PublicKey,
+    holder1Pubkey: PublicKey,
+    holder2Pubkey: PublicKey;
 
   before("setups environment", async () => {
     await testEnvironment.setupAccessControl();
@@ -736,12 +739,11 @@ describe("token lockup", () => {
       );
       assert.fail("The transaction should have failed");
     } catch (error) {
-      console.log("Error", error);
       assert.equal(
-        error.message,
-        "failed to send transaction: Transaction simulation failed: Error processing Instruction 1: custom program error: 0x7d6"
+        error.transactionMessage,
+        "Transaction simulation failed: Error processing Instruction 1: custom program error: 0x7d6"
       );
-      const res = error.logs.some(
+      const res = error.transactionLogs.some(
         (log: string) =>
           log ===
           "Program log: AnchorError caused by account: security_associated_account_from. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated."

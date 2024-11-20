@@ -381,6 +381,11 @@ export type Dividends = {
       code: 6011;
       name: "valueUnchanged";
       msg: "The provided value is already set. No changes were made";
+    },
+    {
+      code: 6012;
+      name: "transferFeeIsNotAllowedForPaymentMint";
+      msg: "Transfer fee is not allowed for payment mint";
     }
   ];
   types: [
