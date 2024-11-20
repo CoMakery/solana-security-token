@@ -4,8 +4,7 @@ use anchor_lang::prelude::*;
 ///
 /// TODO: this is probably better stored as the node that was verified.
 #[account]
-#[derive(Default)]
-#[derive(InitSpace)]
+#[derive(Default, InitSpace)]
 pub struct ClaimStatus {
     /// If true, the tokens have been claimed.
     pub is_claimed: bool,

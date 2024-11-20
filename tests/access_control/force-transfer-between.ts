@@ -257,8 +257,8 @@ describe("Access Control force transfer between", () => {
       assert.fail("Expected an error");
     } catch (error) {
       assert.equal(
-        error,
-        "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 1: custom program error: 0x1"
+        error.transactionMessage,
+        "Transaction simulation failed: Error processing Instruction 1: custom program error: 0x1"
       );
     }
   });

@@ -26,4 +26,6 @@ pub enum DividendsErrorCode {
     InvalidIPFSHashSize,
     #[msg("The provided value is already set. No changes were made")]
     ValueUnchanged,
+    #[msg("Transfer fee is not allowed for payment mint")]
+    TransferFeeIsNotAllowedForPaymentMint,
 }

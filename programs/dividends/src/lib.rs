@@ -6,6 +6,7 @@ pub mod errors;
 pub mod events;
 pub mod instructions;
 pub mod merkle_proof;
+pub mod utils;
 use instructions::*;
 
 declare_id!("BvQwgkeevtxXrUsWtZU3fUu5R3qTYne2XfrQp8dXXut3");

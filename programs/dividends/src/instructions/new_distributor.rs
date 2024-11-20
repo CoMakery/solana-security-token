@@ -4,7 +4,10 @@ use access_control::{
 use anchor_lang::{prelude::*, solana_program::program_option::COption};
 use anchor_spl::{token_2022::ID as TOKEN_2022_PROGRAM_ID, token_interface::Mint};
 
-use crate::{errors::DividendsErrorCode, MerkleDistributor, MAX_IPFS_HASH_LEN};
+use crate::{
+    errors::DividendsErrorCode, utils::validate_transfer_fee_mint_extension, MerkleDistributor,
+    MAX_IPFS_HASH_LEN,
+};
 
 /// Accounts for [merkle_distributor::new_distributor].
 #[derive(Accounts)]
@@ -81,6 +84,8 @@ pub fn new_distributor(
     if ipfs_hash.len() > MAX_IPFS_HASH_LEN {
         return Err(DividendsErrorCode::InvalidIPFSHashSize.into());
     }
+    let mint_data: &AccountInfo = &ctx.accounts.mint.to_account_info();
+    validate_transfer_fee_mint_extension(mint_data)?;
 
     let distributor = &mut ctx.accounts.distributor;
 
