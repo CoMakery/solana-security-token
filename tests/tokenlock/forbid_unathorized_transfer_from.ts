@@ -54,9 +54,6 @@ describe("token lockup", () => {
   let holder0Pubkey: PublicKey,
     holder1Pubkey: PublicKey,
     holder2Pubkey: PublicKey;
-  let holder0Pubkey: PublicKey,
-    holder1Pubkey: PublicKey,
-    holder2Pubkey: PublicKey;
 
   before("setups environment", async () => {
     await testEnvironment.setupAccessControl();
