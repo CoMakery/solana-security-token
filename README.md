@@ -1,5 +1,3 @@
-# ⚠️ Notice: Programs from this repository has not been audited yet. Use at your own risk.
-
 # Solana Security Token
 
 # Environment Setup
