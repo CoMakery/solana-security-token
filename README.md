@@ -963,11 +963,19 @@ sequenceDiagram
 
 1. Amount of entitled dividend token is transferred from the `Dividends` PDA to the rightful recipient.
 
+## Security implication
+**Please note:** *Anyone can create a Security Token* with related Access Control data and a Distributor. 
+
+However, **someone might attempt to deceive the issuer** into funding dividends into fake accounts, which could result in **a loss of funds**. 
+
+Therefore, the issuer must use **a trusted service** to fund dividends or validate Security Token address inside instruction to mitigate this risk.
+
 ## Relevant Methods
 
 ### New Distribution Creation Code
 
 A new distribution can be created with a call to the Solana program like this.
+
 
 **Solana Web3 TS call:**
 ```typescript
