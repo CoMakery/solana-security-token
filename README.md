@@ -365,7 +365,7 @@ Typically any legal entity third-party Transfer Agent will need access to both t
 | setAllowTransferRule()     | no             | no            | **yes**        | no            |
 | setHolderMax()             | no             | no            | **yes**        | no            |
 | setHolderGroupMax()        | no             | no            | **yes**        | no            |
-| initilizeTransferRule()    | no             | no            | **yes**        | no            |
+| initializeTransferRule()    | no             | no            | **yes**        | no            |
 | freezeWallet()             | no             | no            | **yes**        | **yes**       |
 | thawWallet()               | no             | no            | **yes**        | **yes**       |
 | setTransferGroup()         | no             | no            | **yes**        | **yes**       |
@@ -541,7 +541,7 @@ Usualy used with `initializeTransferRestricitionHolder` and `initializeHolderGro
 
 ## `initialializeTransferRule`
 
-`initilizeTransferRule` is used to create new transfer rule for 2 specified groups where `..groupFrom` for senders and `..groupTo` for reveivers
+`initializeTransferRule` is used to create new transfer rule for 2 specified groups where `..groupFrom` for senders and `..groupTo` for reveivers
 
 ## Timelock Cancellations and Transfers
 

@@ -47,7 +47,7 @@ pub struct FundDividends<'info> {
     pub token_program: Interface<'info, TokenInterface>,
 }
 
-// only transfer admin can fund the distributor
+// anyone can fund the distributor
 /// Fund dividend tokens to the [MerkleDistributor].
 pub fn fund_dividends<'info>(
     ctx: Context<'_, '_, '_, 'info, FundDividends<'info>>,
